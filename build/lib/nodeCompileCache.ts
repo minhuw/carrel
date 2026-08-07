@@ -9,7 +9,8 @@ import * as os from 'os';
 import * as path from 'path';
 
 const nodeCompileCacheKinds = ['main', 'extension-host', 'shared-process', 'pty-host'] as const;
-const nodeCompileCacheTagPattern = /^v\d+\.\d+\.\d+-(arm64|x64)-[0-9a-f]{8}$/;
+// Recent Electron appends a numeric compile-cache format version (for example, `-501`).
+const nodeCompileCacheTagPattern = /^v\d+\.\d+\.\d+-(arm64|x64)-[0-9a-f]{8}(?:-\d+)?$/;
 const nodeCompileCacheEntryPattern = /^[0-9a-f]{8}$/;
 
 export interface INodeCompileCacheProduct {
@@ -122,7 +123,14 @@ export async function validateNodeCompileCache(rootDirectory: string, architectu
 
 function runCacheGeneration(application: string, cacheDirectory: string, env: NodeJS.ProcessEnv): Promise<void> {
 	return new Promise((resolve, reject) => {
-		const child = cp.spawn(application, [], {
+		// Cache generation runs an isolated throwaway application instance. Chromium's
+		// setuid sandbox is unnecessary and is not available on headless build runners.
+		const child = process.platform === 'linux'
+			? cp.spawn('xvfb-run', ['-a', application, '--no-sandbox'], {
+				env,
+				stdio: ['ignore', 'pipe', 'pipe']
+			})
+			: cp.spawn(application, ['--no-sandbox'], {
 			env,
 			stdio: ['ignore', 'pipe', 'pipe']
 		});

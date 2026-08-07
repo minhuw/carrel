@@ -32,7 +32,7 @@ import { NativeIssueService } from '../../electron-browser/issueService.js';
 
 suite('NativeIssueService additional repositories', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
-	const product = { reportIssueUrl: 'https://github.com/microsoft/vscode/issues/new' };
+	const product = { reportIssueUrl: 'https://github.com/minhuw/carrel/issues/new' };
 
 	function createService(wizard: boolean, repositories: unknown, extensions: ILocalExtension[] = []) {
 		const instantiationService = store.add(new TestInstantiationService());
@@ -148,7 +148,7 @@ suite('NativeIssueService additional repositories', () => {
 					authenticationProviders,
 					configurationReads, errors, warnings,
 				}, {
-					target: wizard ? { url: product.reportIssueUrl, external: false, isPrivate: false, isPublic: true, repository: { owner: 'microsoft', repositoryName: 'vscode' } } : undefined,
+					target: wizard ? { url: product.reportIssueUrl, external: false, isPrivate: false, isPublic: false, repository: { owner: 'minhuw', repositoryName: 'carrel' } } : undefined,
 					privateUrl: undefined,
 					destination: undefined,
 					repositories: wizard ? repositories?.length === 3 ? ['Owner/extra', 'other/third'] : repositories ?? [] : undefined,

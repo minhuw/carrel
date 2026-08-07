@@ -6,6 +6,7 @@
 	"sharedDataFolderName": ".carrel-shared",
 	"win32MutexName": "carrel",
 	"licenseName": "MIT",
+	"reportIssueUrl": "https://github.com/minhuw/carrel/issues/new",
 	"licenseUrl": "https://github.com/microsoft/vscode/blob/main/LICENSE.txt",
 	"serverLicenseUrl": "https://github.com/microsoft/vscode/blob/main/LICENSE.txt",
 	"serverGreeting": [],

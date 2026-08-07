@@ -88,6 +88,8 @@ git push origin <tag>
 
 The workflow validates that the tag matches `package.json`'s `version`, builds the signed macOS app and all reh server targets on native runners (so server native modules are always correct), publishes the GitHub release, and updates the homebrew cask in `minhuw/homebrew-carrel` (requires a `CARREL_TAP_TOKEN` repo secret with write access to the tap).
 
+Moving a `v*` tag re-runs `carrel-release.yml`, which updates the Homebrew cask, so the workflow must be disabled first (`gh workflow disable carrel-release`) whenever a tag has to move.
+
 ### Versioning
 
 Carrel's version is the upstream Code - OSS version plus a build-metadata suffix: `1.132.0+0.1.0` means "Code - OSS 1.132.0, Carrel patch line 0.1.x". Bugfix and polish releases on the same upstream base increment the suffix (`1.132.0+0.1.1`, ...); moving to a new upstream base resets it (`1.133.0+0.1.0`). Only the suffix after `+` is Carrel's; the semver core always tracks upstream exactly.
@@ -97,8 +99,8 @@ Carrel's version is the upstream Code - OSS version plus a build-metadata suffix
 After every rebase, and before pushing `main` or creating a release tag, the complete Electron unit suite used by Carrel CI must finish with zero failures:
 
 ```bash
-npm run compile
-npm run electron
+pnpm run compile
+pnpm run electron
 ./scripts/test.sh --no-sandbox
 ```
 
@@ -108,7 +110,7 @@ On headless Linux, run the suite under Xvfb instead:
 xvfb-run -a ./scripts/test.sh --no-sandbox
 ```
 
-`npm run test-node`, targeted tests, type checking, and compilation do not substitute for the full Electron suite. Targeted tests are supplemental and should be used to reproduce and verify specific fixes. When a downstream feature removal makes an upstream test obsolete, fix or remove that test in the stage that owns the feature removal; never skip or exclude it from the suite.
+`pnpm run test-node`, targeted tests, type checking, and compilation do not substitute for the full Electron suite. Targeted tests are supplemental and should be used to reproduce and verify specific fixes. When a downstream feature removal makes an upstream test obsolete, fix or remove that test in the stage that owns the feature removal; never skip or exclude it from the suite.
 
 ## Upstream Engineering Guidance
 

@@ -115,8 +115,18 @@ function getDefaultIssueReporterTarget(data: IssueTargetData, product: IssueProd
 	};
 }
 
-function supportsRepositorySelection(data: IssueTargetData, target: IssueReporterTarget | undefined): boolean {
-	return data.issueSource !== IssueSource.Extension && data.issueSource !== IssueSource.Marketplace && !!target && isPublicVSCodeIssueUrl(target.url);
+export function isIssueReporterProductUrl(url: string | undefined, product: IssueProduct): boolean {
+	if (isPublicVSCodeIssueUrl(url)) {
+		return true;
+	}
+	const productRepository = product.reportIssueUrl ? parseGitHubRepository(product.reportIssueUrl) : undefined;
+	const repository = url ? parseGitHubRepository(url) : undefined;
+	return !!productRepository && repository?.owner.toLowerCase() === productRepository.owner.toLowerCase()
+		&& repository.repositoryName.toLowerCase() === productRepository.repositoryName.toLowerCase();
+}
+
+function supportsRepositorySelection(data: IssueTargetData, target: IssueReporterTarget | undefined, product: IssueProduct): boolean {
+	return data.issueSource !== IssueSource.Extension && data.issueSource !== IssueSource.Marketplace && !!target && isIssueReporterProductUrl(target.url, product);
 }
 
 export function getIssueReporterRepositoryChoices(data: IssueTargetData, product: IssueProduct): readonly IssueReporterTarget[] {
@@ -124,7 +134,7 @@ export function getIssueReporterRepositoryChoices(data: IssueTargetData, product
 	if (!defaultTarget) {
 		return [];
 	}
-	if (!supportsRepositorySelection(data, defaultTarget)) {
+	if (!supportsRepositorySelection(data, defaultTarget, product)) {
 		return [defaultTarget];
 	}
 	let repositories: readonly string[];
@@ -147,7 +157,7 @@ export function getIssueReporterRepositoryChoices(data: IssueTargetData, product
 
 export function resolveIssueReporterTarget(data: IssueTargetData, product: IssueProduct): IssueReporterTarget | undefined {
 	const defaultTarget = getDefaultIssueReporterTarget(data, product);
-	if (data.issueRepository === undefined || !supportsRepositorySelection(data, defaultTarget)) {
+	if (data.issueRepository === undefined || !supportsRepositorySelection(data, defaultTarget, product)) {
 		return defaultTarget;
 	}
 	if (!repositoryNameRegex.test(data.issueRepository)) {

@@ -10,7 +10,7 @@ import * as path from 'path';
 import { afterEach, beforeEach, suite, test } from 'node:test';
 import { validateNodeCompileCache } from '../nodeCompileCache.ts';
 
-const kinds = ['main', 'extension-host', 'shared-process', 'pty-host', 'agent-host'];
+const kinds = ['main', 'extension-host', 'shared-process', 'pty-host'];
 const tag = `v24.22.1-${process.arch}-7034790f`;
 
 suite('validateNodeCompileCache', () => {
@@ -46,3 +46,29 @@ suite('validateNodeCompileCache', () => {
 		await assert.rejects(validateNodeCompileCache(root, process.arch), /unexpected shared-process cache entries in .*: unexpected\.txt\./);
 	});
 });
+
+async function createCache(root: string, tag: string): Promise<void> {
+	for (const kind of kinds) {
+		const directory = path.join(root, kind);
+		await fs.promises.mkdir(directory, { recursive: true });
+		await fs.promises.writeFile(path.join(directory, '.ready'), '');
+		await fs.promises.mkdir(path.join(directory, tag), { recursive: true });
+		await fs.promises.writeFile(path.join(directory, tag, 'abcdef12'), 'cache');
+	}
+}
+
+for (const [name, tag] of [
+	['legacy cache directory', 'v24.22.0-arm64-abcdef12'],
+	['cache directory with a format suffix', 'v24.22.0-arm64-60e4fe36-501'],
+] as const) {
+	test(`validateNodeCompileCache accepts ${name}`, async () => {
+		const root = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'carrel-compile-cache-test-'));
+		try {
+			await createCache(root, tag);
+			assert.equal(await validateNodeCompileCache(root, 'arm64'), kinds.length);
+			await assert.rejects(() => validateNodeCompileCache(root, 'x64'), /expected exactly one/);
+		} finally {
+			await fs.promises.rm(root, { recursive: true, force: true });
+		}
+	});
+}

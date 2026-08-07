@@ -28,7 +28,8 @@ export async function ensureElectronTypes(): Promise<void> {
 
 	const { electronVersion } = getElectronVersion();
 	const url = `https://github.com/electron/electron/releases/download/v${electronVersion}/electron.d.ts`;
-	const contents = await download(url, { checksumSha256: expectedChecksum });
+	// GitHub's release CDN can return 5xx responses for minutes at a time, so keep retrying (about three minutes in total) before failing the install.
+	const contents = await download(url, { checksumSha256: expectedChecksum, attempts: 6, retryDelay: 5_000 });
 
 	fs.mkdirSync(path.dirname(electronTypesPath), { recursive: true });
 	fs.writeFileSync(electronTypesPath, contents);

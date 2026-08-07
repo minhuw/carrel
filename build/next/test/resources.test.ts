@@ -311,7 +311,8 @@ export const url = import.meta.url;
 });
 
 async function createFixture(t: TestContext) {
-	const root = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'vscode-resources-test-'));
+	// Resolve symlinks: on macOS the temp directory is under /var, which is /private/var, and module URLs use the resolved path.
+	const root = await fs.promises.realpath(await fs.promises.mkdtemp(path.join(os.tmpdir(), 'vscode-resources-test-')));
 	t.after(() => fs.promises.rm(root, { recursive: true, force: true }));
 	await writeFile(root, 'package.json', '{"type":"module"}');
 	await writeFile(root, 'tsconfig.json', '{"compilerOptions":{"alwaysStrict":true}}');

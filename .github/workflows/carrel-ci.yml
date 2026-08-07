@@ -1,0 +1,53 @@
+# Carrel push CI: fast correctness gates for the main branch.
+#
+# Runs on every push to main (which is the only remote branch) and on demand.
+# Unlike the release pipeline this builds nothing distributable — it proves
+# the tree compiles and the unit tests pass.
+name: carrel-ci
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Install native build dependencies
+        run: sudo apt-get update && sudo apt-get install -y libkrb5-dev libx11-dev libxkbfile-dev
+      - run: npm ci
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Typecheck and compile everything
+        run: npm run compile
+
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Install test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libkrb5-dev libx11-dev libxkbfile-dev \
+            libgtk-3-0t64 libnss3 libasound2t64 xvfb
+      - run: npm ci
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - run: npm run compile
+      - name: Download Electron and fix chrome-sandbox permissions
+        run: |
+          npm run electron || true
+          sudo chown root:root .build/electron/chrome-sandbox
+          sudo chmod 4755 .build/electron/chrome-sandbox
+      - name: Run unit tests
+        # --no-sandbox: the runner cannot provide a correctly-permissioned
+        # setuid chrome-sandbox helper; irrelevant for headless unit tests.
+        run: xvfb-run -a ./scripts/test.sh --no-sandbox

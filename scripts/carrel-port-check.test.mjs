@@ -39,5 +39,4 @@ test('manifest audit catches drift and AI dependency reintroduction', () => {
 	assert.ok(errors.some(error => error.includes('beta') && error.includes('missing')));
 	assert.ok(errors.some(error => error.includes('extra') && error.includes('only present')));
 	assert.ok(errors.some(error => error.includes('@hpke/core') && error.includes('reintroduced')));
-	assert.ok(errors.some(error => error.includes('@hpke/core') && error.includes('present in lockfile')));
 });

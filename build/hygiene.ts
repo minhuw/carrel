@@ -92,8 +92,10 @@ export function hygiene(some: NodeJS.ReadWriteStream | string[] | undefined, run
 	const productJson = es.through(function (file: VinylFile) {
 		const product = JSON.parse(file.contents!.toString('utf8'));
 
-		if (product.extensionsGallery) {
-			console.error(`product.json: Contains 'extensionsGallery'`);
+		// AGENTS.md: use Open VSX or a Carrel-controlled registry, not the Microsoft Visual Studio Marketplace.
+		const galleryServiceUrl: string | undefined = product.extensionsGallery?.serviceUrl;
+		if (galleryServiceUrl?.includes('marketplace.visualstudio.com')) {
+			console.error(`product.json: extensionsGallery.serviceUrl is the Microsoft Visual Studio Marketplace: ${galleryServiceUrl}`);
 			errorCount++;
 		}
 

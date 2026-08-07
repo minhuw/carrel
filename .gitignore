@@ -51,6 +51,12 @@ dist
 .agents/skills/.local/
 .github/skills/.local/
 
+# Generated compile output (never committed; the build regenerates it)
+**/notebook-out/
+**/renderer-out/
+# Generated markdown-math preview styles (never committed)
+/extensions/markdown-math/preview-styles/katex/
+
 # Throwaway Code OSS dev profiles created by the launch skill
 .v[0-9]*/
 # Local agent validation evidence

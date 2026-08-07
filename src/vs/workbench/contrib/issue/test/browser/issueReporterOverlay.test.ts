@@ -206,6 +206,10 @@ suite('IssueReporterOverlay', () => {
 		return `${repository.owner}/${repository.repositoryName}`;
 	}
 
+	function getProductRepository(): string {
+		return new URL(product.reportIssueUrl!).pathname.split('/').slice(1, 3).join('/');
+	}
+
 	function attachmentNames(files: HTMLElement): string[] {
 		return [...files.querySelectorAll('.wizard-screenshot-card:not(.wizard-screenshot-add)')].map(card => card.querySelector('.wizard-file-name')?.textContent ?? card.querySelector('img')!.alt);
 	}
@@ -1007,7 +1011,7 @@ suite('IssueReporterOverlay', () => {
 		});
 	});
 
-	for (const additionalRepositories of [undefined, [], ['microsoft/vscode']]) {
+	for (const additionalRepositories of [undefined, [], [getProductRepository()]]) {
 		test(`does not reveal a useless repository menu for ${JSON.stringify(additionalRepositories)}`, () => {
 			const { container, data } = createReporter({ additionalRepositories });
 			assert.deepStrictEqual({ menu: !!container.querySelector('.issue-reporter-repository-picker'), target: container.querySelector('.wizard-target-status')?.textContent }, { menu: false, target: `Issue will be opened in ${getRepository(data)}` });
@@ -1020,7 +1024,7 @@ suite('IssueReporterOverlay', () => {
 	});
 
 	test('retains ordered repository choices and submitted destination through model updates', async () => {
-		const { overlay, container, data, preview, selectRepository, getMenu } = createReporter({ additionalRepositories: ['MICROSOFT/VSCODE', 'owner/second', 'team/third', 'TEAM/THIRD'] });
+		const { overlay, container, data, preview, selectRepository, getMenu } = createReporter({ additionalRepositories: [getProductRepository().toUpperCase(), 'owner/second', 'team/third', 'TEAM/THIRD'] });
 		const repository = getRepository(data);
 		container.querySelector<HTMLElement>('.issue-reporter-repository-picker')!.click();
 		const choices = getMenu()?.getActions().map(action => action.label);

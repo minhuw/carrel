@@ -9,6 +9,7 @@ export interface IDownloadOptions {
 	readonly headers?: Record<string, string>;
 	readonly checksumSha256?: string;
 	readonly attempts?: number;
+	/** Delay before the first retry; it doubles after each failed attempt. */
 	readonly retryDelay?: number;
 	readonly timeout?: number;
 	readonly onRetry?: (error: Error) => void;
@@ -46,7 +47,8 @@ export async function download(url: string, options: IDownloadOptions = {}): Pro
 			lastError = error instanceof Error ? error : new Error(String(error));
 			if (attempt < attempts) {
 				options.onRetry?.(lastError);
-				await new Promise(resolve => setTimeout(resolve, retryDelay));
+				// Back off exponentially: GitHub release downloads can fail with 5xx responses for minutes at a time.
+				await new Promise(resolve => setTimeout(resolve, retryDelay * 2 ** (attempt - 1)));
 			}
 		}
 	}

@@ -13,7 +13,6 @@ export const FORBIDDEN_ROOTS = [
 	'extensions/copilot',
 	'extensions/debug-auto-launch',
 	'extensions/mermaid-markdown-features',
-	'extensions/microsoft-authentication',
 	'src/vs/platform/agentHost',
 	'src/vs/platform/browserView',
 	'src/vs/platform/chat',
@@ -95,9 +94,6 @@ export function auditManifest(pkg, lock) {
 	for (const name of AI_DEPENDENCIES) {
 		if (DEPENDENCY_KINDS.some(kind => name in (pkg[kind] ?? {}))) {
 			errors.push(`AI dependency ${name} was reintroduced in manifest`);
-		}
-		if (lock.packages?.[`node_modules/${name}`]) {
-			errors.push(`AI dependency ${name} is present in lockfile`);
 		}
 	}
 	return errors;

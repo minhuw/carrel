@@ -20,7 +20,7 @@ import { IColorTheme, IThemeService } from '../../../../platform/theme/common/th
 import { IWorkspaceTrustManagementService } from '../../../../platform/workspace/common/workspaceTrust.js';
 import { SIDE_BAR_BACKGROUND } from '../../../common/theme.js';
 import { IIssueFormService, IssueReporterData, IssueReporterExtensionData, IssueReporterStyles, IssueSource, IWorkbenchIssueService } from '../common/issue.js';
-import { isPublicVSCodeIssueUrl, issueReporterAdditionalRepositoriesSettingId, parseIssueReporterRepositories } from '../common/issueReporterTarget.js';
+import { isIssueReporterProductUrl, issueReporterAdditionalRepositoriesSettingId, parseIssueReporterRepositories } from '../common/issueReporterTarget.js';
 import { IAuthenticationService } from '../../../services/authentication/common/authentication.js';
 import { IWorkbenchExtensionEnablementService } from '../../../services/extensionManagement/common/extensionManagement.js';
 import { IWorkbenchEnvironmentService } from '../../../services/environment/common/environmentService.js';
@@ -47,7 +47,7 @@ export class NativeIssueService implements IWorkbenchIssueService {
 	async openReporter(dataOverrides: Partial<IssueReporterData> = {}): Promise<void> {
 		const useWizard = this.configurationService.getValue<boolean>('issueReporter.wizard.enabled');
 		if (useWizard && !dataOverrides.extensionId && dataOverrides.issueSource !== IssueSource.Extension && dataOverrides.issueSource !== IssueSource.Marketplace
-			&& isPublicVSCodeIssueUrl(URI.revive(dataOverrides.uri)?.toString() ?? this.productService.reportIssueUrl)) {
+			&& isIssueReporterProductUrl(URI.revive(dataOverrides.uri)?.toString() ?? this.productService.reportIssueUrl, this.productService)) {
 			try {
 				dataOverrides = { ...dataOverrides, additionalRepositories: parseIssueReporterRepositories(this.configurationService.getValue<unknown>(issueReporterAdditionalRepositoriesSettingId)) };
 			} catch (error) {

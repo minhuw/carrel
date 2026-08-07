@@ -175,6 +175,9 @@ export const indentationFilter = Object.freeze<string[]>([
 
 export const copyrightFilter = Object.freeze<string[]>([
 	'**',
+
+	// Carrel's own scripts are independently branded: no Microsoft copyright header (AGENTS.md)
+	'!scripts/carrel-*',
 	'!**/*.desktop',
 	'!**/*.json',
 	'!**/*.jsonc',

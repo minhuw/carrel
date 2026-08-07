@@ -73,6 +73,8 @@ extensions/vscode-colorize-tests/test/colorize-fixtures/test6916.js
 extensions/yaml/build/update-grammar.js
 gulpfile.mjs
 remote/.pnpmfile.mjs
+scripts/carrel-port-check.mjs
+scripts/carrel-port-check.test.mjs
 scripts/chat-simulation/common/perf-scenarios.js
 scripts/chat-simulation/common/utils.js
 scripts/chat-simulation/merge-ci-summary.js

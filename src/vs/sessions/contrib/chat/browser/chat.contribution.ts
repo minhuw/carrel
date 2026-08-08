@@ -14,7 +14,6 @@ import { ISessionsService } from '../../../services/sessions/browser/sessionsSer
 import { ISessionsManagementService, inheritableSessionTarget } from '../../../services/sessions/common/sessionsManagement.js';
 import { BranchChatSessionAction } from './branchChatSessionAction.js';
 import { RunScriptContribution } from './runScriptAction.js';
-import './nullInlineChatSessionService.js';
 import './modelPicker.js';
 import './agentHostDelegation.js';
 import './newSessionFolderQuickPickAction.js';

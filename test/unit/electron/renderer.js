@@ -218,7 +218,6 @@ async function loadTests(opts) {
 	]);
 
 	const _allowedSuitesWithOutput = new Set([
-		'InlineChatController'
 	]);
 
 	let _testsWithUnexpectedOutput = false;

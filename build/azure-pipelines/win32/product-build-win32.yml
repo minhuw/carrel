@@ -11,8 +11,7 @@ parameters:
     type: boolean
     default: false
   # Whether to include the steps and jobs that need a privileged service
-  # connection (signing, CDN uploads, Copilot test setup). Only
-  # sdk-validation-build.yml sets this to false.
+  # connection (signing, CDN uploads).
   - name: VSCODE_PRIVILEGED_CONNECTIONS
     type: boolean
     default: true
@@ -22,16 +21,16 @@ parameters:
 #   1. Compile: compiles the client, server and web server builds and
 #      publishes them as the compilation_win32_<arch> artifact.
 #   2. Sign: code signs the builds of the compilation artifact together with
-#      the CLI and the Copilot shim, packages them and publishes the product
-#      artifacts, including the standalone CLI.
+#      the CLI, packages them and publishes the product artifacts, including
+#      the standalone CLI.
 # The test jobs are declared next to this template (see
 # product-build-win32-test.yml) and depend on the compile job. The sign job
 # also depends on the CLI job (see product-build-win32-cli.yml), which builds
-# the unsigned CLI and Copilot shim in parallel with the compile job, so the
-# CLI job must be part of the same stage. The sign and test jobs run in
-# parallel, but the Publish stage only publishes the x64 product artifacts once
-# all Windows_<arch>_Test_<name> jobs have succeeded (see artifactsByGatingJob
-# in ../common/publish.ts).
+# the unsigned CLI in parallel with the compile job, so the CLI job must be
+# part of the same stage. The sign and test jobs run in parallel, but the
+# Publish stage only publishes the x64 product artifacts once all
+# Windows_<arch>_Test_<name> jobs have succeeded (see artifactsByGatingJob in
+# ../common/publish.ts).
 jobs:
   - job: Windows_${{ parameters.VSCODE_ARCH }}_Compile
     displayName: Windows (${{ upper(parameters.VSCODE_ARCH) }}) - Compile
@@ -49,12 +48,6 @@ jobs:
           sbomEnabled: false
           isProduction: false
           condition: and(succeeded(), ne(variables['COMPILATION_PUBLISHED'], 'true'))
-        - output: pipelineArtifact
-          targetPath: $(Build.SourcesDirectory)/.build/agent-sdk/tarballs
-          artifactName: agent_sdk_win32_$(VSCODE_ARCH)_tarballs
-          displayName: Publish agent SDK tarballs
-          sbomEnabled: false
-          condition: and(succeededOrFailed(), eq(variables['AGENT_SDK_TARBALLS_PRODUCED'], 'true'), ne(variables['AGENT_SDK_TARBALLS_PUBLISHED'], 'true'))
       sdl:
         suppression:
           suppressionFile: $(Build.SourcesDirectory)\.config\guardian\.gdnsuppress
@@ -94,15 +87,13 @@ jobs:
       - script: >-
           node build/azure-pipelines/common/checkForArtifact.ts
           COMPILATION_PUBLISHED compilation_win32_$(VSCODE_ARCH)
-          AGENT_SDK_TARBALLS_PUBLISHED agent_sdk_win32_$(VSCODE_ARCH)_tarballs
         env:
           SYSTEM_ACCESSTOKEN: $(System.AccessToken)
         condition: succeededOrFailed()
         continueOnError: true
         displayName: Check for artifacts published by an earlier attempt
 
-  # Signing needs the ESRP connection, which the SDK validation pipeline
-  # (sdk-validation-build.yml) must not reference.
+  # Signing needs the ESRP connection, so only privileged builds include it.
   - ${{ if eq(parameters.VSCODE_PRIVILEGED_CONNECTIONS, true) }}:
     - job: Windows_${{ parameters.VSCODE_ARCH }}_Sign
       displayName: Windows (${{ upper(parameters.VSCODE_ARCH) }}) - Sign

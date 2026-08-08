@@ -114,8 +114,6 @@ jobs:
           ELECTRON_SKIP_BINARY_DOWNLOAD: 1
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
           GITHUB_TOKEN: "$(github-token-code-oss)"
-          FOUNDRY_LOCAL_NUGET_MODE: dotnet
-          FOUNDRY_LOCAL_NUGET_FEEDS: "https://pkgs.dev.azure.com/monacotools/Monaco/_packaging/vscode/nuget/v3/index.json"
         displayName: Install dependencies
         condition: and(succeeded(), ne(variables.NODE_MODULES_RESTORED, 'true'))
 
@@ -127,8 +125,6 @@ jobs:
         displayName: Clear NuGet access token
         condition: always()
 
-      - script: node build/azure-pipelines/common/checkNativeOptionalDeps.ts
-        displayName: Verify native optional dependency binaries
 
       - script: node build/azure-pipelines/distro/mixin-npm.ts
         condition: and(succeeded(), ne(variables.NODE_MODULES_RESTORED, 'true'))

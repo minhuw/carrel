@@ -7,7 +7,6 @@ node_modules
 # The repository installs with pnpm, so a package-lock.json can only come from a mistaken
 # `npm install` (`git clean -fdX` removes it). The folders that still install with npm keep theirs.
 package-lock.json
-!build/agent-sdk/agents/*/package-lock.json
 .tmp/
 .build/
 /extensionsCG/
@@ -28,7 +27,6 @@ vscode.db
 /.profile-oss
 /cli/target
 /cli/openssl
-/copilot_shim/target
 product.overrides.json
 *.snap.actual
 *.tsbuildinfo

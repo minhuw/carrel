@@ -6,17 +6,11 @@ parameters:
   - name: VSCODE_TEST_IDS
     type: object
     default: []
-  - name: VSCODE_SKIP_FOUNDRY_LOCAL_INSTALL
-    type: boolean
-    default: false
 
 # Checks out the sources and installs the dependencies, which every Windows
 # job needs regardless of whether it compiles, tests or signs the product.
 steps:
   - template: ../../common/checkout.yml@self
-
-  - ${{ if containsValue(parameters.VSCODE_TEST_IDS, 'copilot') }}:
-    - template: ../../copilot/pull-test-cache.yml@self
 
   - ${{ if gt(length(parameters.VSCODE_TEST_IDS), 0) }}:
     - template: ../../common/ensure-test-artifact-directories.yml@self
@@ -42,10 +36,6 @@ steps:
   - powershell: node build/setup-npm-registry.ts $env:NPM_REGISTRY
     condition: and(succeeded(), ne(variables['NPM_REGISTRY'], 'none'))
     displayName: Setup NPM Registry
-
-  - template: ../../common/apply-sdk-canary.yml@self
-    parameters:
-      windows: true
 
   - pwsh: |
       mkdir .build -ea 0
@@ -84,10 +74,6 @@ steps:
 
   - template: ../../common/install-pnpm.yml@self
 
-  - ${{ if and(eq(parameters.VSCODE_CIBUILD, false), eq(parameters.VSCODE_SKIP_FOUNDRY_LOCAL_INSTALL, false)) }}:
-    - task: NuGetAuthenticate@1
-      displayName: Setup NuGet Authentication
-
   - powershell: |
       . build/azure-pipelines/win32/exec.ps1
       $ErrorActionPreference = "Stop"
@@ -97,11 +83,6 @@ steps:
       ELECTRON_SKIP_BINARY_DOWNLOAD: 1
       PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
       GITHUB_TOKEN: "$(github-token-code-oss)"
-      ${{ if or(eq(parameters.VSCODE_CIBUILD, true), eq(parameters.VSCODE_SKIP_FOUNDRY_LOCAL_INSTALL, true)) }}:
-        FOUNDRY_LOCAL_SKIP_INSTALL: "1"
-      ${{ else }}:
-        FOUNDRY_LOCAL_NUGET_MODE: dotnet
-        FOUNDRY_LOCAL_NUGET_FEEDS: "https://pkgs.dev.azure.com/monacotools/Monaco/_packaging/vscode/nuget/v3/index.json"
     retryCountOnTaskFailure: 5
     displayName: Install dependencies
     condition: and(succeeded(), ne(variables.NODE_MODULES_RESTORED, 'true'))
@@ -115,8 +96,6 @@ steps:
     displayName: Clear package feed credentials
     condition: always()
 
-  - powershell: node build/azure-pipelines/common/checkNativeOptionalDeps.ts
-    displayName: Verify native optional dependency binaries
 
   - powershell: node build/azure-pipelines/distro/mixin-npm.ts
     condition: and(succeeded(), ne(variables.NODE_MODULES_RESTORED, 'true'))

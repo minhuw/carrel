@@ -9,7 +9,6 @@ fetchTimeout: 180000
 engineStrict: false
 minimumReleaseAge: 10080
 minimumReleaseAgeExclude:
-  - '@github/copilot*'
   - '@vscode/*'
   - '@xterm/*'
   - node-pty

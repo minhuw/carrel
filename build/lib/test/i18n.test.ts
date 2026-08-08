@@ -32,8 +32,7 @@ suite('XLF Parser Tests', () => {
 
 	test('JSON file source path to Transifex resource match', () => {
 		const editorProject: string = 'vscode-editor',
-			workbenchProject: string = 'vscode-workbench',
-			sessionsProject: string = 'vscode-sessions';
+			workbenchProject: string = 'vscode-workbench';
 
 		const platform: i18n.Resource = { name: 'vs/platform', project: editorProject },
 			editorContrib = { name: 'vs/editor/contrib', project: editorProject },
@@ -42,13 +41,7 @@ suite('XLF Parser Tests', () => {
 			code = { name: 'vs/code', project: workbenchProject },
 			workbenchParts = { name: 'vs/workbench/contrib/html', project: workbenchProject },
 			workbenchServices = { name: 'vs/workbench/services/textfile', project: workbenchProject },
-			workbench = { name: 'vs/workbench', project: workbenchProject },
-			sessionsContrib = { name: 'vs/sessions/contrib/chat', project: sessionsProject },
-			sharedSessions = { name: 'vs/workbench/contrib/sessions', project: sessionsProject },
-			sessionChanges = { name: 'vs/workbench/contrib/sessionChanges', project: sessionsProject },
-			sessionsServices = { name: 'vs/workbench/services/sessions', project: sessionsProject },
-			sessionsPart = { name: 'vs/workbench/browser/parts/sessions', project: sessionsProject },
-			sessions = { name: 'vs/sessions', project: sessionsProject };
+			workbench = { name: 'vs/workbench', project: workbenchProject };
 
 		assert.deepStrictEqual(i18n.getResource('vs/platform/actions/browser/menusExtensionPoint'), platform);
 		assert.deepStrictEqual(i18n.getResource('vs/editor/contrib/clipboard/browser/clipboard'), editorContrib);
@@ -58,12 +51,5 @@ suite('XLF Parser Tests', () => {
 		assert.deepStrictEqual(i18n.getResource('vs/workbench/contrib/html/browser/webview'), workbenchParts);
 		assert.deepStrictEqual(i18n.getResource('vs/workbench/services/textfile/node/testFileService'), workbenchServices);
 		assert.deepStrictEqual(i18n.getResource('vs/workbench/browser/parts/panel/panelActions'), workbench);
-		assert.deepStrictEqual(i18n.getResource('vs/sessions/contrib/chat/browser/chatWidget'), sessionsContrib);
-		assert.deepStrictEqual(i18n.getResource('vs/sessions/browser/layoutActions'), sessions);
-		assert.deepStrictEqual(i18n.getResource('vs/workbench/contrib/sessions/browser/sessionsService'), sharedSessions);
-		assert.deepStrictEqual(i18n.getResource('vs/workbench/contrib/sessionChanges/browser/changesView'), sessionChanges);
-		assert.deepStrictEqual(i18n.getResource('vs/workbench/services/sessions/common/session'), sessionsServices);
-		assert.deepStrictEqual(i18n.getResource('vs/workbench/browser/parts/sessions/sessionsPart'), sessionsPart);
-		assert.deepStrictEqual(i18n.getResource('vs/workbench/contrib/sessionsWelcome/browser/x'), { name: 'vs/workbench/contrib/sessionsWelcome', project: workbenchProject });
 	});
 });

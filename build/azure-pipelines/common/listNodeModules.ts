@@ -69,7 +69,7 @@ function findNodeModulesFiles(root: string, realRoot: string, location: string, 
  * Returns the files, and the links to folders, of every `node_modules` folder of the repository at
  * `root`, relative to it with `/` separators: the ones found by searching the repository outside
  * the skipped top-level folders, and those of the pnpm projects in `projectFolders` (folders
- * relative to `root`) inside a skipped folder, for example `src/vs/sessions/test/e2e`.
+ * relative to `root`) inside a skipped folder.
  */
 export function listNodeModules(root: string, projectFolders: readonly string[] = dirs): string[] {
 	const realRoot = fs.realpathSync(root);

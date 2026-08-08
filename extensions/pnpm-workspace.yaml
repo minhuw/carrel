@@ -1,4 +1,4 @@
-# The built-in extensions, except extensions/copilot (a separate install root). The product build
+# The built-in extensions. The product build
 # bundles them, so the layout of this root's node_modules doesn't ship (see build/lib/extensions.ts).
 packages:
   - configuration-editing

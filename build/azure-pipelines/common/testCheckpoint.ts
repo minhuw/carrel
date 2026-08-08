@@ -15,21 +15,14 @@ export const testIds = [
 	'unit-node',
 	'unit-browser-chromium',
 	'unit-browser-webkit',
-	'integration-agent-host-e2e',
 	'integration-electron',
 	'integration-browser-chromium',
 	'integration-browser-firefox',
 	'integration-browser-webkit',
 	'integration-remote',
 	'smoke-electron',
-	'smoke-agents-pac-proxy',
-	'smoke-agents-kerberos-pac-proxy',
-	'smoke-wsl-kerberos-proxy',
 	'smoke-browser-chromium',
 	'smoke-remote',
-	'copilot-extension',
-	'copilot-completions-core',
-	'copilot-sanity',
 ] as const;
 
 function required(env: NodeJS.ProcessEnv, name: string): string {

@@ -456,7 +456,7 @@ class ViewsExtensionHandler implements IWorkbenchContribution {
 					return;
 				}
 
-				if (key === 'agentSessions' && !isProposedApiEnabled(extension.description, 'chatSessionsProvider')) {
+				if (key === 'agentSessions') {
 					collector.warn(localize('RequiresChatSessionsProposedAPI', "View container '{0}' requires 'enabledApiProposals: [\"chatSessionsProvider\"]'.", key));
 					return;
 				}

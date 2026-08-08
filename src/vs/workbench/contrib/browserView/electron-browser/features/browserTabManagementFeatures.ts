@@ -47,7 +47,6 @@ import { disposableTimeout } from '../../../../../base/common/async.js';
 import { MarkdownString } from '../../../../../base/common/htmlContent.js';
 import { IsSessionsWindowContext, ResourceContextKey } from '../../../../common/contextkeys.js';
 import { Schemas } from '../../../../../base/common/network.js';
-import { BrowserNavigationFeatures } from './browserNavigationFeatures.js';
 
 const CONTEXT_BROWSER_EDITOR_OPEN = new RawContextKey<boolean>('browserEditorOpen', false, localize('browser.editorOpen', "Whether any browser editor is currently open"));
 
@@ -118,12 +117,9 @@ class BrowserTabQuickPick extends Disposable {
 			if (selected === this._openNewTabPick) {
 				logBrowserOpen(telemetryService, 'quickOpenWithoutUrl');
 				this._quickPick.hide();
-				const editorPane = await this._editorService.openEditor({
+				await this._editorService.openEditor({
 					resource: BrowserViewUri.forId(generateUuid()),
 				}, await this._browserViewService.getPreferredGroup());
-				if (editorPane instanceof BrowserEditor) {
-					editorPane.getContribution(BrowserNavigationFeatures)?.openUrlPicker();
-				}
 			} else {
 				await this._editorService.openEditor(selected.editor, await this._browserViewService.getPreferredGroup(selected.groupId));
 			}
@@ -339,9 +335,6 @@ class OpenIntegratedBrowserAction extends Action2 {
 		if (options.openToSide && editorPane?.group) {
 			editorPane.group.lock(true);
 		}
-		if (!options.url && editorPane instanceof BrowserEditor) {
-			editorPane.getContribution(BrowserNavigationFeatures)?.openUrlPicker();
-		}
 	}
 }
 
@@ -430,10 +423,7 @@ class NewTabAction extends Action2 {
 
 		logBrowserOpen(telemetryService, 'newTabCommand');
 
-		const editorPane = await editorService.openEditor({ resource }, await browserViewService.getPreferredGroup());
-		if (editorPane instanceof BrowserEditor) {
-			editorPane.getContribution(BrowserNavigationFeatures)?.openUrlPicker();
-		}
+		await editorService.openEditor({ resource }, await browserViewService.getPreferredGroup());
 	}
 }
 
@@ -938,7 +928,6 @@ Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration).regis
 				{ comment: ['This is the description for a setting.'], key: 'browser.openLocalhostLinks' },
 				'When enabled, localhost links (`localhost`, `127.0.0.1`, `[::1]`) and all-interfaces links (`0.0.0.0`, `[0:0:0:0:0:0:0:0]`, `[::]`) from the terminal, chat, and other sources will open in the Integrated Browser instead of the system browser.'
 			),
-			agentsWindow: { default: true },
 		},
 		[BrowserNewTabPlacementSettingId]: {
 			type: 'string',

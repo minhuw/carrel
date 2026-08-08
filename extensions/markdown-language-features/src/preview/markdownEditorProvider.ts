@@ -466,7 +466,6 @@ export class MarkdownEditorProvider extends Disposable implements vscode.CustomT
 			}
 		});
 
-		const comments = this.#wireComments(document, editorWebview);
 		const rename = new MarkdownEditorRename(document, () => editQueue.drain(),
 			() => ({ text: webviewText, editEpoch: editQueue.epoch }),
 			() => webviewPanel.active && !resolveCancellation.token.isCancellationRequested);
@@ -490,6 +489,9 @@ export class MarkdownEditorProvider extends Disposable implements vscode.CustomT
 			if (event.uris.some(uri => uri.toString() === document.uri.toString())) { diagnosticsChanged(); }
 		});
 		editorWebview.setHandlers({
+			// Carrel: agent editor comments have no backing provider.
+			addComment: () => { throw new Error('Markdown editor comments are not supported'); },
+			deleteComment: () => { throw new Error('Markdown editor comments are not supported'); },
 			selectionChanged: message => navigation.acceptSelection(message),
 			getDiagnostics: () => languageFeatures.diagnostics(),
 			completions: message => languageFeatures.completions(message),
@@ -625,8 +627,6 @@ export class MarkdownEditorProvider extends Disposable implements vscode.CustomT
 					}
 				});
 			},
-			addComment: comments.addComment,
-			deleteComment: comments.deleteComment,
 			highlight: async ({ source, languageId }) => vscode.languages.computeFullSyntaxHighlighting(source, languageId),
 		});
 
@@ -742,7 +742,6 @@ export class MarkdownEditorProvider extends Disposable implements vscode.CustomT
 			onDocumentChange.dispose();
 			highlight.dispose();
 			quickDiff.dispose();
-			comments.dispose();
 			onDidGrantWorkspaceTrust.dispose();
 			onContributionsChanged.dispose();
 			onDidSaveTextDocument.dispose();
@@ -1047,66 +1046,6 @@ export class MarkdownEditorProvider extends Disposable implements vscode.CustomT
 
 		return vscode.Disposable.from(onReady, onDocumentChange);
 	}
-
-	/**
-	 * Bridges the workbench's agent/session comments (the same store the code
-	 * editor renders its comments from) to the webview: existing comments are
-	 * forwarded for rendering, and comments the user adds in the Markdown editor
-	 * are written back to the shared store so they appear in the code editor too.
-	 * Comment ranges are converted between {@link vscode.Range} and the source
-	 * character offsets the webview works in.
-	 */
-	#wireComments(document: vscode.TextDocument, editorWebview: AuthenticatedWebview): vscode.Disposable & Pick<InterfaceHandlers<typeof markdownEditorHost>, 'addComment' | 'deleteComment'> {
-		const commentsProvider = vscode.window.createAgentEditorComments(document.uri);
-		let revealedCommentId: string | undefined;
-
-		const postComments = () => {
-			if (!editorWebview.ready) {
-				return;
-			}
-			const comments = commentsProvider.comments.map(comment => ({
-				id: comment.id,
-				start: document.offsetAt(comment.range.start),
-				endExclusive: document.offsetAt(comment.range.end),
-				body: comment.body,
-				author: comment.author,
-			}));
-			editorWebview.report('Publish comments', editorWebview.renderer.comments({ comments, acceptsComments: commentsProvider.acceptsComments }));
-		};
-		const postReveal = () => {
-			if (editorWebview.ready && revealedCommentId) {
-				editorWebview.report('Reveal comment', editorWebview.renderer.revealComment({ id: revealedCommentId }));
-			}
-		};
-
-		const onChange = commentsProvider.onDidChange(postComments);
-		const onDidRevealComment = commentsProvider.onDidRevealComment(id => {
-			revealedCommentId = id;
-			postReveal();
-		});
-		const onReady = editorWebview.onReady(() => {
-			postComments();
-			postReveal();
-		});
-
-		return {
-			addComment: message => {
-				if (message.endExclusive < message.start || message.endExclusive > document.getText().length) {
-					throw new Error('Invalid Markdown editor comment range');
-				}
-				const range = new vscode.Range(
-					document.positionAt(message.start),
-					document.positionAt(message.endExclusive),
-				);
-				commentsProvider.addComment(range, message.text);
-			},
-			deleteComment: message => {
-				commentsProvider.deleteComment(message.id);
-			},
-			dispose: () => vscode.Disposable.from(commentsProvider, onChange, onDidRevealComment, onReady).dispose(),
-		};
-	}
-
 
 	/**
 	 * Proxies the webview's syntax highlighting requests to the

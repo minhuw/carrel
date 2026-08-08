@@ -6,14 +6,10 @@
 import { GitHubActor } from './githubPullRequestService.js';
 
 const maintainerAssociations = new Set(['OWNER', 'MEMBER', 'COLLABORATOR']);
-const copilotReviewerLogins = new Set(['copilot', 'copilot-pull-request-reviewer']);
-
-export function isCopilotReviewAuthor(login: string | undefined): boolean {
-	return !!login && copilotReviewerLogins.has(login.toLowerCase().replace(/\[bot\]$/, ''));
-}
+const copilotReviewerLogins = new Set(['copilot', 'copilot-pull-request-reviewer[bot]']);
 
 export function isPullRequestFeedbackAuthor(actor: GitHubActor | undefined): boolean {
 	return !!actor && (maintainerAssociations.has(actor.association?.toUpperCase() ?? '')
 		|| actor.id === '175728472'
-		|| isCopilotReviewAuthor(actor.login));
+		|| copilotReviewerLogins.has(actor.login.toLowerCase()));
 }

@@ -34,13 +34,10 @@ import { IWorkbenchAssignmentService } from '../../../services/assignment/common
 import product from '../../../../platform/product/common/product.js';
 import { IContextMenuService, IContextViewService } from '../../../../platform/contextview/browser/contextView.js';
 import { INotificationService, Severity } from '../../../../platform/notification/common/notification.js';
-import { ChatMessageRole, ILanguageModelsService } from '../../chat/common/languageModels.js';
-import { IChatUtilityModelService } from '../../chat/common/chatUtilityModelService.js';
 import { IOpenerService } from '../../../../platform/opener/common/opener.js';
 import { IUpdateService, StateType } from '../../../../platform/update/common/update.js';
 import { RawContextKey } from '../../../../platform/contextkey/common/contextkey.js';
 import { IKeybindingService } from '../../../../platform/keybinding/common/keybinding.js';
-import { IExtensionService } from '../../../services/extensions/common/extensions.js';
 import { isMacintosh } from '../../../../base/common/platform.js';
 import { IUserDataProfilesService } from '../../../../platform/userDataProfile/common/userDataProfile.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
@@ -93,13 +90,10 @@ export class IssueReporterController extends Disposable {
 		@IWorkbenchAssignmentService private readonly experimentService: IWorkbenchAssignmentService,
 		@IContextMenuService private readonly contextMenuService: IContextMenuService,
 		@IContextViewService private readonly contextViewService: IContextViewService,
-		@ILanguageModelsService private readonly languageModelsService: ILanguageModelsService,
-		@IChatUtilityModelService private readonly chatUtilityModelService: IChatUtilityModelService,
 		@INotificationService private readonly notificationService: INotificationService,
 		@IOpenerService private readonly openerService: IOpenerService,
 		@IUpdateService private readonly updateService: IUpdateService,
 		@IKeybindingService private readonly keybindingService: IKeybindingService,
-		@IExtensionService private readonly extensionService: IExtensionService,
 		@IConfigurationService private readonly configurationService: IConfigurationService,
 		@IUserDataProfilesService private readonly userDataProfilesService: IUserDataProfilesService,
 		@IInstantiationService private readonly instantiationService: IInstantiationService,
@@ -316,62 +310,6 @@ export class IssueReporterController extends Disposable {
 			}
 		}));
 
-		// Wire AI title generation
-		this.inputDisposables.add(this.wizard.onDidRequestGenerateTitle(async (description) => {
-			const isCurrent = () => this.wizard === wizard && !mediaCancellation.token.isCancellationRequested;
-			try {
-				// Wait for installed extensions to be registered so the Copilot Chat
-				// extension has had a chance to contribute its `copilot` language
-				// model vendor before we try to resolve a model. (Other call sites
-				// like the chat thinking title generator are reached after Copilot
-				// has already activated; we're the only place that can be invoked
-				// before it has.)
-				await this.extensionService.whenInstalledExtensionsRegistered();
-				if (!isCurrent()) {
-					return;
-				}
-
-				// `copilot-utility-small` matches what other utility callers in the
-				// workbench use (chat thinking summaries, tool-risk assessment,
-				// chat-edit explanations). The earlier `copilot-fast` id never
-				// existed and was the root cause of the empty-result regression.
-				const modelIds = await this.languageModelsService.selectLanguageModels({ vendor: 'copilot', id: 'copilot-utility-small' });
-				if (!isCurrent()) {
-					return;
-				}
-				if (modelIds.length === 0) {
-					this.logService.warn('[IssueReporterEditorPane] No language models available for title generation');
-					wizard.resetGenerateButton();
-					return;
-				}
-				const modelId = modelIds[0];
-				const response = await this.chatUtilityModelService.sendRequest({
-					purpose: 'issueTitle',
-					model: modelId,
-					messages: [{
-						role: ChatMessageRole.User,
-						content: [{
-							type: 'text',
-							value: `Generate a concise issue title (max 10 words, no quotes, no prefix like "Bug:" or "Feature:") for this bug report description:\n\n${description}`,
-						}],
-					}],
-				}, mediaCancellation.token);
-				if (!isCurrent()) {
-					return;
-				}
-				const title = (response ?? '').trim().replace(/^["']|["']$/g, '');
-				if (title) {
-					wizard.setGeneratedTitle(title);
-				} else {
-					wizard.resetGenerateButton();
-				}
-			} catch (err) {
-				if (isCurrent() && !isCancellationError(err)) {
-					this.logService.error('[IssueReporterEditorPane] Title generation failed:', err);
-					wizard.resetGenerateButton();
-				}
-			}
-		}));
 	}
 
 	protected readAttachmentImage(dataUrl: string, token: CancellationToken): Promise<{ width: number; height: number }> {

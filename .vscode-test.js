@@ -28,16 +28,6 @@ const extensions = [
 		mocha: { timeout: 60_000 }
 	},
 	{
-		label: 'ipynb',
-		workspaceFolder: path.join(os.tmpdir(), `ipynb-${Math.floor(Math.random() * 100000)}`),
-		mocha: { timeout: 60_000 }
-	},
-	{
-		label: 'notebook-renderers',
-		workspaceFolder: path.join(os.tmpdir(), `nbout-${Math.floor(Math.random() * 100000)}`),
-		mocha: { timeout: 60_000 }
-	},
-	{
 		label: 'vscode-colorize-tests',
 		workspaceFolder: `extensions/vscode-colorize-tests/test`,
 		mocha: { timeout: 60_000 }
@@ -68,10 +58,6 @@ const extensions = [
 		mocha: { timeout: 60_000 }
 	},
 	{
-		label: 'microsoft-authentication',
-		mocha: { timeout: 60_000 }
-	},
-	{
 		label: 'vscode-api-tests-folder',
 		extensionDevelopmentPath: `extensions/vscode-api-tests`,
 		workspaceFolder: `extensions/vscode-api-tests/testWorkspace`,
@@ -88,11 +74,6 @@ const extensions = [
 	{
 		label: 'git-base',
 		mocha: { timeout: 60_000 }
-	},
-	{
-		label: 'copilot',
-		files: 'extensions/copilot/dist/test-extension.js',
-		mocha: { ui: 'tdd', timeout: 60_000 }
 	}
 ];
 

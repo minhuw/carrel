@@ -24,7 +24,6 @@ import { ITelemetryService } from '../../../../platform/telemetry/common/telemet
 import { IRemoteAgentService } from '../../remote/common/remoteAgentService.js';
 import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { IHostService } from '../../host/browser/host.js';
-import { ExtensionGalleryAccountStatus, IExtensionGalleryAccountService } from '../common/extensionGalleryAccount.js';
 
 type ExtensionGalleryManifestResponse = Omit<IExtensionGalleryManifest, 'version' | 'capabilities'> & {
 	readonly version?: string;
@@ -85,7 +84,6 @@ export class WorkbenchExtensionGalleryManifestService extends ExtensionGalleryMa
 		@ISharedProcessService sharedProcessService: ISharedProcessService,
 		@IConfigurationService private readonly configurationService: IConfigurationService,
 		@IRequestService private readonly requestService: IRequestService,
-		@IExtensionGalleryAccountService private readonly galleryAccountService: IExtensionGalleryAccountService,
 		@ILogService private readonly logService: ILogService,
 		@IDialogService private readonly dialogService: IDialogService,
 		@IHostService private readonly hostService: IHostService,
@@ -145,9 +143,8 @@ export class WorkbenchExtensionGalleryManifestService extends ExtensionGalleryMa
 
 		const configuredServiceUrl = this.configurationService.getValue<string>(ExtensionGalleryServiceUrlConfigKey);
 		if (configuredServiceUrl) {
-			this.logService.trace('[Marketplace] Private marketplace configured, checking access and fetching manifest', configuredServiceUrl);
-			this._register(this.galleryAccountService.onDidChangeAccount(() => this.handleMarketplaceAccountAccess(configuredServiceUrl)));
-			await this.handleMarketplaceAccountAccess(configuredServiceUrl);
+			this.logService.trace('[Marketplace] Private marketplace configured, fetching manifest', configuredServiceUrl);
+			await this.fetchConfiguredGalleryManifest(configuredServiceUrl);
 		} else {
 			const defaultExtensionGalleryManifest = await super.getExtensionGalleryManifest();
 			this.update(defaultExtensionGalleryManifest);
@@ -170,39 +167,15 @@ export class WorkbenchExtensionGalleryManifestService extends ExtensionGalleryMa
 		return source.token;
 	}
 
-	private async handleMarketplaceAccountAccess(configuredServiceUrl: string): Promise<void> {
+	private async fetchConfiguredGalleryManifest(configuredServiceUrl: string): Promise<void> {
 		const token = this.beginResolution();
+		if (this.currentStatus !== ExtensionGalleryManifestStatus.Available) {
 		try {
-			const account = await this.galleryAccountService.getAccount(configuredServiceUrl);
+				const manifest = await this.getExtensionGalleryManifestFromServiceUrl(configuredServiceUrl, undefined, token);
 			if (token.isCancellationRequested) {
 				return;
 			}
-			const accountStatus = this.galleryAccountService.accountStatus;
-			if (accountStatus === ExtensionGalleryAccountStatus.Unknown
-				&& this.currentStatus === ExtensionGalleryManifestStatus.Available) {
-				return;
-			}
-
-			switch (accountStatus) {
-				case ExtensionGalleryAccountStatus.Unknown:
-					this.logService.debug('[Marketplace] User signed in but account status is unknown');
-					this.update(null, ExtensionGalleryManifestStatus.RequiresSignIn);
-					return;
-				case ExtensionGalleryAccountStatus.Ineligible:
-					this.logService.debug('[Marketplace] User signed in but lacks access to private marketplace');
-					this.update(null, ExtensionGalleryManifestStatus.AccessDenied);
-					return;
-				case ExtensionGalleryAccountStatus.SignedOut:
-					this.logService.debug('[Marketplace] User signed out');
-					this.update(null, ExtensionGalleryManifestStatus.RequiresSignIn);
-					return;
-				case ExtensionGalleryAccountStatus.Eligible:
-					try {
-						const manifest = await this.getExtensionGalleryManifestFromServiceUrl(configuredServiceUrl, account?.accessToken, token);
-						if (token.isCancellationRequested) {
-							return;
-						}
-						this.update(manifest, undefined, account?.accessToken, configuredServiceUrl);
+				this.update(manifest);
 						this.telemetryService.publicLog2<
 							{},
 							{
@@ -213,22 +186,9 @@ export class WorkbenchExtensionGalleryManifestService extends ExtensionGalleryMa
 						if (token.isCancellationRequested) {
 							return;
 						}
-						if (error instanceof MarketplaceAuthRequiredError) {
-							this.logService.debug('[Marketplace] Marketplace still requires authentication for the resolved account');
-							this.update(null, ExtensionGalleryManifestStatus.RequiresSignIn);
-							return;
-						}
-						this.logService.error('[Marketplace] Error fetching manifest from custom marketplace', error);
+				this.logService.error('[Marketplace] Error retrieving configured gallery manifest', error);
 						this.update(null, ExtensionGalleryManifestStatus.AccessDenied);
 					}
-					return;
-			}
-		} catch (error) {
-			if (token.isCancellationRequested) {
-				return;
-			}
-			this.logService.error('[Marketplace] Error handling marketplace account access', error);
-			this.update(null, ExtensionGalleryManifestStatus.RequiresSignIn);
 		}
 	}
 

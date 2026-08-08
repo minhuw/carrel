@@ -27,6 +27,4 @@ export * from './localization';
 export * from './modelConfigPicker';
 export * from './workbench';
 export * from './task';
-export * from './chat';
-export * from './agentsWindow';
 export { getDevElectronPath, getBuildElectronPath, getBuildVersion } from './electron';

@@ -9,7 +9,7 @@ import * as http from 'http';
 import * as path from 'path';
 import type { Page } from '@playwright/test';
 import { Application, ApplicationOptions, Logger } from '../../../../automation';
-import { installAllHandlers, preseedChatExtensionEnablement } from '../../utils';
+import { installAllHandlers } from '../../utils';
 
 const browserCommandPrefix = 'workbench.action.browser';
 
@@ -20,12 +20,10 @@ export function setup(logger: Logger): void {
 			logger,
 			options => withFakeMediaDevice(options),
 			async app => {
-				await preseedChatExtensionEnablement(app.userDataPath);
 				preseedSettings(app.userDataPath);
 			}
 		);
 
-		const comment = 'Smoke-test-comment';
 		const openPages = new Set<Page>();
 		const requestCounts = new Map<string, number>();
 		let server: http.Server;
@@ -145,49 +143,6 @@ export function setup(logger: Logger): void {
 			assert.strictEqual(await workbenchPage.locator('.monaco-dialog-box:visible').count(), 0);
 		});
 
-		it('adds browser context to chat', async function () {
-			const app = this.app as Application;
-			const browserPage = await openBrowserPage(app, `${baseUrl}/comment`, openPages);
-			const workbenchPage = app.code.driver.currentPage;
-			const target = browserPage.locator('#comment-target');
-			const modifier = process.platform === 'darwin' ? 'Meta' : 'Control';
-			await target.waitFor();
-
-			await browserPage.keyboard.press(`${modifier}+Shift+c`);
-			await browserPage.locator('[data-vscode-pick-host]').waitFor({ state: 'attached' });
-			await target.click();
-			await app.workbench.chat.waitForChatView();
-			await workbenchPage.locator('div[id="workbench.panel.chat"] .chat-attached-context-attachment', { hasText: 'button#comment-target' }).waitFor();
-
-			await target.click();
-			await browserPage.keyboard.press(`${modifier}+Alt+c`);
-			await browserPage.locator('[data-vscode-pick-host]').waitFor({ state: 'attached' });
-			await target.click();
-			await browserPage.waitForFunction(() => document.activeElement?.hasAttribute('data-vscode-pick-host'));
-			await browserPage.keyboard.type(comment);
-			await browserPage.keyboard.press('Enter');
-			await app.workbench.chat.waitForInputText('@button#comment-target');
-			await app.workbench.chat.waitForInputText(comment);
-
-			await browserPage.keyboard.press('Escape');
-			await browserPage.locator('[data-vscode-pick-host]').waitFor({ state: 'attached' });
-			const chatInput = workbenchPage.locator('div[id="workbench.panel.chat"] .interactive-input-part .monaco-editor[role="code"]');
-			await chatInput.click();
-			await workbenchPage.keyboard.press(process.platform === 'darwin' ? 'Meta+a' : 'Control+a');
-			await workbenchPage.keyboard.press('Backspace');
-			await browserPage.locator('[data-vscode-pick-host]').waitFor({ state: 'detached' });
-
-			await browserPage.goto(`${baseUrl}/screenshot`);
-			await runAddToChatMenuAction(browserPage, workbenchPage, 'Add Full Page Screenshot to Chat (Experimental)');
-			const attachment = workbenchPage.locator('div[id="workbench.panel.chat"] .chat-attached-context-attachment.image-attachment', { hasText: 'Browser Full Page Screenshot' });
-			const image = attachment.locator('img.chat-attached-context-pill-image');
-			await image.waitFor();
-			assert.strictEqual(await image.evaluate(element => {
-				const image = element as HTMLImageElement;
-				return image.naturalHeight > image.naturalWidth * 2;
-			}), true);
-		});
-
 		it('preserves native page lifecycle across editors, popups, and restart', async function () {
 			const app = this.app as Application;
 			const lifecycleUrl = `${baseUrl}/lifecycle`;
@@ -239,8 +194,8 @@ export function setup(logger: Logger): void {
  * blocking the workbench. Seeding it up front means it is already in effect when
  * the window opens, so nothing changes and no prompt appears.
  *
- * The suite drives the browser toolbar overflow and "Add to Chat" menus through
- * DOM locators (`.monaco-menu-container`), which only exist for custom menus. The
+ * The suite drives the browser toolbar overflow menu through DOM locators
+ * (`.monaco-menu-container`), which only exist for custom menus. The
  * default is quality dependent on macOS (`native` for stable, `inherit` for
  * insiders), so pinning `custom` keeps the suite deterministic across qualities.
  */
@@ -253,7 +208,6 @@ function preseedSettings(userDataDir: string | undefined): void {
 	fs.mkdirSync(path.dirname(settingsPath), { recursive: true });
 	fs.writeFileSync(settingsPath, JSON.stringify({
 		'window.menuStyle': 'custom',
-		'workbench.browser.experimentalUserTools.enabled': true,
 	}, null, 2));
 }
 
@@ -305,19 +259,6 @@ async function runBrowserOverflowAction(browserPage: Page, workbenchPage: Page, 
 	await item.click();
 }
 
-async function runAddToChatMenuAction(browserPage: Page, workbenchPage: Page, label: string): Promise<void> {
-	await browserPage.locator('body').click({ position: { x: 1, y: 1 } });
-	const dropdown = workbenchPage.locator('.browser-actions-toolbar .monaco-dropdown-with-default .dropdown-action-container .action-label');
-	await dropdown.hover();
-	await workbenchPage.waitForTimeout(500);
-	await dropdown.click();
-	const item = workbenchPage.locator('.monaco-menu-container:visible .action-menu-item', { hasText: label }).last();
-	await item.waitFor();
-	await item.hover();
-	await workbenchPage.waitForTimeout(500);
-	await item.click();
-}
-
 function pageForRoute(route: string, requestCount: number): string {
 	switch (route) {
 		case '/navigation/a':
@@ -340,10 +281,6 @@ function pageForRoute(route: string, requestCount: number): string {
 					}
 				});
 			</script>`);
-		case '/comment':
-			return html('Browser Smoke Comment', '<button id="comment-target">Comment target</button>');
-		case '/screenshot':
-			return html('Browser Smoke Screenshot', '<div id="screenshot-top">Top</div><div style="height: 2400px"></div><div id="screenshot-bottom">Bottom</div>');
 		case '/lifecycle':
 			return html('Browser Smoke Lifecycle', '<div id="lifecycle-content">Lifecycle content</div><input id="state-input"><a id="open-popup" target="_blank" href="/popup-child">Open child</a><div style="height: 1800px"></div><div id="scroll-marker">Scroll marker</div>');
 		case '/popup-child':

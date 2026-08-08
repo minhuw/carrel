@@ -151,9 +151,9 @@ jq -r '.value[]' task-log.json > task-log.txt
 
 The task log provides the concise Mocha failure, stack, and the iteration's
 exact time range even before platform artifacts are published. Diagnostics
-written through the smoke runner's `Logger` (including
-`dumpFailureDiagnostics`) may exist only in `smoke-test-runner.log`, so do not
-assume they will be present in the Azure task log.
+written through the smoke runner's `Logger` may exist only in
+`smoke-test-runner.log`, so do not assume they will be present in the Azure
+task log.
 
 ## 4. Download the Platform Logs Artifact
 
@@ -223,18 +223,7 @@ smoke-tests-electron/<N>_suite_<Suite_Name>/
 Useful files include:
 
 - `window*/exthost/<extension>/<extension>.log`
-- `main.log`, `renderer.log`, and `agenthost.log`
-- `copilot-runtime-logs/process-*.log` — the Copilot runtime (`@github/copilot`
-  CLI) process logs, captured by `dumpFailureDiagnostics` when a Copilot-runtime
-  session fails. Check these first for a **hang or "Timed out waiting for
-  response"**: they are the SDK/CLI's own record (startup, auth, model request,
-  turn lifecycle, panics, out-of-order or protocol errors) and explain a timeout
-  the test error alone does not. A tail is also mirrored into
-  `smoke-test-runner.log`. **Agent Host** sessions (Agents Window / local
-  AgentHost) write a full log run at `trace`; Chat Sessions editor (Copilot CLI /
-  Claude) and Local sessions write only a minimal startup log here (whether the
-  runtime came up), with their detailed diagnostics in `GitHub Copilot Chat.log`.
-  (Claude / Codex sessions use a different runtime and are not captured here.)
+- `main.log` and `renderer.log`
 - `playwright-screenshot-*.png`
 - Playwright trace archives
 
@@ -242,16 +231,6 @@ For native exits or renderer crashes, also download the platform crash artifact.
 
 ## 6. Interpret UI Diagnostics Carefully
 
-Session-list text and active-view text answer different questions:
-
-- A list row can contain a prompt from the current test but a command or title
-  inherited from a prior request.
-- The active view can already be a fresh untitled composer while the response
-  belongs to a completed, inactive session.
-- Broad response selectors can match stale DOM from an earlier session or
-  iteration.
-- Reusing a fixed warm-up scenario marker can let a later warm-up wait match an
-  earlier response and abandon the actually-running warm-up.
 - Standard smoke suites created through `installAllHandlers` use distinct
   randomized user-data directories. Do not attribute a setting from the
   preceding suite to the failing suite without comparing the actual
@@ -266,9 +245,7 @@ Session-list text and active-view text answer different questions:
 Prefer assertions that establish identity:
 
 - unique scenario IDs or response markers per attempt
-- active chat/session resource attributes
-- expected response in the active session before follow-up input
-- mock-server request count or captured request content after the gesture
+- captured request content after the gesture
 
 Do not "fix" these races by only increasing a timeout. Wait for the actual
 state transition or remove duplicate/in-flight work.

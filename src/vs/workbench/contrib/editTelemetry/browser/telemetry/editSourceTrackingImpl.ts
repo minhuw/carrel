@@ -15,7 +15,7 @@ import { IUserAttentionService } from '../../../../services/userAttention/common
 import { ITextFileService } from '../../../../services/textfile/common/textfiles.js';
 import { ILogService } from '../../../../../platform/log/common/log.js';
 import { AnnotatedDocument, IAnnotatedDocuments } from '../helpers/annotatedDocuments.js';
-import { CreateSuggestionIdForChatOrInlineChatCaller, EditTelemetryReportEditArcForChatOrInlineChatSender, EditTelemetryReportInlineEditArcSender } from './arcTelemetrySender.js';
+import { CreateSuggestionIdForChatCaller, EditTelemetryReportEditArcForChatSender, EditTelemetryReportInlineEditArcSender } from './arcTelemetrySender.js';
 import { createDocWithJustReason, EditSource } from '../helpers/documentWithAnnotatedEdits.js';
 import { DocumentEditSourceTracker, TrackedEdit } from './editTracker.js';
 import { sumByCategory } from '../helpers/utils.js';
@@ -134,8 +134,8 @@ class TrackedDocumentInfo extends Disposable {
 		}));
 
 		this._store.add(this._instantiationService.createInstance(EditTelemetryReportInlineEditArcSender, _doc.documentWithAnnotations, this._repo));
-		this._store.add(this._instantiationService.createInstance(EditTelemetryReportEditArcForChatOrInlineChatSender, _doc.documentWithAnnotations, this._repo));
-		this._store.add(this._instantiationService.createInstance(CreateSuggestionIdForChatOrInlineChatCaller, _doc.documentWithAnnotations));
+		this._store.add(this._instantiationService.createInstance(EditTelemetryReportEditArcForChatSender, _doc.documentWithAnnotations, this._repo));
+		this._store.add(this._instantiationService.createInstance(CreateSuggestionIdForChatCaller, _doc.documentWithAnnotations));
 
 		// Focus time based 10-minute window tracker
 		const resetSignal = observableSignal('resetSignal');

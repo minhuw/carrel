@@ -102,7 +102,7 @@ export class EditTelemetryReportInlineEditArcSender extends Disposable {
 	}
 }
 
-export class CreateSuggestionIdForChatOrInlineChatCaller extends Disposable {
+export class CreateSuggestionIdForChatCaller extends Disposable {
 	constructor(
 		docWithAnnotatedEdits: IDocumentWithAnnotatedEdits<EditSourceData>,
 		@IAiEditTelemetryService private readonly _aiEditTelemetryService: IAiEditTelemetryService,
@@ -112,7 +112,7 @@ export class CreateSuggestionIdForChatOrInlineChatCaller extends Disposable {
 		this._register(runOnChange(docWithAnnotatedEdits.value, (_val, _prev, changes) => {
 			const edit = AnnotatedStringEdit.compose(changes.map(c => c.edit));
 
-			const supportedSource = new Set(['Chat.applyEdits', 'inlineChat.applyEdits'] as ITextModelEditSourceMetadata['source'][]);
+			const supportedSource = new Set(['Chat.applyEdits'] as ITextModelEditSourceMetadata['source'][]);
 
 			if (!edit.replacements.some(r => supportedSource.has(r.data.editSource.metadata.source))) {
 				return;
@@ -123,14 +123,9 @@ export class CreateSuggestionIdForChatOrInlineChatCaller extends Disposable {
 			}
 			let applyCodeBlockSuggestionId: EditSuggestionId | undefined = undefined;
 			const data = edit.replacements[0].data.editSource;
-			let feature: 'inlineChat' | 'sideBarChat';
-			if (data.metadata.source === 'Chat.applyEdits') {
-				feature = 'sideBarChat';
-				if (data.metadata.$$mode === 'applyCodeBlock') {
-					applyCodeBlockSuggestionId = data.metadata.$$codeBlockSuggestionId;
-				}
-			} else {
-				feature = 'inlineChat';
+			const feature = 'sideBarChat';
+			if (data.props.$$mode === 'applyCodeBlock') {
+				applyCodeBlockSuggestionId = data.props.$$codeBlockSuggestionId as EditSuggestionId | undefined;
 			}
 
 			const providerId = new ProviderId(data.props.$extensionId, data.props.$extensionVersion, data.props.$providerId);
@@ -152,7 +147,7 @@ export class CreateSuggestionIdForChatOrInlineChatCaller extends Disposable {
 	}
 }
 
-export class EditTelemetryReportEditArcForChatOrInlineChatSender extends Disposable {
+export class EditTelemetryReportEditArcForChatSender extends Disposable {
 	constructor(
 		docWithAnnotatedEdits: IDocumentWithAnnotatedEdits<EditSourceData>,
 		scmRepoBridge: IObservable<IScmRepoAdapter | undefined>,
@@ -164,7 +159,7 @@ export class EditTelemetryReportEditArcForChatOrInlineChatSender extends Disposa
 		this._register(runOnChange(docWithAnnotatedEdits.value, (_val, _prev, changes) => {
 			const edit = AnnotatedStringEdit.compose(changes.map(c => c.edit));
 
-			const supportedSource = new Set(['Chat.applyEdits', 'inlineChat.applyEdits'] as ITextModelEditSourceMetadata['source'][]);
+			const supportedSource = new Set(['Chat.applyEdits'] as ITextModelEditSourceMetadata['source'][]);
 
 			if (!edit.replacements.some(r => supportedSource.has(r.data.editSource.metadata.source))) {
 				return;

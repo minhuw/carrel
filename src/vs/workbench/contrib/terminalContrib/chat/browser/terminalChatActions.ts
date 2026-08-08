@@ -33,7 +33,8 @@ import { IPreferencesService, IOpenSettingsOptions } from '../../../../services/
 import { ConfigurationTarget } from '../../../../../platform/configuration/common/configuration.js';
 import { TerminalChatAgentToolsSettingId } from '../../chatAgentTools/common/terminalChatAgentToolsConfiguration.js';
 import { IMarkdownString } from '../../../../../base/common/htmlContent.js';
-import { AbstractInlineChatAction } from '../../../inlineChat/browser/inlineChatActions.js';
+
+const terminalChatCategory = localize2('terminalChatCategory', "Terminal Chat");
 
 registerActiveXtermAction({
 	id: TerminalChatCommandId.Start,
@@ -88,7 +89,7 @@ registerActiveXtermAction({
 registerActiveXtermAction({
 	id: TerminalChatCommandId.Close,
 	title: localize2('closeChat', 'Close'),
-	category: AbstractInlineChatAction.category,
+	category: terminalChatCategory,
 	keybinding: {
 		primary: KeyCode.Escape,
 		when: ContextKeyExpr.and(
@@ -121,7 +122,7 @@ registerActiveXtermAction({
 	id: TerminalChatCommandId.RunCommand,
 	title: localize2('runCommand', 'Run Chat Command'),
 	shortTitle: localize2('run', 'Run'),
-	category: AbstractInlineChatAction.category,
+	category: terminalChatCategory,
 	precondition: ContextKeyExpr.and(
 		ChatContextKeys.enabled,
 		ContextKeyExpr.or(TerminalContextKeys.processSupported, TerminalContextKeys.terminalHasBeenCreated),
@@ -154,7 +155,7 @@ registerActiveXtermAction({
 	id: TerminalChatCommandId.RunFirstCommand,
 	title: localize2('runFirstCommand', 'Run First Chat Command'),
 	shortTitle: localize2('runFirst', 'Run First'),
-	category: AbstractInlineChatAction.category,
+	category: terminalChatCategory,
 	precondition: ContextKeyExpr.and(
 		ChatContextKeys.enabled,
 		ContextKeyExpr.or(TerminalContextKeys.processSupported, TerminalContextKeys.terminalHasBeenCreated),
@@ -186,7 +187,7 @@ registerActiveXtermAction({
 	id: TerminalChatCommandId.InsertCommand,
 	title: localize2('insertCommand', 'Insert Chat Command'),
 	shortTitle: localize2('insert', 'Insert'),
-	category: AbstractInlineChatAction.category,
+	category: terminalChatCategory,
 	icon: Codicon.insert,
 	precondition: ContextKeyExpr.and(
 		ChatContextKeys.enabled,
@@ -220,7 +221,7 @@ registerActiveXtermAction({
 	id: TerminalChatCommandId.InsertFirstCommand,
 	title: localize2('insertFirstCommand', 'Insert First Chat Command'),
 	shortTitle: localize2('insertFirst', 'Insert First'),
-	category: AbstractInlineChatAction.category,
+	category: terminalChatCategory,
 	precondition: ContextKeyExpr.and(
 		ChatContextKeys.enabled,
 		ContextKeyExpr.or(TerminalContextKeys.processSupported, TerminalContextKeys.terminalHasBeenCreated),
@@ -253,7 +254,7 @@ registerActiveXtermAction({
 	title: localize2('chat.rerun.label', "Rerun Request"),
 	f1: false,
 	icon: Codicon.refresh,
-	category: AbstractInlineChatAction.category,
+	category: terminalChatCategory,
 	precondition: ContextKeyExpr.and(
 		ChatContextKeys.enabled,
 		ContextKeyExpr.or(TerminalContextKeys.processSupported, TerminalContextKeys.terminalHasBeenCreated),
@@ -274,7 +275,7 @@ registerActiveXtermAction({
 		const chatService = _accessor.get(IChatService);
 		const chatWidgetService = _accessor.get(IChatWidgetService);
 		const contr = TerminalChatController.activeChatController;
-		const model = contr?.terminalChatWidget?.inlineChatWidget.chatWidget.viewModel?.model;
+		const model = contr?.terminalChatWidget?.chatWidget.chatWidget.viewModel?.model;
 		if (!model) {
 			return;
 		}
@@ -295,7 +296,7 @@ registerActiveXtermAction({
 registerActiveXtermAction({
 	id: TerminalChatCommandId.ViewInChat,
 	title: localize2('viewInChat', 'View in Chat'),
-	category: AbstractInlineChatAction.category,
+	category: terminalChatCategory,
 	precondition: ContextKeyExpr.and(
 		ChatContextKeys.enabled,
 		ContextKeyExpr.or(TerminalContextKeys.processSupported, TerminalContextKeys.terminalHasBeenCreated),

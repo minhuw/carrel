@@ -108,11 +108,9 @@ MenuRegistry.appendMenuItem(MenuId.ChatAttachmentsContext, {
 
 // Menu registration - chat inline anchor
 
-for (const menuId of [MenuId.ChatInlineResourceAnchorContext, MenuId.ChatImageContext]) {
-	MenuRegistry.appendMenuItem(menuId, {
-		group: 'navigation',
-		order: 20,
-		command: revealInOsCommand,
-		when: REVEAL_IN_OS_WHEN_CONTEXT
-	});
-}
+MenuRegistry.appendMenuItem(MenuId.ChatInlineResourceAnchorContext, {
+	group: 'navigation',
+	order: 20,
+	command: revealInOsCommand,
+	when: REVEAL_IN_OS_WHEN_CONTEXT
+});

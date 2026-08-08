@@ -10,7 +10,7 @@ import { ThemeIcon } from '../../../../base/common/themables.js';
 import { URI } from '../../../../base/common/uri.js';
 import { generateUuid } from '../../../../base/common/uuid.js';
 import { BrowserViewUri } from '../../../../platform/browserView/common/browserViewUri.js';
-import { BrowserViewSharingState, INavigateOptions, IBrowserEditorViewState, IBrowserViewSessionRequest, IBrowserViewWorkbenchService, BrowserViewEditorId, IBrowserViewModel } from './browserView.js';
+import { INavigateOptions, IBrowserEditorViewState, IBrowserViewSessionRequest, IBrowserViewWorkbenchService, BrowserViewEditorId, IBrowserViewModel } from './browserView.js';
 import { EditorInputCapabilities, GroupIdentifier, IEditorSerializer, IMoveResult, IUntypedEditorInput, Verbosity } from '../../../common/editor.js';
 import { EditorInput } from '../../../common/editor/editorInput.js';
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
@@ -213,12 +213,6 @@ export class BrowserEditorInput extends EditorInput {
 	 */
 	get isDefaultLinkOpen(): boolean {
 		return !!this._initialData.isDefaultLinkOpen;
-	}
-
-	get isSharingAvailable(): boolean {
-		return this._model
-			? this._model.sharingState === BrowserViewSharingState.Shared || this._model.sharingState === BrowserViewSharingState.Available
-			: this.browserViewWorkbenchService.isSharingAvailable;
 	}
 
 	navigate(url: string, options?: INavigateOptions): void {

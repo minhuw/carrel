@@ -53,10 +53,7 @@ export const enum AccessibilityVerbositySettingId {
 	MergeEditor = 'accessibility.verbosity.mergeEditor',
 	Chat = 'accessibility.verbosity.panelChat',
 	CustomizationMigrations = 'accessibility.verbosity.customizationMigrations',
-	McpServerConfiguration = 'accessibility.verbosity.mcpServerConfiguration',
-	CustomizationDiscovery = 'accessibility.verbosity.customizationDiscovery',
 	Remotes = 'accessibility.verbosity.remotes',
-	InlineChat = 'accessibility.verbosity.inlineChat',
 	TerminalInlineChat = 'accessibility.verbosity.terminalChat',
 	TerminalChatOutput = 'accessibility.verbosity.terminalChatOutput',
 	InlineCompletions = 'accessibility.verbosity.inlineCompletions',
@@ -88,9 +85,7 @@ export const enum AccessibilityVerbositySettingId {
 	InboxNotifications = 'accessibility.verbosity.inboxNotifications',
 	AgentsWindowExtensions = 'accessibility.verbosity.agentsWindowExtensions',
 	ConnectionDiagnostics = 'accessibility.verbosity.connectionDiagnostics',
-	BrowserElementCommenting = 'accessibility.verbosity.browserElementCommenting',
-	ChatPetAchievements = 'accessibility.verbosity.chatPetAchievements',
-	ChatPetJumpGame = 'accessibility.verbosity.chatPetJumpGame'
+	BrowserElementCommenting = 'accessibility.verbosity.browserElementCommenting'
 }
 
 const baseVerbosityProperty: IConfigurationPropertySchema = {
@@ -171,20 +166,8 @@ const configuration: IConfigurationNode = {
 			description: localize('verbosity.customizationMigrations.description', "Provide information about how to access accessibility help for the customization migration checklist."),
 			...baseVerbosityProperty
 		},
-		[AccessibilityVerbositySettingId.McpServerConfiguration]: {
-			description: localize('verbosity.mcpServerConfiguration.description', "Provide information about how to access accessibility help when an MCP server configuration form is focused."),
-			...baseVerbosityProperty
-		},
-		[AccessibilityVerbositySettingId.CustomizationDiscovery]: {
-			description: localize('verbosity.customizationDiscovery.description', "Provide information about how to access accessibility help when discovering customizations."),
-			...baseVerbosityProperty
-		},
 		[AccessibilityVerbositySettingId.Remotes]: {
 			description: localize('verbosity.remotes.description', "Provide information about how to access accessibility help when managing remotes."),
-			...baseVerbosityProperty
-		},
-		[AccessibilityVerbositySettingId.InlineChat]: {
-			description: localize('verbosity.interactiveEditor.description', 'Provide information about how to access the inline editor chat accessibility help menu and alert with hints that describe how to use the feature when the input is focused.'),
 			...baseVerbosityProperty
 		},
 		[AccessibilityVerbositySettingId.TerminalChatOutput]: {
@@ -310,14 +293,6 @@ const configuration: IConfigurationNode = {
 		},
 		[AccessibilityVerbositySettingId.BrowserElementCommenting]: {
 			description: localize('verbosity.browserElementCommenting', 'Provide information about how to access element commenting accessibility help in the Integrated Browser.'),
-			...baseVerbosityProperty
-		},
-		[AccessibilityVerbositySettingId.ChatPetAchievements]: {
-			description: localize('verbosity.chatPetAchievements', 'Provide information about how to access chat pet achievements accessibility help when the Achievements modal is focused.'),
-			...baseVerbosityProperty
-		},
-		[AccessibilityVerbositySettingId.ChatPetJumpGame]: {
-			description: localize('verbosity.chatPetJumpGame', "Provide information about how to access accessibility help when Blobby's jump game is focused."),
 			...baseVerbosityProperty
 		},
 		'accessibility.signalOptions.volume': {

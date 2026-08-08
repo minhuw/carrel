@@ -45,12 +45,10 @@ export function parseRetryAfter(value: string | null, now: number): number | und
 
 export type ContentType =
 	| 'application/json'
-	| 'application/vnd.github.ahp+json'
 	| 'application/vnd.github+json'
 	| 'application/vnd.github.object+json'
 	| 'application/vnd.github.raw+json'
 	| 'application/vnd.github.sha'
 	| 'application/vnd.github.diff'
 	| 'application/vnd.github.patch'
-	| 'text/plain, application/octet-stream'
-	| 'text/event-stream, application/json';
+	| 'text/plain, application/octet-stream';

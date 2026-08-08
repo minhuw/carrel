@@ -15,8 +15,6 @@ import { InstantiationType, registerSingleton } from '../../../../platform/insta
 import { ILogService } from '../../../../platform/log/common/log.js';
 import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { IProductService } from '../../../../platform/product/common/productService.js';
-import { logSettingExperimentTrigger } from '../../../../platform/telemetry/common/experimentTrigger.js';
-import { ITelemetryService } from '../../../../platform/telemetry/common/telemetry.js';
 import { buttonBackground, buttonForeground, buttonHoverBackground, foreground, inputActiveOptionBorder, inputBackground, inputBorder, inputForeground, inputValidationErrorBackground, inputValidationErrorBorder, inputValidationErrorForeground, scrollbarSliderActiveBackground, scrollbarSliderHoverBackground, textLinkActiveForeground, textLinkForeground } from '../../../../platform/theme/common/colorRegistry.js';
 import { IColorTheme, IThemeService } from '../../../../platform/theme/common/themeService.js';
 import { IWorkspaceTrustManagementService } from '../../../../platform/workspace/common/workspaceTrust.js';
@@ -44,7 +42,6 @@ export class NativeIssueService implements IWorkbenchIssueService {
 		@IWorkbenchEnvironmentService private readonly environmentService: IWorkbenchEnvironmentService,
 		@IConfigurationService private readonly configurationService: IConfigurationService,
 		@IProductService private readonly productService: IProductService,
-		@ITelemetryService private readonly telemetryService: ITelemetryService,
 		@ILogService private readonly logService: ILogService,
 		@INotificationService private readonly notificationService: INotificationService,
 	) { }
@@ -53,7 +50,6 @@ export class NativeIssueService implements IWorkbenchIssueService {
 		const useWizard = this.configurationService.getValue<boolean>('issueReporter.wizard.enabled');
 		if (useWizard && !dataOverrides.extensionId && dataOverrides.issueSource !== IssueSource.Extension && dataOverrides.issueSource !== IssueSource.Marketplace
 			&& isPublicVSCodeIssueUrl(URI.revive(dataOverrides.uri)?.toString() ?? this.productService.reportIssueUrl)) {
-			logSettingExperimentTrigger(this.telemetryService, issueReporterAdditionalRepositoriesSettingId);
 			try {
 				dataOverrides = { ...dataOverrides, additionalRepositories: parseIssueReporterRepositories(this.configurationService.getValue<unknown>(issueReporterAdditionalRepositoriesSettingId)) };
 			} catch (error) {

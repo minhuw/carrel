@@ -49,9 +49,6 @@
     "workspaceContains:package.json"
   ],
   "capabilities": {
-    "agentsWindow": {
-      "supported": true
-    },
     "virtualWorkspaces": {
       "supported": "limited",
       "description": "%virtualWorkspaces%"

@@ -202,6 +202,172 @@ function getCssBundleEntryPointsForTarget(target: BuildTarget): Set<string> {
 }
 
 // ============================================================================
+// Resource Patterns (files to copy, not transpile/bundle)
+// ============================================================================
+
+// Common resources needed by all targets
+const commonResourcePatterns = [
+	// Tree-sitter queries
+	'vs/editor/common/languages/highlights/*.scm',
+	'vs/editor/common/languages/injections/*.scm',
+
+	// SVGs referenced from CSS (needed for transpile/dev builds where CSS is copied as-is)
+	'vs/workbench/browser/media/code-icon.svg',
+	'vs/workbench/browser/parts/editor/media/letterpress*.svg',
+	'vs/workbench/contrib/chat/browser/widget/media/chatPet/**/*.{gif,png}',
+	'vs/sessions/contrib/chat/browser/media/*.svg',
+	'vs/sessions/contrib/welcome/browser/media/themePreviews/*.svg'
+];
+
+// Resources for desktop target
+const desktopResourcePatterns = [
+	...commonResourcePatterns,
+
+	// HTML
+	'vs/code/electron-browser/workbench/workbench.html',
+	'vs/code/electron-browser/workbench/workbench-dev.html',
+	'vs/sessions/electron-browser/sessions.html',
+	'vs/sessions/electron-browser/sessions-dev.html',
+	'vs/workbench/services/extensions/worker/webWorkerExtensionHostIframe.html',
+	'vs/workbench/contrib/webview/browser/pre/*.html',
+
+	// Webview pre scripts
+	'vs/workbench/contrib/webview/browser/pre/*.js',
+
+	// Shell scripts
+	'vs/base/node/*.sh',
+	'vs/workbench/contrib/terminal/common/scripts/*.sh',
+	'vs/workbench/contrib/terminal/common/scripts/*.ps1',
+	'vs/workbench/contrib/terminal/common/scripts/*.psm1',
+	'vs/workbench/contrib/terminal/common/scripts/*.fish',
+	'vs/workbench/contrib/terminal/common/scripts/*.zsh',
+	'vs/workbench/contrib/terminal/common/scripts/psreadline/*.psd1',
+	'vs/workbench/contrib/terminal/common/scripts/psreadline/*.psm1',
+	'vs/workbench/contrib/terminal/common/scripts/psreadline/*.dll',
+	'vs/workbench/contrib/terminal/common/scripts/psreadline/*.ps1xml',
+	'vs/workbench/contrib/terminal/common/scripts/psreadline/net6plus/*.dll',
+	'vs/workbench/contrib/terminal/common/scripts/psreadline/netstd/*.dll',
+	'vs/workbench/contrib/externalTerminal/**/*.scpt',
+
+	// Media - audio
+	'vs/platform/accessibilitySignal/browser/media/*.mp3',
+
+	// Media - images
+	'vs/workbench/contrib/welcomeGettingStarted/common/media/**/*.svg',
+	'vs/workbench/contrib/welcomeGettingStarted/common/media/**/*.png',
+	'vs/workbench/contrib/welcomeOnboarding/browser/media/*.svg',
+	'vs/workbench/contrib/extensions/browser/media/{theme-icon.png,language-icon.svg}',
+	'vs/workbench/services/extensionManagement/common/media/*.svg',
+	'vs/workbench/services/extensionManagement/common/media/*.png',
+	'vs/workbench/browser/parts/editor/media/*.png',
+	'vs/workbench/contrib/debug/browser/media/*.png',
+
+	// Sessions - built-in prompts and skills
+	'vs/sessions/prompts/*.prompt.md',
+	'vs/sessions/skills/**/SKILL.md',
+];
+
+// Resources for server target (minimal - no UI)
+const serverResourcePatterns = [
+	// Shell scripts for process monitoring
+	'vs/base/node/cpuUsage.sh',
+	'vs/base/node/ps.sh',
+
+	// External Terminal
+	'vs/workbench/contrib/externalTerminal/**/*.scpt',
+
+	// Terminal shell integration
+	'vs/workbench/contrib/terminal/common/scripts/shellIntegration.ps1',
+	'vs/workbench/contrib/terminal/common/scripts/CodeTabExpansion.psm1',
+	'vs/workbench/contrib/terminal/common/scripts/GitTabExpansion.psm1',
+	'vs/workbench/contrib/terminal/common/scripts/shellIntegration-bash.sh',
+	'vs/workbench/contrib/terminal/common/scripts/shellIntegration-env.zsh',
+	'vs/workbench/contrib/terminal/common/scripts/shellIntegration-profile.zsh',
+	'vs/workbench/contrib/terminal/common/scripts/shellIntegration-rc.zsh',
+	'vs/workbench/contrib/terminal/common/scripts/shellIntegration-login.zsh',
+	'vs/workbench/contrib/terminal/common/scripts/shellIntegration.fish',
+	'vs/workbench/contrib/terminal/common/scripts/psreadline/*.psd1',
+	'vs/workbench/contrib/terminal/common/scripts/psreadline/*.psm1',
+	'vs/workbench/contrib/terminal/common/scripts/psreadline/*.dll',
+	'vs/workbench/contrib/terminal/common/scripts/psreadline/*.ps1xml',
+	'vs/workbench/contrib/terminal/common/scripts/psreadline/net6plus/*.dll',
+	'vs/workbench/contrib/terminal/common/scripts/psreadline/netstd/*.dll',
+];
+
+// Resources for server-web target (server + web UI)
+const serverWebResourcePatterns = [
+	...serverResourcePatterns,
+	...commonResourcePatterns,
+
+	// Web HTML
+	'vs/code/browser/workbench/workbench.html',
+	'vs/code/browser/workbench/workbench-dev.html',
+	'vs/code/browser/workbench/callback.html',
+	'vs/workbench/services/extensions/worker/webWorkerExtensionHostIframe.html',
+	'vs/workbench/contrib/webview/browser/pre/*.html',
+
+	// Webview pre scripts
+	'vs/workbench/contrib/webview/browser/pre/*.js',
+
+	// Media - audio
+	'vs/platform/accessibilitySignal/browser/media/*.mp3',
+
+	// Media - images
+	'vs/workbench/contrib/welcomeGettingStarted/common/media/**/*.svg',
+	'vs/workbench/contrib/welcomeGettingStarted/common/media/**/*.png',
+	'vs/workbench/contrib/welcomeOnboarding/browser/media/*.svg',
+	'vs/workbench/contrib/extensions/browser/media/*.svg',
+	'vs/workbench/contrib/extensions/browser/media/*.png',
+	'vs/workbench/services/extensionManagement/common/media/*.svg',
+	'vs/workbench/services/extensionManagement/common/media/*.png',
+];
+
+// Resources for standalone web target (browser-only, no server)
+const webResourcePatterns = [
+	...commonResourcePatterns,
+
+	// Web HTML
+	'vs/code/browser/workbench/workbench.html',
+	'vs/code/browser/workbench/workbench-dev.html',
+	'vs/code/browser/workbench/callback.html',
+	'vs/workbench/services/extensions/worker/webWorkerExtensionHostIframe.html',
+	'vs/workbench/contrib/webview/browser/pre/*.html',
+
+	// Webview pre scripts
+	'vs/workbench/contrib/webview/browser/pre/*.js',
+
+	// Media - audio
+	'vs/platform/accessibilitySignal/browser/media/*.mp3',
+
+	// Media - images
+	'vs/workbench/contrib/welcomeGettingStarted/common/media/**/*.svg',
+	'vs/workbench/contrib/welcomeGettingStarted/common/media/**/*.png',
+	'vs/workbench/contrib/welcomeOnboarding/browser/media/*.svg',
+	'vs/workbench/contrib/extensions/browser/media/*.svg',
+	'vs/workbench/contrib/extensions/browser/media/*.png',
+	'vs/workbench/services/extensionManagement/common/media/*.svg',
+	'vs/workbench/services/extensionManagement/common/media/*.png',
+];
+
+/**
+ * Get resource patterns for a build target.
+ */
+function getResourcePatternsForTarget(target: BuildTarget): string[] {
+	switch (target) {
+		case 'desktop':
+			return desktopResourcePatterns;
+		case 'server':
+			return serverResourcePatterns;
+		case 'server-web':
+			return serverWebResourcePatterns;
+		case 'web':
+			return webResourcePatterns;
+		default:
+			throw new Error(`Unknown target: ${target}`);
+	}
+}
+
+// ============================================================================
 // Utilities
 // ============================================================================
 

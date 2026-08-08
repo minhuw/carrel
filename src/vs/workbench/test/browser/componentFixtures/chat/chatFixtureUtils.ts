@@ -54,7 +54,6 @@ import { IAgentHostNewSessionFolderService } from '../../../../contrib/chat/brow
 import { IAgentHostCustomizationService } from '../../../../contrib/chat/browser/agentSessions/agentHost/agentHostCustomizationService.js';
 import { IAgentSdkSetupService } from '../../../../services/agentHost/browser/agentSdkSetupService.js';
 import { ICodexAccountService } from '../../../../services/agentHost/browser/codexAccountService.js';
-import { IVoiceModeOnboardingService } from '../../../../contrib/agentsVoice/browser/voiceModeOnboarding.js';
 import { IChatAccessibilityService, IChatWidget, IChatWidgetService } from '../../../../contrib/chat/browser/chat.js';
 import { IChatResponseFileChangesService } from '../../../../contrib/chat/browser/chatResponseFileChangesService.js';
 import { IChatPetService } from '../../../../contrib/chat/browser/chatPetService.js';
@@ -292,10 +291,6 @@ export function registerChatFixtureServices(reg: ServiceRegistration, options: I
 		override readonly onDidChangePreparingModel = Event.None;
 		override readonly state = ChatSpeechToTextState.Idle;
 		override readonly isPreparingModel = false;
-	}());
-	reg.defineInstance(IVoiceModeOnboardingService, new class extends mock<IVoiceModeOnboardingService>() {
-		override readonly isVisible = false;
-		override registerHost() { return Disposable.None; }
 	}());
 	reg.defineInstance(IChatInputNoticeHubService, new class extends mock<IChatInputNoticeHubService>() {
 		override registerHost() { return Disposable.None; }

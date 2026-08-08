@@ -29,7 +29,6 @@ import { IProductService } from '../../../../../platform/product/common/productS
 import { IAuthenticationService } from '../../../../services/authentication/common/authentication.js';
 import { AccessibilitySignal, IAccessibilitySignalService } from '../../../../../platform/accessibilitySignal/browser/accessibilitySignalService.js';
 import { IAccessibilityService } from '../../../../../platform/accessibility/common/accessibility.js';
-import { AgentsVoiceStorageKeys } from '../../../agentsVoice/common/agentsVoice.js';
 import { ChatContextKeys } from '../../common/actions/chatContextKeys.js';
 import { ChatMessageRole, ILanguageModelsService } from '../../common/languageModels.js';
 import { IPromptsService } from '../../common/promptSyntax/service/promptsService.js';
@@ -39,6 +38,9 @@ import { resolveDictationLanguage } from './dictationLanguage.js';
 import { ChatEntitlement, IChatEntitlementService } from '../../../../services/chat/common/chatEntitlementService.js';
 import { IVoiceCodeTranscription, IVoiceCodeTranscriptionClient } from './voiceCodeTranscriptionClient.js';
 import { getTranscriptionWebSocketUrl } from '../voiceClient/voiceEndpoint.js';
+
+/** Storage key formerly exported by the removed agentsVoice contrib. */
+const MICROPHONE_DEVICE_STORAGE_KEY = 'agentsVoice.microphoneDevice';
 
 export const IChatSpeechToTextService = createDecorator<IChatSpeechToTextService>('chatSpeechToTextService');
 
@@ -1738,7 +1740,7 @@ export class ChatSpeechToTextService extends Disposable implements IChatSpeechTo
 		this._backendFinalizedText = '';
 	}
 
-	private async _acquireStream(window: Window & typeof globalThis, deviceId = this._storageService.get(AgentsVoiceStorageKeys.MicrophoneDevice, StorageScope.APPLICATION)): Promise<MediaStream> {
+	private async _acquireStream(window: Window & typeof globalThis, deviceId = this._storageService.get(MICROPHONE_DEVICE_STORAGE_KEY, StorageScope.APPLICATION)): Promise<MediaStream> {
 		// Honor the microphone chosen for Voice Mode (shared setting) so both
 		// features record from the same device. Falls back to the system default
 		// if the stored device is stale/unplugged.

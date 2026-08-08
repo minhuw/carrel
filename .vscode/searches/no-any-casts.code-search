@@ -963,12 +963,6 @@ src/vs/workbench/contrib/debug/test/common/debugModel.test.ts:
   72: 				// eslint-disable-next-line local/code-no-any-casts
   77: 				// eslint-disable-next-line local/code-no-any-casts
 
-src/vs/workbench/contrib/editTelemetry/browser/helpers/utils.ts:
-  15: 		// eslint-disable-next-line local/code-no-any-casts
-
-src/vs/workbench/contrib/editTelemetry/browser/telemetry/arcTelemetrySender.ts:
-  142: 				// eslint-disable-next-line local/code-no-any-casts
-
 src/vs/workbench/contrib/extensions/browser/extensionsWorkbenchService.ts:
   1182: 		// eslint-disable-next-line local/code-no-any-casts
 

@@ -15,18 +15,10 @@ export const IAccessibleViewService = createDecorator<IAccessibleViewService>('a
 
 export const enum AccessibleViewProviderId {
 	Terminal = 'terminal',
-	TerminalChat = 'terminal-chat',
 	TerminalHelp = 'terminal-help',
 	DiffEditor = 'diffEditor',
 	MergeEditor = 'mergeEditor',
-	PanelChat = 'panelChat',
-	CustomizationMigrations = 'customizationMigrations',
-	CustomizationDiscovery = 'customizationDiscovery',
-	ChatTerminalOutput = 'chatTerminalOutput',
-	ChatThinking = 'chatThinking',
-	InlineChat = 'inlineChat',
-	AgentChat = 'agentChat',
-	QuickChat = 'quickChat',
+	ChatInputWindow = 'chatInputWindow',
 	InlineCompletions = 'inlineCompletions',
 	KeybindingsEditor = 'keybindingsEditor',
 	Notebook = 'notebook',
@@ -50,13 +42,10 @@ export const enum AccessibleViewProviderId {
 	OutputFindHelp = 'outputFindHelp',
 	ChatFindHelp = 'chatFindHelp',
 	ProblemsFilterHelp = 'problemsFilterHelp',
-	SessionsChat = 'sessionsChat',
-	SessionsChanges = 'sessionsChanges',
 	Survey = 'survey',
 	Automations = 'automations',
 	ConnectionDiagnostics = 'connectionDiagnostics',
 	BrowserElementCommenting = 'browserElementCommenting',
-	ChatPetAchievements = 'chatPetAchievements',
 }
 
 export const enum AccessibleViewType {

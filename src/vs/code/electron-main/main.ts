@@ -91,6 +91,18 @@ import { LINUX_SYSTEM_POLICY_FILE_PATH } from '../../base/common/policy.js';
 class CodeMain {
 
 	main(): void {
+		// Carrel: when stdout/stderr are closed pipes (detached launches,
+		// terminal exited), console warning writes emit stream 'error' events
+		// which would otherwise throw EPIPE and loop as uncaught exception
+		// dialogs. Listening on the streams absorbs them at the source.
+		const ignoreEpipe = (err: NodeJS.ErrnoException) => {
+			if (err.code !== 'EPIPE') {
+				throw err;
+			}
+		};
+		process.stdout?.on('error', ignoreEpipe);
+		process.stderr?.on('error', ignoreEpipe);
+
 		try {
 			this.startup();
 		} catch (error) {
@@ -609,24 +621,6 @@ class CodeMain {
 			if (waitMarkerFilePath) {
 				addArg(process.argv, '--waitMarkerFilePath', waitMarkerFilePath);
 				args.waitMarkerFilePath = waitMarkerFilePath;
-			}
-		}
-
-		if (args.chat) {
-			if (args.chat['new-window']) {
-				// Apply `--new-window` flag to the main arguments
-				args['new-window'] = true;
-			} else if (args.chat['reuse-window']) {
-				// Apply `--reuse-window` flag to the main arguments
-				args['reuse-window'] = true;
-			} else if (args.chat['profile']) {
-				// Apply `--profile` flag to the main arguments
-				args['profile'] = args.chat['profile'];
-			} else {
-				// Unless we are started with specific instructions about
-				// new windows or reusing existing ones, always take the
-				// current working directory as workspace to open.
-				args._ = [cwd()];
 			}
 		}
 

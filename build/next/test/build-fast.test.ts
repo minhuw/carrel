@@ -14,7 +14,7 @@ import { collectSnapshot, computeChangedPaths, createBuildFastPrerequisites, cre
 import { applyIncrementalClientChanges, getOutputRelativePath } from '../transpile.ts';
 
 const environment = 'test-environment';
-const outputsPresent: OutputStatus = { client: true, extensions: true, copilot: true };
+const outputsPresent: OutputStatus = { client: true, extensions: true };
 
 suite('build-fast planning', () => {
 	test('parses NUL-separated Git paths', () => {
@@ -69,30 +69,28 @@ suite('build-fast planning', () => {
 				changedPaths: [],
 				client: 'skip',
 				extensions: 'skip',
-				copilot: 'skip',
 			}
 		);
 	});
 
-	test('routes client, extension, and Copilot changes independently', () => {
-		assert.deepStrictEqual(
-			createBuildPlan(savedState(), environment, [
-				'extensions/configuration-editing/src/configurationEditingMain.ts',
-				'extensions/copilot/src/extension.ts',
-				'src/main.ts',
-			], outputsPresent, false),
+	test('routes client and extension changes independently', () => {
+		assert.deepStrictEqual([
+			createBuildPlan(savedState(), environment, ['src/main.ts'], outputsPresent, false),
+			createBuildPlan(savedState(), environment, ['extensions/configuration-editing/src/configurationEditingMain.ts'], outputsPresent, false),
+		], [
 			{
-				reason: '3 input path(s) changed',
-				changedPaths: [
-					'extensions/configuration-editing/src/configurationEditingMain.ts',
-					'extensions/copilot/src/extension.ts',
-					'src/main.ts',
-				],
+				reason: '1 input path(s) changed',
+				changedPaths: ['src/main.ts'],
 				client: 'incremental',
+				extensions: 'skip',
+			},
+			{
+				reason: '1 input path(s) changed',
+				changedPaths: ['extensions/configuration-editing/src/configurationEditingMain.ts'],
+				client: 'skip',
 				extensions: 'full',
-				copilot: 'full',
-			}
-		);
+			},
+		]);
 	});
 
 	test('falls back fully for missing state and build inputs', () => {
@@ -106,34 +104,30 @@ suite('build-fast planning', () => {
 				changedPaths: [],
 				client: 'full',
 				extensions: 'full',
-				copilot: 'full',
 			},
 			{
 				reason: 'build configuration or dependencies changed',
 				changedPaths: ['build/next/index.ts'],
 				client: 'full',
 				extensions: 'full',
-				copilot: 'full',
 			},
 			{
 				reason: 'build configuration or dependencies changed',
 				changedPaths: ['gulpfile.mjs'],
 				client: 'full',
 				extensions: 'full',
-				copilot: 'full',
 			}
 		]);
 	});
 
 	test('rebuilds only the lane with a missing output', () => {
 		assert.deepStrictEqual(
-			createBuildPlan(savedState(), environment, [], { client: false, extensions: true, copilot: true }, false),
+			createBuildPlan(savedState(), environment, [], { client: false, extensions: true }, false),
 			{
 				reason: 'client output is missing',
 				changedPaths: [],
 				client: 'full',
 				extensions: 'skip',
-				copilot: 'skip',
 			}
 		);
 	});
@@ -280,7 +274,7 @@ suite('incremental client output', () => {
 function state(dirty: Readonly<Record<string, string | null>> = {}): BuildFastState {
 	return {
 		schema: 1,
-		recipe: 1,
+		recipe: 2,
 		head: 'saved',
 		environment,
 		dirty,

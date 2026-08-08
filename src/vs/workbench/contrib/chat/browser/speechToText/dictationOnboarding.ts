@@ -22,7 +22,6 @@ import { ILogService } from '../../../../../platform/log/common/log.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../../../../platform/storage/common/storage.js';
 import { ITelemetryService } from '../../../../../platform/telemetry/common/telemetry.js';
 import { defaultSelectBoxStyles } from '../../../../../platform/theme/browser/defaultStyles.js';
-import { AgentsVoiceStorageKeys } from '../../../agentsVoice/common/agentsVoice.js';
 import { CONFIGURE_DICTATION_INSTRUCTIONS_ACTION_ID } from '../actions/configureVoiceInstructionsAction.js';
 import { ChatInputOnboarding, IChatInputOnboardingBanner, IChatInputOnboardingHostOptions } from '../widget/input/chatInputOnboarding.js';
 import { ChatInputNoticeVariant, ChatInputNoticeWidget } from '../widget/input/chatInputNoticeWidget.js';
@@ -46,6 +45,9 @@ const DICTATION_SETTINGS_QUERY = 'dictation';
 
 /** The `deviceId` value that means "whatever the system is using". */
 const SYSTEM_DEFAULT_DEVICE_ID = '';
+
+/** Storage key formerly exported by the removed agentsVoice contrib. */
+const MICROPHONE_DEVICE_STORAGE_KEY = 'agentsVoice.microphoneDevice';
 
 type DictationMediaDevices = Pick<MediaDevices, 'addEventListener' | 'removeEventListener' | 'dispatchEvent' | 'enumerateDevices' | 'getUserMedia'>;
 type SwitchMicrophone = (deviceId: string) => Promise<AnalyserNode | undefined>;
@@ -709,7 +711,7 @@ export class DictationOnboardingBanner extends ChatInputNoticeWidget implements 
 	}
 
 	private currentDeviceId(): string {
-		return this.storageService.get(AgentsVoiceStorageKeys.MicrophoneDevice, StorageScope.APPLICATION, SYSTEM_DEFAULT_DEVICE_ID);
+		return this.storageService.get(MICROPHONE_DEVICE_STORAGE_KEY, StorageScope.APPLICATION, SYSTEM_DEFAULT_DEVICE_ID);
 	}
 
 	async refreshMicrophones(analyserNode?: AnalyserNode, switchMicrophone?: SwitchMicrophone): Promise<void> {
@@ -795,9 +797,9 @@ export class DictationOnboardingBanner extends ChatInputNoticeWidget implements 
 		// Shared with Voice Mode and with the "Select Microphone" quick pick, so
 		// the choice made here is the one dictation actually records from.
 		if (option.deviceId) {
-			this.storageService.store(AgentsVoiceStorageKeys.MicrophoneDevice, option.deviceId, StorageScope.APPLICATION, StorageTarget.MACHINE);
+			this.storageService.store(MICROPHONE_DEVICE_STORAGE_KEY, option.deviceId, StorageScope.APPLICATION, StorageTarget.MACHINE);
 		} else {
-			this.storageService.remove(AgentsVoiceStorageKeys.MicrophoneDevice, StorageScope.APPLICATION);
+			this.storageService.remove(MICROPHONE_DEVICE_STORAGE_KEY, StorageScope.APPLICATION);
 		}
 
 		status(localize('dictation.onboarding.microphoneSelected', "{0} selected.", option.label));

@@ -21,10 +21,7 @@ import { EditorInput } from '../../../../common/editor/editorInput.js';
 import { IEditorService } from '../../../../services/editor/common/editorService.js';
 import { IExtensionService, isProposedApiEnabled } from '../../../../services/extensions/common/extensions.js';
 import { UntitledTextEditorInput } from '../../../../services/untitled/common/untitledTextEditorInput.js';
-import { createNotebookOutputVariableEntry, NOTEBOOK_CELL_OUTPUT_MIME_TYPE_LIST_FOR_CHAT_CONST } from '../../../notebook/browser/contrib/chat/notebookChatUtils.js';
-import { getOutputViewModelFromId } from '../../../notebook/browser/controller/cellOutputActions.js';
-import { getNotebookEditorFromEditorPane } from '../../../notebook/browser/notebookBrowser.js';
-import { SCMHistoryItemTransferData } from '../../../scm/browser/scmHistoryChatContext.js';
+import { SCMHistoryItemTransferData } from '../../../scm/browser/scmHistoryViewPane.js';
 import { CHAT_ATTACHABLE_IMAGE_MIME_TYPES, getAttachableImageExtension } from '../../common/model/chatModel.js';
 import { IBrowserViewVariableEntry, IChatRequestVariableEntry, OmittedState, IDiagnosticVariableEntry, IDiagnosticVariableEntryFilterData, ISymbolVariableEntry, ISCMHistoryItemVariableEntry } from '../../common/attachments/chatVariableEntries.js';
 import { imageToHash } from '../widget/input/editor/chatPasteProviders.js';
@@ -275,27 +272,7 @@ export class ChatAttachmentResolveService implements IChatAttachmentResolveServi
 	// --- NOTEBOOKS ---
 
 	public resolveNotebookOutputAttachContext(data: NotebookCellOutputTransferData): IChatRequestVariableEntry[] {
-		const notebookEditor = getNotebookEditorFromEditorPane(this.editorService.activeEditorPane);
-		if (!notebookEditor) {
-			return [];
-		}
-
-		const outputViewModel = getOutputViewModelFromId(data.outputId, notebookEditor);
-		if (!outputViewModel) {
-			return [];
-		}
-
-		const mimeType = outputViewModel.pickedMimeType?.mimeType;
-		if (mimeType && NOTEBOOK_CELL_OUTPUT_MIME_TYPE_LIST_FOR_CHAT_CONST.includes(mimeType)) {
-
-			const entry = createNotebookOutputVariableEntry(outputViewModel, mimeType, notebookEditor);
-			if (!entry) {
-				return [];
-			}
-
-			return [entry];
-		}
-
+		// Notebook output chat attachments have been removed
 		return [];
 	}
 

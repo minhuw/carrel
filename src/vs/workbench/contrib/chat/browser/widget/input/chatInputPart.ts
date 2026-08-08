@@ -73,7 +73,6 @@ import { WorkbenchList } from '../../../../../../platform/list/browser/listServi
 import { canLog, ILogService, LogLevel } from '../../../../../../platform/log/common/log.js';
 import { ObservableMemento, observableMemento } from '../../../../../../platform/observable/common/observableMemento.js';
 import { bindContextKey } from '../../../../../../platform/observable/common/platformObservableUtils.js';
-import { IVoiceModeOnboardingService } from '../../../../agentsVoice/browser/voiceModeOnboarding.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../../../../../platform/storage/common/storage.js';
 import { IThemeService } from '../../../../../../platform/theme/common/themeService.js';
 import { ISharedWebContentExtractorService } from '../../../../../../platform/webContentExtractor/common/webContentExtractor.js';
@@ -907,7 +906,6 @@ export class ChatInputPart extends Disposable implements IHistoryNavigationWidge
 		@IChatAttachmentWidgetRegistry private readonly _chatAttachmentWidgetRegistry: IChatAttachmentWidgetRegistry,
 		@IChatInputNotificationService private readonly chatInputNotificationService: IChatInputNotificationService,
 		@IChatPhoneInputPresenter private readonly chatPhoneInputPresenter: IChatPhoneInputPresenter,
-		@IVoiceModeOnboardingService private readonly voiceModeOnboardingService: IVoiceModeOnboardingService,
 		@IChatWidgetService private readonly chatWidgetService: IChatWidgetService,
 		@IVoiceSessionController private readonly voiceSessionController: IVoiceSessionController,
 		@IChatService private readonly chatService: IChatService,
@@ -3220,10 +3218,9 @@ export class ChatInputPart extends Disposable implements IHistoryNavigationWidge
 		this.chatInputNotificationContainer = elements.chatInputNotificationContainer;
 		this._register(registerChatInputOnboardingHosts(
 			this.noticeHost,
-			{ voice: elements.voiceModeOnboardingContainer, dictation: elements.dictationOnboardingContainer },
+			{ dictation: elements.dictationOnboardingContainer },
 			this.container,
 			() => this.focus(),
-			this.voiceModeOnboardingService,
 			this.dictationOnboardingService,
 		));
 		this.chatGoalBannerContainer = elements.chatGoalBannerContainer;

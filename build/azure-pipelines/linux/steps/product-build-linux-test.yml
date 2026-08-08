@@ -90,8 +90,6 @@ steps:
         compile-extension:git \
         compile-extension:github-authentication \
         compile-extension:html-language-features-server \
-        compile-extension:ipynb \
-        compile-extension:notebook-renderers \
         compile-extension:json-language-features-client \
         compile-extension:json-language-features-server \
         compile-extension:markdown-language-features \
@@ -179,7 +177,6 @@ steps:
           env:
             VSCODE_SMOKE_TEST_POLICY: '1'
             # Keep the smoke test data dir (user-data, extensions, workspace and the
-            # Copilot CLI session state under `os.tmpdir()`) on the large work volume
             # instead of the small OS root disk (`/tmp`), which has filled up and
             # crashed the agent worker with "No space left on device".
             TMPDIR: $(Agent.TempDirectory)
@@ -225,8 +222,6 @@ steps:
     continueOnError: true
     condition: succeededOrFailed()
 
-  - ${{ if containsValue(parameters.VSCODE_TEST_IDS, 'copilot') }}:
-    - template: ../../copilot/test-integration-steps.yml@self
       parameters:
         OS: linux
 

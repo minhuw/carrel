@@ -78,15 +78,7 @@ export class GitArtifactProvider implements SourceControlArtifactProvider, IDisp
 		private readonly repository: Repository,
 		private readonly logger: LogOutputChannel
 	) {
-		// If this is the agents window we don't need to initialize the
-		// repository artifacts provider since the agents window does not
-		// have the Repository explorer view.
-		if (workspace.isAgentSessionsWorkspace) {
-			this._groups = [];
-			return;
-		}
-
-		this._groups = [
+this._groups = [
 			{ id: 'branches', name: l10n.t('Branches'), icon: Icons.branch, supportsFolders: true },
 			{ id: 'stashes', name: l10n.t('Stashes'), icon: Icons.stash, supportsFolders: false },
 			{ id: 'tags', name: l10n.t('Tags'), icon: Icons.tag, supportsFolders: true },

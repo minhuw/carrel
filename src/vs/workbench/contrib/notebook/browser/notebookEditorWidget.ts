@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import './media/notebook.css';
-import './media/notebookCellChat.css';
 import './media/notebookCellEditorHint.css';
 import './media/notebookCellInsertToolbar.css';
 import './media/notebookCellStatusBar.css';
@@ -17,8 +16,6 @@ import './media/notebookCellOutput.css';
 import './media/notebookEditorStickyScroll.css';
 import './media/notebookKernelActionViewItem.css';
 import './media/notebookOutline.css';
-import './media/notebookChatEditController.css';
-import './media/notebookChatEditorOverlay.css';
 import * as DOM from '../../../../base/browser/dom.js';
 import * as domStylesheets from '../../../../base/browser/domStylesheets.js';
 import { IMouseWheelEvent, StandardMouseEvent } from '../../../../base/browser/mouseEvent.js';
@@ -902,13 +899,6 @@ export class NotebookEditorWidget extends Disposable implements INotebookEditorD
 		}
 		.monaco-workbench .notebookOverlay > .cell-list-container > .monaco-list > .monaco-scrollable-element > .monaco-list-rows > .monaco-list-row .output-collapse-container {
 			padding: ${OutputInnerContainerTopPadding}px 8px;
-		}
-		`);
-
-		// chat
-		styleSheets.push(`
-		.monaco-workbench .notebookOverlay .cell-chat-part {
-			margin: 0 ${cellRightMargin}px 6px 4px;
 		}
 		`);
 

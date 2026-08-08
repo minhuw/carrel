@@ -1,10 +1,9 @@
 name: @@NAME@@
 version: '@@VERSION@@'
-summary: Code editing. Redefined.
+summary: A calm, focused code editor
 description: |
-  Visual Studio Code is a new choice of tool that combines the
-  simplicity of a code editor with what developers need for the core
-  edit-build-debug cycle.
+  Carrel focuses on editing, files, search, source control, terminals,
+  and extensions in a clear desktop workspace.
 
 architectures:
   - build-on: amd64

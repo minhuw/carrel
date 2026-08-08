@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { localize } from '../../nls.js';
-import { IPolicyData } from './defaultAccount.js';
 
 /**
  * System-wide policy file path for Linux systems.
@@ -20,6 +19,25 @@ export type LocalizedValue = {
 export type PolicyValue = string | number | boolean;
 export type ManagedSettingValue = PolicyValue;
 export type ManagedSettingsData = Readonly<Record<string, ManagedSettingValue>>;
+
+export interface IPolicyData {
+	readonly mcp?: boolean;
+	readonly chat_preview_features_enabled?: boolean;
+	readonly chat_agent_enabled?: boolean;
+	readonly cloud_session_storage_enabled?: boolean;
+	readonly mcpRegistryUrl?: string;
+	readonly mcpAccess?: 'allow_all' | 'registry_only';
+
+	/**
+	 * Normalized enterprise-managed settings, keyed by dot-separated managed-settings
+	 * paths such as `permissions.disableBypassPermissionsMode`. This is the single
+	 * channel for enterprise-managed configuration: server-delivered settings and
+	 * native MDM settings both project into this bag, so policy `value()` callbacks
+	 * behave identically regardless of source. Structured settings (e.g.
+	 * `enabledPlugins`, `extraKnownMarketplaces`) are carried as canonical JSON strings.
+	 */
+	readonly managedSettings?: ManagedSettingsData;
+}
 
 export interface IManagedSettingPolicyDefinition {
 	readonly type: 'string' | 'number' | 'boolean';

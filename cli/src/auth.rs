@@ -550,22 +550,6 @@ impl Auth {
 		Ok(credentials)
 	}
 
-	/// Runs the device-flow login for a specific provider with custom OAuth
-	/// scopes. Unlike [`login`], this is purpose-built for agent host auth
-	/// where the scopes are dictated by the server's protected resource
-	/// metadata rather than hardcoded defaults.
-	pub async fn login_with_scopes(
-		&self,
-		provider: AuthProvider,
-		scopes: Option<String>,
-	) -> Result<StoredCredential, AnyError> {
-		let credentials = self
-			.do_device_code_flow_with_scopes(provider, scopes)
-			.await?;
-		self.store_credentials(credentials.clone());
-		Ok(credentials)
-	}
-
 	/// Gets the currently stored credentials, or asks the user to log in.
 	pub async fn get_credential(&self) -> Result<StoredCredential, AnyError> {
 		let entry = match self.get_current_credential() {
@@ -738,7 +722,7 @@ impl Auth {
 	/// Implements the device code flow, returning the credentials upon success.
 	async fn do_device_code_flow(&self) -> Result<StoredCredential, AnyError> {
 		let provider = self.prompt_for_provider().await?;
-		self.do_device_code_flow_with_scopes(provider, None).await
+		self.do_device_code_flow_with_provider(provider).await
 	}
 
 	async fn prompt_for_provider(&self) -> Result<AuthProvider, AnyError> {
@@ -767,17 +751,7 @@ impl Auth {
 		&self,
 		provider: AuthProvider,
 	) -> Result<StoredCredential, AnyError> {
-		self.do_device_code_flow_with_scopes(provider, None).await
-	}
-
-	/// Runs the OAuth device code flow with optional custom scopes.
-	/// If `scopes` is `None`, falls back to the provider's default scopes.
-	pub async fn do_device_code_flow_with_scopes(
-		&self,
-		provider: AuthProvider,
-		scopes: Option<String>,
-	) -> Result<StoredCredential, AnyError> {
-		let scopes = scopes.unwrap_or_else(|| provider.get_default_scopes());
+		let scopes = provider.get_default_scopes();
 		loop {
 			let init_code = self
 				.client

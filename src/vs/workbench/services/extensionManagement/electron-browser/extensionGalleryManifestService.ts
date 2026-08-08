@@ -23,7 +23,6 @@ import { ITelemetryService } from '../../../../platform/telemetry/common/telemet
 import { IRemoteAgentService } from '../../remote/common/remoteAgentService.js';
 import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { IHostService } from '../../host/browser/host.js';
-import { ExtensionGalleryAccountStatus, IExtensionGalleryAccountService } from '../common/extensionGalleryAccount.js';
 
 export class WorkbenchExtensionGalleryManifestService extends ExtensionGalleryManifestService implements IExtensionGalleryManifestService {
 
@@ -48,7 +47,6 @@ export class WorkbenchExtensionGalleryManifestService extends ExtensionGalleryMa
 		@ISharedProcessService sharedProcessService: ISharedProcessService,
 		@IConfigurationService private readonly configurationService: IConfigurationService,
 		@IRequestService private readonly requestService: IRequestService,
-		@IExtensionGalleryAccountService private readonly galleryAccountService: IExtensionGalleryAccountService,
 		@ILogService private readonly logService: ILogService,
 		@IDialogService private readonly dialogService: IDialogService,
 		@IHostService private readonly hostService: IHostService,
@@ -101,9 +99,8 @@ export class WorkbenchExtensionGalleryManifestService extends ExtensionGalleryMa
 
 		const configuredServiceUrl = this.configurationService.getValue<string>(ExtensionGalleryServiceUrlConfigKey);
 		if (configuredServiceUrl) {
-			this.logService.trace('[Marketplace] Private marketplace configured, checking access and fetching manifest', configuredServiceUrl);
-			this._register(this.galleryAccountService.onDidChangeAccount(() => this.handleMarketplaceAccountAccess(configuredServiceUrl)));
-			await this.handleMarketplaceAccountAccess(configuredServiceUrl);
+			this.logService.trace('[Marketplace] Private marketplace configured, fetching manifest', configuredServiceUrl);
+			await this.fetchConfiguredGalleryManifest(configuredServiceUrl);
 		} else {
 			const defaultExtensionGalleryManifest = await super.getExtensionGalleryManifest();
 			this.update(defaultExtensionGalleryManifest);
@@ -118,54 +115,21 @@ export class WorkbenchExtensionGalleryManifestService extends ExtensionGalleryMa
 		}));
 	}
 
-	private async handleMarketplaceAccountAccess(configuredServiceUrl: string): Promise<void> {
-		try {
-			const account = await this.galleryAccountService.getAccount();
-			if (!account) {
-				// A transient failure to resolve the account is not a sign-out - Unknown means we could
-				// not tell - so it must not retract a marketplace the user already has.
-				if (this.galleryAccountService.accountStatus === ExtensionGalleryAccountStatus.Unknown
-					&& this.currentStatus === ExtensionGalleryManifestStatus.Available) {
-					return;
-				}
-				this.logService.debug('[Marketplace] Enterprise marketplace configured but user not signed in');
-				this.update(null, ExtensionGalleryManifestStatus.RequiresSignIn);
-				return;
+	private async fetchConfiguredGalleryManifest(configuredServiceUrl: string): Promise<void> {
+		if (this.currentStatus !== ExtensionGalleryManifestStatus.Available) {
+			try {
+				const manifest = await this.getExtensionGalleryManifestFromServiceUrl(configuredServiceUrl);
+				this.update(manifest);
+				this.telemetryService.publicLog2<
+					{},
+					{
+						owner: 'sandy081';
+						comment: 'Reports when a user successfully accesses a custom marketplace';
+					}>('galleryservice:custom:marketplace');
+			} catch (error) {
+				this.logService.error('[Marketplace] Error retrieving configured gallery manifest', error);
+				this.update(null, ExtensionGalleryManifestStatus.AccessDenied);
 			}
-
-			switch (this.galleryAccountService.accountStatus) {
-				case ExtensionGalleryAccountStatus.Unknown:
-					this.logService.debug('[Marketplace] User signed in but account status is unknown');
-					this.update(null, ExtensionGalleryManifestStatus.RequiresSignIn);
-					return;
-				case ExtensionGalleryAccountStatus.Ineligible:
-					this.logService.debug('[Marketplace] User signed in but lacks access to private marketplace');
-					this.update(null, ExtensionGalleryManifestStatus.AccessDenied);
-					return;
-				case ExtensionGalleryAccountStatus.SignedOut:
-					this.logService.debug('[Marketplace] User signed out');
-					this.update(null, ExtensionGalleryManifestStatus.RequiresSignIn);
-					return;
-				case ExtensionGalleryAccountStatus.Eligible:
-					try {
-
-						const manifest = await this.getExtensionGalleryManifestFromServiceUrl(configuredServiceUrl);
-						this.update(manifest);
-						this.telemetryService.publicLog2<
-							{},
-							{
-								owner: 'sandy081';
-								comment: 'Reports when a user successfully accesses a custom marketplace';
-							}>('galleryservice:custom:marketplace');
-					} catch (error) {
-						this.logService.error('[Marketplace] Error fetching manifest from custom marketplace', error);
-						this.update(null, ExtensionGalleryManifestStatus.AccessDenied);
-					}
-					return;
-			}
-		} catch (error) {
-			this.logService.error('[Marketplace] Error handling marketplace account access', error);
-			this.update(null, ExtensionGalleryManifestStatus.RequiresSignIn);
 		}
 	}
 

@@ -208,7 +208,6 @@ const editorConfiguration: IConfigurationNode = {
 			type: 'boolean',
 			default: diffEditorDefaultOptions.renderSideBySide,
 			description: nls.localize('sideBySide', "Controls whether the diff editor shows the diff side by side or inline."),
-			agentsWindow: { default: true },
 		},
 		'diffEditor.renderSideBySideInlineBreakpoint': {
 			type: 'number',
@@ -219,7 +218,6 @@ const editorConfiguration: IConfigurationNode = {
 			type: 'boolean',
 			default: diffEditorDefaultOptions.useInlineViewWhenSpaceIsLimited,
 			description: nls.localize('useInlineViewWhenSpaceIsLimited', "If enabled and the editor width is too small, the inline view is used."),
-			agentsWindow: { default: true },
 		},
 		'diffEditor.hideOriginalLineNumbers': {
 			type: ['boolean', 'null'],
@@ -230,13 +228,11 @@ const editorConfiguration: IConfigurationNode = {
 			type: 'boolean',
 			default: diffEditorDefaultOptions.renderMarginRevertIcon,
 			description: nls.localize('renderMarginRevertIcon', "When enabled, the diff editor shows arrows in its glyph margin to revert changes."),
-			agentsWindow: { default: false },
 		},
 		'diffEditor.renderGutterMenu': {
 			type: 'boolean',
 			default: diffEditorDefaultOptions.renderGutterMenu,
 			description: nls.localize('renderGutterMenu', "When enabled, the diff editor shows a special gutter for revert and stage actions."),
-			agentsWindow: { default: false },
 		},
 		'diffEditor.ignoreTrimWhitespace': {
 			type: 'boolean',
@@ -247,7 +243,6 @@ const editorConfiguration: IConfigurationNode = {
 			type: 'boolean',
 			default: diffEditorDefaultOptions.renderIndicators,
 			description: nls.localize('renderIndicators', "Controls whether the diff editor shows +/- indicators for added/removed changes."),
-			agentsWindow: { default: false },
 		},
 		'diffEditor.codeLens': {
 			type: 'boolean',
@@ -279,7 +274,6 @@ const editorConfiguration: IConfigurationNode = {
 			type: 'boolean',
 			default: diffEditorDefaultOptions.hideUnchangedRegions.enabled,
 			markdownDescription: nls.localize('hideUnchangedRegions.enabled', "Controls whether the diff editor shows unchanged regions."),
-			agentsWindow: { default: true },
 		},
 		'diffEditor.hideUnchangedRegions.revealLineCount': {
 			type: 'integer',

@@ -126,55 +126,6 @@ parameters:
     displayName: "Run sanity tests against this build's artifacts (for unpublished builds)"
     type: boolean
     default: false
-<<<<<<<<<<<<<<< conflict 1 of 1
-+++++++++++++++ wszmmtyy 10dad267 "carrel: remove chat and agents window smoke tests" (rebase destination)
-<<<<<<<<<<< conflict 1 of 1
-+++++++++++ wszmmtyy b5218c20 "carrel: remove chat and agents window smoke tests" (rebase destination)
-<<<<<<< conflict 1 of 1
-%%%%%%% diff from: wszmmtyy 0234ce9a "carrel: remove chat and agents window smoke tests" (parents of rebased revision)
-\\\\\\\        to: wszmmtyy 0234ce9a "carrel: remove chat and agents window smoke tests" (rebased revision)
-   # SDK -> VS Code integration: override Copilot dependencies with versions
-   # already published to the private feed. 'none' = use the OSS SDK version.
-   # See microsoft/vscode-engineering specs/sdk-vscode-integration.spec.md.
-   - name: VSCODE_SDK_CANARY_VERSION
-     displayName: "SDK canary: @github/copilot-sdk version ('none' = normal build)"
-     type: string
-     default: none
-   - name: VSCODE_CLI_CANARY_VERSION
--    displayName: "Product @github/copilot runtime version ('auto' = committed version or infer from SDK override)"
-+    displayName: "Expected SDK-bundled runtime version ('auto' = infer from SDK)"
-     type: string
-     default: auto
-+++++++ slkqvsnl db29c39f "carrel: remove Copilot extension from build plumbing" (rebased revision)
->>>>>>> conflict 1 of 1 ends
-%%%%%%%%%%% diff from: wszmmtyy 0234ce9a "carrel: remove chat and agents window smoke tests" (parents of rebased revision)
-\\\\\\\\\\\        to: slkqvsnl db29c39f "carrel: remove Copilot extension from build plumbing" (rebased revision)
--  # SDK -> VS Code integration: override Copilot dependencies with versions
--  # already published to the private feed. 'none' = use the OSS SDK version.
--  # See microsoft/vscode-engineering specs/sdk-vscode-integration.spec.md.
--  - name: VSCODE_SDK_CANARY_VERSION
--    displayName: "SDK canary: @github/copilot-sdk version ('none' = normal build)"
--    type: string
--    default: none
--  - name: VSCODE_CLI_CANARY_VERSION
--    displayName: "Product @github/copilot runtime version ('auto' = committed version or infer from SDK override)"
--    type: string
--    default: auto
->>>>>>>>>>> conflict 1 of 1 ends
-%%%%%%%%%%%%%%% diff from: wszmmtyy 0234ce9a "carrel: remove chat and agents window smoke tests" (parents of rebased revision)
-\\\\\\\\\\\\\\\        to: slkqvsnl db29c39f "carrel: remove Copilot extension from build plumbing" (rebased revision)
--  # SDK -> VS Code integration: override Copilot dependencies with versions
--  # already published to the private feed. 'none' = use the OSS SDK version.
--  # See microsoft/vscode-engineering specs/sdk-vscode-integration.spec.md.
--  - name: VSCODE_SDK_CANARY_VERSION
--    displayName: "SDK canary: @github/copilot-sdk version ('none' = normal build)"
--    type: string
--    default: none
--  - name: VSCODE_CLI_CANARY_VERSION
--    displayName: "Product @github/copilot runtime version ('auto' = committed version or infer from SDK override)"
--    type: string
--    default: auto
->>>>>>>>>>>>>>> conflict 1 of 1 ends
 
 variables:
   - name: VSCODE_BUILD_TITLE_PREFIX

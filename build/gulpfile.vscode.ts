@@ -24,35 +24,9 @@ import { getProductionDependencies } from './lib/dependencies.ts';
 import { config } from './lib/electron.ts';
 import { createAsar } from './lib/asar.ts';
 import minimist from 'minimist';
-<<<<<<< conflict 1 of 3
-%%%%%%% diff from: wszmmtyy 0234ce9a "carrel: remove chat and agents window smoke tests" (parents of rebased revision)
-\\\\\\\        to: wszmmtyy 0234ce9a "carrel: remove chat and agents window smoke tests" (rebased revision)
--import { compileBuildWithoutManglingTask, compileBuildWithManglingTask } from './gulpfile.compile.ts';
- import { compileNonNativeExtensionsBuildTask, compileNativeExtensionsBuildTask, compileAllExtensionsBuildTask, compileExtensionMediaBuildTask, cleanExtensionsBuildTask, compileCopilotExtensionBuildTask } from './gulpfile.extensions.ts';
--import { copyCodiconsTask } from './lib/compilation.ts';
--import { ensureCopilotPlatformPackage, getCopilotExcludeFilter, getCopilotRuntimePrebuildFiles, getCopilotTgrepExcludeFilter, getMxcExcludeFilter, getRipgrepExcludeFilter, prepareBuiltInCopilotRipgrepShim } from './lib/copilot.ts';
-+import { checkApiProposalNamesTask, copyCodiconsTask } from './lib/compilation.ts';
-+import { ensureCopilotPlatformPackage, getCopilotExcludeFilter, getCopilotRuntimePrebuildFiles, getCopilotRuntimeVersion, getCopilotTgrepExcludeFilter, getMxcExcludeFilter, getRipgrepExcludeFilter, prepareBuiltInCopilotRipgrepShim } from './lib/copilot.ts';
-+++++++ slkqvsnl db29c39f "carrel: remove Copilot extension from build plumbing" (rebased revision)
-import { compileBuildWithoutManglingTask, compileBuildWithManglingTask } from './gulpfile.compile.ts';
 import { compileNonNativeExtensionsBuildTask, compileNativeExtensionsBuildTask, compileAllExtensionsBuildTask, compileExtensionMediaBuildTask, cleanExtensionsBuildTask } from './gulpfile.extensions.ts';
-import { copyCodiconsTask } from './lib/compilation.ts';
-<<<<<<<<<<<<<<< conflict 1 of 3
-+++++++++++++++ wszmmtyy 10dad267 "carrel: remove chat and agents window smoke tests" (rebase destination)
-<<<<<<<<<<< conflict 1 of 3
-+++++++++++ wszmmtyy b5218c20 "carrel: remove chat and agents window smoke tests" (rebase destination)
+import { checkApiProposalNamesTask, copyCodiconsTask } from './lib/compilation.ts';
 import { getMxcExcludeFilter, getRipgrepExcludeFilter } from './lib/dependencies.ts';
->>>>>>> conflict 1 of 3 ends
-%%%%%%%%%%% diff from: wszmmtyy 0234ce9a "carrel: remove chat and agents window smoke tests" (parents of rebased revision)
-\\\\\\\\\\\        to: slkqvsnl db29c39f "carrel: remove Copilot extension from build plumbing" (rebased revision)
--import { ensureCopilotPlatformPackage, getCopilotExcludeFilter, getCopilotRuntimePrebuildFiles, getCopilotTgrepExcludeFilter, getMxcExcludeFilter, getRipgrepExcludeFilter, prepareBuiltInCopilotRipgrepShim } from './lib/copilot.ts';
-+import { getMxcExcludeFilter, getRipgrepExcludeFilter } from './lib/dependencies.ts';
->>>>>>>>>>> conflict 1 of 3 ends
-%%%%%%%%%%%%%%% diff from: wszmmtyy 0234ce9a "carrel: remove chat and agents window smoke tests" (parents of rebased revision)
-\\\\\\\\\\\\\\\        to: slkqvsnl db29c39f "carrel: remove Copilot extension from build plumbing" (rebased revision)
--import { ensureCopilotPlatformPackage, getCopilotExcludeFilter, getCopilotRuntimePrebuildFiles, getCopilotTgrepExcludeFilter, getMxcExcludeFilter, getRipgrepExcludeFilter, prepareBuiltInCopilotRipgrepShim } from './lib/copilot.ts';
-+import { getMxcExcludeFilter, getRipgrepExcludeFilter } from './lib/dependencies.ts';
->>>>>>>>>>>>>>> conflict 1 of 3 ends
 import { ensureOSProxyResolverPlatformPackage, getOSProxyResolverExcludeFilter, getOSProxyResolverPlatformFiles } from './lib/osProxyResolver.ts';
 import { readAgentSdkResults } from './agent-sdk/common.ts';
 import { readDictationRuntimeResults } from './dictation-runtime/common.ts';
@@ -288,47 +262,6 @@ function packageTask(platform: string, arch: string, sourceFolderName: string, d
 			.pipe(createAsar(path.join(process.cwd(), 'node_modules'), [
 				'**/*.node',
 				'**/@vscode/ripgrep-universal/bin/**',
-<<<<<<<<<<<<<<< conflict 2 of 3
-+++++++++++++++ wszmmtyy 10dad267 "carrel: remove chat and agents window smoke tests" (rebase destination)
-<<<<<<<<<<< conflict 2 of 3
-+++++++++++ wszmmtyy b5218c20 "carrel: remove chat and agents window smoke tests" (rebase destination)
-<<<<<<< conflict 2 of 3
-+++++++ wszmmtyy 0234ce9a "carrel: remove chat and agents window smoke tests" (rebased revision)
-				// The SDK runtime wrapper and native module must remain adjacent on disk.
-				'**/@github/copilot-sdk-{darwin,linux,linuxmusl,win32}-*/**',
-%%%%%%% diff from: wszmmtyy 0234ce9a "carrel: remove chat and agents window smoke tests" (parents of rebased revision)
-\\\\\\\        to: slkqvsnl db29c39f "carrel: remove Copilot extension from build plumbing" (rebased revision)
--				// Only the platform-specific Copilot CLI packages (`@github/copilot-<os>-<arch>`)
--				// need to be unpacked: the CLI is spawned as a subprocess and is a
--				// self-locating bundle that memory-maps files and resolves its native
--				// addons / sub-binaries relative to its own on-disk location, so it cannot
--				// run from inside the archive. `@github/copilot-sdk` is intentionally NOT
--				// matched here — it is pure JavaScript that the agent host loads via
--				// `import` (ASAR-aware), so it stays in the archive.
--				'**/@github/copilot-{darwin,linux,linuxmusl,win32}-*/**',
->>>>>>> conflict 2 of 3 ends
-%%%%%%%%%%% diff from: wszmmtyy 0234ce9a "carrel: remove chat and agents window smoke tests" (parents of rebased revision)
-\\\\\\\\\\\        to: slkqvsnl db29c39f "carrel: remove Copilot extension from build plumbing" (rebased revision)
--				// Only the platform-specific Copilot CLI packages (`@github/copilot-<os>-<arch>`)
--				// need to be unpacked: the CLI is spawned as a subprocess and is a
--				// self-locating bundle that memory-maps files and resolves its native
--				// addons / sub-binaries relative to its own on-disk location, so it cannot
--				// run from inside the archive. `@github/copilot-sdk` is intentionally NOT
--				// matched here — it is pure JavaScript that the agent host loads via
--				// `import` (ASAR-aware), so it stays in the archive.
--				'**/@github/copilot-{darwin,linux,linuxmusl,win32}-*/**',
->>>>>>>>>>> conflict 2 of 3 ends
-%%%%%%%%%%%%%%% diff from: wszmmtyy 0234ce9a "carrel: remove chat and agents window smoke tests" (parents of rebased revision)
-\\\\\\\\\\\\\\\        to: slkqvsnl db29c39f "carrel: remove Copilot extension from build plumbing" (rebased revision)
--				// Only the platform-specific Copilot CLI packages (`@github/copilot-<os>-<arch>`)
--				// need to be unpacked: the CLI is spawned as a subprocess and is a
--				// self-locating bundle that memory-maps files and resolves its native
--				// addons / sub-binaries relative to its own on-disk location, so it cannot
--				// run from inside the archive. `@github/copilot-sdk` is intentionally NOT
--				// matched here — it is pure JavaScript that the agent host loads via
--				// `import` (ASAR-aware), so it stays in the archive.
--				'**/@github/copilot-{darwin,linux,linuxmusl,win32}-*/**',
->>>>>>>>>>>>>>> conflict 2 of 3 ends
 				// The Dev Container CLI is spawned as an external Node process,
 				// so its bundled entrypoint must be available outside the ASAR.
 				'**/@devcontainers/cli/**',
@@ -633,12 +566,6 @@ BUILD_TARGETS.forEach(buildTarget => {
 		const vscodeTaskCI = task.define(`vscode${dashed(platform)}${dashed(arch)}${dashed(minified)}-ci`, task.series(...packageTasks));
 		task.task(vscodeTaskCI);
 
-<<<<<<<<<<<<<<< conflict 3 of 3
-+++++++++++++++ wszmmtyy 10dad267 "carrel: remove chat and agents window smoke tests" (rebase destination)
-<<<<<<<<<<< conflict 3 of 3
-+++++++++++ wszmmtyy b5218c20 "carrel: remove chat and agents window smoke tests" (rebase destination)
-<<<<<<< conflict 3 of 3
-+++++++ wszmmtyy 0234ce9a "carrel: remove chat and agents window smoke tests" (rebased revision)
 		const esbuildBundleTask = task.define(
 			`esbuild-bundle${dashed(platform)}${dashed(arch)}${dashed(minified)}`,
 			() => runEsbuildBundle(
@@ -653,120 +580,11 @@ BUILD_TARGETS.forEach(buildTarget => {
 			copyCodiconsTask,
 			cleanExtensionsBuildTask,
 			compileNonNativeExtensionsBuildTask,
-			compileCopilotExtensionBuildTask,
 			compileExtensionMediaBuildTask,
 			writeISODate('out-build'),
 			esbuildBundleTask,
 			vscodeTaskCI
 		));
-%%%%%%% diff from: wszmmtyy 0234ce9a "carrel: remove chat and agents window smoke tests" (parents of rebased revision)
-\\\\\\\        to: slkqvsnl db29c39f "carrel: remove Copilot extension from build plumbing" (rebased revision)
- 		let vscodeTask: task.Task;
- 		if (useEsbuildTranspile) {
- 			const esbuildBundleTask = task.define(
- 				`esbuild-bundle${dashed(platform)}${dashed(arch)}${dashed(minified)}`,
- 				() => runEsbuildBundle(
- 					sourceFolderName,
- 					!!minified,
- 					true,
- 					'desktop',
- 					minified && useCdnSourceMapsForPackagingTasks ? `${sourceMappingURLBase}/core` : undefined
- 				)
- 			);
- 			vscodeTask = task.define(`vscode${dashed(platform)}${dashed(arch)}${dashed(minified)}`, task.series(
- 				copyCodiconsTask,
- 				cleanExtensionsBuildTask,
- 				compileNonNativeExtensionsBuildTask,
--				compileCopilotExtensionBuildTask,
- 				compileExtensionMediaBuildTask,
- 				writeISODate('out-build'),
- 				esbuildBundleTask,
- 				vscodeTaskCI
- 			));
- 		} else {
- 			vscodeTask = task.define(`vscode${dashed(platform)}${dashed(arch)}${dashed(minified)}`, task.series(
- 				minified ? compileBuildWithManglingTask : compileBuildWithoutManglingTask,
- 				cleanExtensionsBuildTask,
- 				compileNonNativeExtensionsBuildTask,
--				compileCopilotExtensionBuildTask,
- 				compileExtensionMediaBuildTask,
- 				minified ? minifyVSCodeTask : bundleVSCodeTask,
- 				vscodeTaskCI
- 			));
- 		}
->>>>>>> conflict 3 of 3 ends
-%%%%%%%%%%% diff from: wszmmtyy 0234ce9a "carrel: remove chat and agents window smoke tests" (parents of rebased revision)
-\\\\\\\\\\\        to: slkqvsnl db29c39f "carrel: remove Copilot extension from build plumbing" (rebased revision)
- 		let vscodeTask: task.Task;
- 		if (useEsbuildTranspile) {
- 			const esbuildBundleTask = task.define(
- 				`esbuild-bundle${dashed(platform)}${dashed(arch)}${dashed(minified)}`,
- 				() => runEsbuildBundle(
- 					sourceFolderName,
- 					!!minified,
- 					true,
- 					'desktop',
- 					minified && useCdnSourceMapsForPackagingTasks ? `${sourceMappingURLBase}/core` : undefined
- 				)
- 			);
- 			vscodeTask = task.define(`vscode${dashed(platform)}${dashed(arch)}${dashed(minified)}`, task.series(
- 				copyCodiconsTask,
- 				cleanExtensionsBuildTask,
- 				compileNonNativeExtensionsBuildTask,
--				compileCopilotExtensionBuildTask,
- 				compileExtensionMediaBuildTask,
- 				writeISODate('out-build'),
- 				esbuildBundleTask,
- 				vscodeTaskCI
- 			));
- 		} else {
- 			vscodeTask = task.define(`vscode${dashed(platform)}${dashed(arch)}${dashed(minified)}`, task.series(
- 				minified ? compileBuildWithManglingTask : compileBuildWithoutManglingTask,
- 				cleanExtensionsBuildTask,
- 				compileNonNativeExtensionsBuildTask,
--				compileCopilotExtensionBuildTask,
- 				compileExtensionMediaBuildTask,
- 				minified ? minifyVSCodeTask : bundleVSCodeTask,
- 				vscodeTaskCI
- 			));
- 		}
->>>>>>>>>>> conflict 3 of 3 ends
-%%%%%%%%%%%%%%% diff from: wszmmtyy 0234ce9a "carrel: remove chat and agents window smoke tests" (parents of rebased revision)
-\\\\\\\\\\\\\\\        to: slkqvsnl db29c39f "carrel: remove Copilot extension from build plumbing" (rebased revision)
- 		let vscodeTask: task.Task;
- 		if (useEsbuildTranspile) {
- 			const esbuildBundleTask = task.define(
- 				`esbuild-bundle${dashed(platform)}${dashed(arch)}${dashed(minified)}`,
- 				() => runEsbuildBundle(
- 					sourceFolderName,
- 					!!minified,
- 					true,
- 					'desktop',
- 					minified && useCdnSourceMapsForPackagingTasks ? `${sourceMappingURLBase}/core` : undefined
- 				)
- 			);
- 			vscodeTask = task.define(`vscode${dashed(platform)}${dashed(arch)}${dashed(minified)}`, task.series(
- 				copyCodiconsTask,
- 				cleanExtensionsBuildTask,
- 				compileNonNativeExtensionsBuildTask,
--				compileCopilotExtensionBuildTask,
- 				compileExtensionMediaBuildTask,
- 				writeISODate('out-build'),
- 				esbuildBundleTask,
- 				vscodeTaskCI
- 			));
- 		} else {
- 			vscodeTask = task.define(`vscode${dashed(platform)}${dashed(arch)}${dashed(minified)}`, task.series(
- 				minified ? compileBuildWithManglingTask : compileBuildWithoutManglingTask,
- 				cleanExtensionsBuildTask,
- 				compileNonNativeExtensionsBuildTask,
--				compileCopilotExtensionBuildTask,
- 				compileExtensionMediaBuildTask,
- 				minified ? minifyVSCodeTask : bundleVSCodeTask,
- 				vscodeTaskCI
- 			));
- 		}
->>>>>>>>>>>>>>> conflict 3 of 3 ends
 		task.task(vscodeTask);
 
 		return vscodeTask;

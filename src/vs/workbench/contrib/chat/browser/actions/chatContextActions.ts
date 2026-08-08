@@ -37,7 +37,6 @@ import { EditorResourceAccessor, isEditorCommandsContext, SideBySideEditor } fro
 import { IEditorGroupsService } from '../../../../services/editor/common/editorGroupsService.js';
 import { IEditorService } from '../../../../services/editor/common/editorService.js';
 import { ExplorerFolderContext } from '../../../files/common/files.js';
-import { CTX_INLINE_CHAT_V2_ENABLED } from '../../../inlineChat/common/inlineChat.js';
 import { AnythingQuickAccessProvider } from '../../../search/browser/anythingQuickAccess.js';
 import { isSearchTreeFileMatch, isSearchTreeMatch } from '../../../search/browser/searchTreeModel/searchTreeCommon.js';
 import { ISymbolQuickPickItem, SymbolsQuickAccessProvider } from '../../../search/browser/symbolsQuickAccess.js';
@@ -179,12 +178,7 @@ class AttachFileToChatAction extends AttachResourceAction {
 						ResourceContextKey.Scheme.isEqualTo(Schemas.vscodeUserData)
 					)
 				)
-			}, {
-				id: MenuId.InlineChatEditorAffordance,
-				group: '0_chat',
-				order: 3,
-				when: ContextKeyExpr.and(ChatContextKeys.enabled, EditorContextKeys.hasNonEmptySelection.negate())
-			}, {
+						}, {
 				id: MenuId.ChatEditorInlineMenu,
 				group: '0_chat',
 				order: 3,
@@ -319,12 +313,7 @@ class AttachSelectionToChatAction extends Action2 {
 						ResourceContextKey.Scheme.isEqualTo(Schemas.vscodeUserData)
 					)
 				)
-			}, {
-				id: MenuId.InlineChatEditorAffordance,
-				group: '0_chat',
-				order: 2,
-				when: ContextKeyExpr.and(ChatContextKeys.enabled, EditorContextKeys.hasNonEmptySelection)
-			}, {
+						}, {
 				id: MenuId.ChatEditorInlineMenu,
 				group: '0_chat',
 				order: 2,
@@ -490,19 +479,6 @@ export class AttachContextAction extends Action2 {
 				id: MenuId.ChatInput,
 				group: 'navigation',
 				order: -1
-			}, {
-				when: ContextKeyExpr.and(
-					ChatContextKeys.inQuickChat.negate(),
-					ChatContextKeys.location.isEqualTo(ChatAgentLocation.EditorInline),
-					CTX_INLINE_CHAT_V2_ENABLED,
-					ContextKeyExpr.or(
-						ChatContextKeys.lockedToCodingAgent.negate(),
-						ChatContextKeys.agentSupportsAttachments
-					)
-				),
-				id: MenuId.ChatInput,
-				group: 'navigation',
-				order: 2
 			}, {
 				when: ContextKeyExpr.and(
 					ChatContextKeys.inQuickChat,

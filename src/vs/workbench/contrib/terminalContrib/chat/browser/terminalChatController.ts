@@ -46,7 +46,7 @@ export class TerminalChatController extends Disposable implements ITerminalContr
 	}
 
 	get scopedContextKeyService(): IContextKeyService {
-		return this._terminalChatWidget?.value.inlineChatWidget.scopedContextKeyService ?? this._contextKeyService;
+		return this._terminalChatWidget?.value.chatWidget.scopedContextKeyService ?? this._contextKeyService;
 	}
 
 	constructor(
@@ -75,7 +75,7 @@ export class TerminalChatController extends Disposable implements ITerminalContr
 					code: editor.getValue(),
 					codeBlockIndex: 0,
 					languageId: editor.getModel()!.getLanguageId(),
-					chatSessionResource: this._terminalChatWidget.value.inlineChatWidget.chatWidget.viewModel?.sessionResource
+					chatSessionResource: this._terminalChatWidget.value.chatWidget.chatWidget.viewModel?.sessionResource
 				};
 			}
 		}, 'terminal'));
@@ -104,9 +104,9 @@ export class TerminalChatController extends Disposable implements ITerminalContr
 	private _forcedPlaceholder: string | undefined = undefined;
 
 	private _updatePlaceholder(): void {
-		const inlineChatWidget = this._terminalChatWidget?.value.inlineChatWidget;
-		if (inlineChatWidget) {
-			inlineChatWidget.placeholder = this._getPlaceholderText();
+		const chatWidget = this._terminalChatWidget?.value.chatWidget;
+		if (chatWidget) {
+			chatWidget.placeholder = this._getPlaceholderText();
 		}
 	}
 
@@ -125,7 +125,7 @@ export class TerminalChatController extends Disposable implements ITerminalContr
 	}
 
 	updateInput(text: string, selectAll = true): void {
-		const widget = this._terminalChatWidget?.value.inlineChatWidget;
+		const widget = this._terminalChatWidget?.value.chatWidget;
 		if (widget) {
 			widget.value = text;
 			if (selectAll) {
@@ -143,7 +143,7 @@ export class TerminalChatController extends Disposable implements ITerminalContr
 	}
 
 	async viewInChat(): Promise<void> {
-		const chatModel = this.terminalChatWidget?.inlineChatWidget.chatWidget.viewModel?.model;
+		const chatModel = this.terminalChatWidget?.chatWidget.chatWidget.viewModel?.model;
 		if (chatModel) {
 			await this._instantiationService.invokeFunction(moveToPanelChat, chatModel);
 		}

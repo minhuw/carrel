@@ -15,7 +15,6 @@ import { ContextKeyExpr } from '../../../../../platform/contextkey/common/contex
 import { IDialogService } from '../../../../../platform/dialogs/common/dialogs.js';
 import { IEditorService } from '../../../../services/editor/common/editorService.js';
 import { ResourceNotebookCellEdit } from '../../../bulkEdit/browser/bulkCellEdits.js';
-import { MENU_INLINE_CHAT_WIDGET_SECONDARY } from '../../../inlineChat/common/inlineChat.js';
 import { INotebookEditor } from '../../../notebook/browser/notebookBrowser.js';
 import { CellEditType, CellKind, NOTEBOOK_EDITOR_ID } from '../../../notebook/common/notebookCommon.js';
 import { NOTEBOOK_IS_ACTIVE_EDITOR } from '../../../notebook/common/notebookContextKeys.js';
@@ -45,11 +44,6 @@ export function registerChatTitleActions() {
 					id: MenuId.ChatMessageFooter,
 					group: 'navigation',
 					order: 2,
-					when: ContextKeyExpr.and(ChatContextKeys.extensionParticipantRegistered, ChatContextKeys.isResponse, ChatContextKeys.responseHasError.negate(), ContextKeyExpr.has(enableFeedbackConfig), ChatContextKeys.lockedToCodingAgent.negate())
-				}, {
-					id: MENU_INLINE_CHAT_WIDGET_SECONDARY,
-					group: 'navigation',
-					order: 1,
 					when: ContextKeyExpr.and(ChatContextKeys.extensionParticipantRegistered, ChatContextKeys.isResponse, ChatContextKeys.responseHasError.negate(), ContextKeyExpr.has(enableFeedbackConfig), ChatContextKeys.lockedToCodingAgent.negate())
 				}]
 			});
@@ -91,11 +85,6 @@ export function registerChatTitleActions() {
 					group: 'navigation',
 					order: 3,
 					when: ContextKeyExpr.and(ChatContextKeys.extensionParticipantRegistered, ChatContextKeys.isResponse, ContextKeyExpr.has(enableFeedbackConfig), ChatContextKeys.lockedToCodingAgent.negate())
-				}, {
-					id: MENU_INLINE_CHAT_WIDGET_SECONDARY,
-					group: 'navigation',
-					order: 2,
-					when: ContextKeyExpr.and(ChatContextKeys.extensionParticipantRegistered, ChatContextKeys.isResponse, ChatContextKeys.responseHasError.negate(), ContextKeyExpr.has(enableFeedbackConfig), ChatContextKeys.lockedToCodingAgent.negate())
 				}]
 			});
 		}
@@ -135,11 +124,6 @@ export function registerChatTitleActions() {
 					id: MenuId.ChatMessageFooter,
 					group: 'navigation',
 					order: 4,
-					when: ContextKeyExpr.and(ChatContextKeys.responseSupportsIssueReporting, ChatContextKeys.isResponse, ContextKeyExpr.has(enableFeedbackConfig))
-				}, {
-					id: MENU_INLINE_CHAT_WIDGET_SECONDARY,
-					group: 'navigation',
-					order: 3,
 					when: ContextKeyExpr.and(ChatContextKeys.responseSupportsIssueReporting, ChatContextKeys.isResponse, ContextKeyExpr.has(enableFeedbackConfig))
 				}]
 			});

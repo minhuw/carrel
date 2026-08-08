@@ -51,7 +51,6 @@ export const enum AccessibilityVerbositySettingId {
 	DiffEditor = 'accessibility.verbosity.diffEditor',
 	MergeEditor = 'accessibility.verbosity.mergeEditor',
 	Chat = 'accessibility.verbosity.panelChat',
-	InlineChat = 'accessibility.verbosity.inlineChat',
 	TerminalInlineChat = 'accessibility.verbosity.terminalChat',
 	TerminalChatOutput = 'accessibility.verbosity.terminalChatOutput',
 	InlineCompletions = 'accessibility.verbosity.inlineCompletions',
@@ -144,10 +143,6 @@ const configuration: IConfigurationNode = {
 		},
 		[AccessibilityVerbositySettingId.Chat]: {
 			description: localize('verbosity.chat.description', 'Provide information about how to access the chat help menu when the chat input is focused.'),
-			...baseVerbosityProperty
-		},
-		[AccessibilityVerbositySettingId.InlineChat]: {
-			description: localize('verbosity.interactiveEditor.description', 'Provide information about how to access the inline editor chat accessibility help menu and alert with hints that describe how to use the feature when the input is focused.'),
 			...baseVerbosityProperty
 		},
 		[AccessibilityVerbositySettingId.TerminalChatOutput]: {

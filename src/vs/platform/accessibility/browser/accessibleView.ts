@@ -22,7 +22,6 @@ export const enum AccessibleViewProviderId {
 	PanelChat = 'panelChat',
 	ChatTerminalOutput = 'chatTerminalOutput',
 	ChatThinking = 'chatThinking',
-	InlineChat = 'inlineChat',
 	AgentChat = 'agentChat',
 	QuickChat = 'quickChat',
 	ChatInputWindow = 'chatInputWindow',

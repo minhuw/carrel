@@ -29,7 +29,6 @@ import { SEARCH_RESULT_LANGUAGE_ID } from '../../../../services/search/common/se
 import { AccessibilityVerbositySettingId } from '../../../accessibility/browser/accessibilityConfiguration.js';
 import { IChatAgentService } from '../../../chat/common/participants/chatAgents.js';
 import { ChatAgentLocation } from '../../../chat/common/constants.js';
-import { IInlineChatSessionService } from '../../../inlineChat/browser/inlineChatSessionService.js';
 import { EmptyTextEditorHintContributionId, IEmptyTextEditorHintContribution } from './emptyTextEditorHintTypes.js';
 import './emptyTextEditorHint.css';
 
@@ -43,7 +42,6 @@ export class EmptyTextEditorHintContribution extends Disposable implements IEmpt
 	constructor(
 		protected readonly editor: ICodeEditor,
 		@IConfigurationService private readonly configurationService: IConfigurationService,
-		@IInlineChatSessionService private readonly inlineChatSessionService: IInlineChatSessionService,
 		@IChatAgentService private readonly chatAgentService: IChatAgentService,
 		@IInstantiationService private readonly instantiationService: IInstantiationService
 	) {
@@ -64,14 +62,6 @@ export class EmptyTextEditorHintContribution extends Disposable implements IEmpt
 				this.update();
 			}
 		}));
-		this._register(inlineChatSessionService.onWillStartSession(editor => {
-			if (this.editor === editor) {
-				this.disposeHint();
-			}
-		}));
-		this._register(inlineChatSessionService.onDidChangeSessions(() => {
-			this.update();
-		}));
 	}
 
 	protected shouldRenderHint() {
@@ -87,10 +77,6 @@ export class EmptyTextEditorHintContribution extends Disposable implements IEmpt
 		const model = this.editor.getModel();
 		const languageId = model?.getLanguageId();
 		if (!model || languageId === OUTPUT_MODE_ID || languageId === LOG_MODE_ID || languageId === SEARCH_RESULT_LANGUAGE_ID) {
-			return false;
-		}
-
-		if (this.inlineChatSessionService.getSessionByTextModel(model.uri)) {
 			return false;
 		}
 
@@ -147,7 +133,6 @@ class EmptyTextEditorHintContentWidget extends Disposable implements IContentWid
 		@ICommandService private readonly commandService: ICommandService,
 		@IConfigurationService private readonly configurationService: IConfigurationService,
 		@IKeybindingService private readonly keybindingService: IKeybindingService,
-		@IChatAgentService private readonly chatAgentService: IChatAgentService,
 		@ITelemetryService private readonly telemetryService: ITelemetryService,
 		@IContextMenuService private readonly contextMenuService: IContextMenuService,
 	) {
@@ -202,19 +187,14 @@ class EmptyTextEditorHintContentWidget extends Disposable implements IContentWid
 	}
 
 	private getHint() {
-		const hasInlineChatProvider = this.chatAgentService.getActivatedAgents().filter(candidate => candidate.locations.includes(ChatAgentLocation.EditorInline)).length > 0;
-
 		const hintHandler: IContentActionHandler = {
 			disposables: this._store,
 			callback: (index, event) => {
 				switch (index) {
 					case '0':
-						hasInlineChatProvider ? askSomething(event.browserEvent) : languageOnClickOrTap(event.browserEvent);
+						languageOnClickOrTap(event.browserEvent);
 						break;
 					case '1':
-						hasInlineChatProvider ? languageOnClickOrTap(event.browserEvent) : this.disableHint();
-						break;
-					case '2':
 						this.disableHint();
 						break;
 				}
@@ -222,15 +202,6 @@ class EmptyTextEditorHintContentWidget extends Disposable implements IContentWid
 		};
 
 		// the actual command handlers...
-		const askSomethingCommandId = 'inlineChat.start';
-		const askSomething = async (e: UIEvent) => {
-			e.stopPropagation();
-			this.telemetryService.publicLog2<WorkbenchActionExecutedEvent, WorkbenchActionExecutedClassification>('workbenchActionExecuted', {
-				id: askSomethingCommandId,
-				from: 'hint'
-			});
-			await this.commandService.executeCommand(askSomethingCommandId, { from: 'hint' });
-		};
 		const languageOnClickOrTap = async (e: UIEvent) => {
 			e.stopPropagation();
 			// Need to focus editor before so current editor becomes active and the command is properly executed
@@ -243,31 +214,23 @@ class EmptyTextEditorHintContentWidget extends Disposable implements IContentWid
 			this.editor.focus();
 		};
 
-		const keybindingsLookup = [askSomethingCommandId, ChangeLanguageAction.ID];
+		const keybindingsLookup = [ChangeLanguageAction.ID];
 		const keybindingLabels = keybindingsLookup.map(id => this.keybindingService.lookupKeybinding(id)?.getLabel());
 
-		const hintMsg = (hasInlineChatProvider ? localize({
-			key: 'emptyTextEditorHintWithInlineChat',
+		const hintMsg = localize({
+			key: 'emptyTextEditorHint',
 			comment: [
 				'Preserve double-square brackets and their order',
 				'language refers to a programming language'
 			]
-		}, '[[Generate code]] ({0}), or [[select a language]] ({1}). Start typing to dismiss or [[don\'t show]] this again.', keybindingLabels.at(0) ?? '', keybindingLabels.at(1) ?? '') : localize({
-			key: 'emptyTextEditorHintWithoutInlineChat',
-			comment: [
-				'Preserve double-square brackets and their order',
-				'language refers to a programming language'
-			]
-		}, '[[Select a language]] ({0}) to get started. Start typing to dismiss or [[don\'t show]] this again.', keybindingLabels.at(1) ?? '')).replaceAll(' ()', '');
+		}, '[[Select a language]] ({0}) to get started. Start typing to dismiss or [[don\'t show]] this again.', keybindingLabels.at(0) ?? '').replaceAll(' ()', '');
 		const hintElement = renderFormattedText(hintMsg, {
 			actionHandler: hintHandler,
 			renderCodeSegments: false,
 		});
 		hintElement.style.fontStyle = 'italic';
 
-		const ariaLabel = hasInlineChatProvider ?
-			localize('defaultHintAriaLabelWithInlineChat', 'Execute {0} to ask a question, execute {1} to select a language and get started. Start typing to dismiss.', ...keybindingLabels) :
-			localize('defaultHintAriaLabelWithoutInlineChat', 'Execute {0} to select a language and get started. Start typing to dismiss.', ...keybindingLabels);
+		const ariaLabel = localize('defaultHintAriaLabel', 'Execute {0} to select a language and get started. Start typing to dismiss.', ...keybindingLabels);
 		// eslint-disable-next-line no-restricted-syntax
 		for (const anchor of hintElement.querySelectorAll('a')) {
 			anchor.style.cursor = 'pointer';

@@ -30,15 +30,13 @@ import { editorInfoForeground } from '../../../../../platform/theme/common/color
 import { spinningLoading, syncing } from '../../../../../platform/theme/common/iconRegistry.js';
 import { isHighContrast } from '../../../../../platform/theme/common/theme.js';
 import { registerThemingParticipant } from '../../../../../platform/theme/common/themeService.js';
-import { ActiveEditorContext } from '../../../../common/contextkeys.js';
+
 import { IWorkbenchContribution } from '../../../../common/contributions.js';
 import { IEditorService } from '../../../../services/editor/common/editorService.js';
 import { IHostService } from '../../../../services/host/browser/host.js';
 import { IWorkbenchLayoutService, Parts } from '../../../../services/layout/browser/layoutService.js';
 import { IStatusbarEntry, IStatusbarEntryAccessor, IStatusbarService, StatusbarAlignment } from '../../../../services/statusbar/browser/statusbar.js';
 import { AccessibilityVoiceSettingId, SpeechTimeoutDefault, accessibilityConfigurationNodeBase } from '../../../accessibility/browser/accessibilityConfiguration.js';
-import { InlineChatController } from '../../../inlineChat/browser/inlineChatController.js';
-import { CTX_INLINE_CHAT_FOCUSED, MENU_INLINE_CHAT_WIDGET_SECONDARY } from '../../../inlineChat/common/inlineChat.js';
 import { NOTEBOOK_EDITOR_FOCUSED } from '../../../notebook/common/notebookContextKeys.js';
 import { CONTEXT_SETTINGS_EDITOR } from '../../../preferences/common/preferences.js';
 import { SearchContext } from '../../../search/common/constants.js';
@@ -63,7 +61,7 @@ const VoiceChatSessionContexts: VoiceChatSessionContext[] = ['view', 'inline', '
 
 // Global Context Keys (set on global context key service)
 const CanVoiceChat = ContextKeyExpr.and(ChatContextKeys.enabled, HasSpeechProvider);
-const FocusInChatInput = ContextKeyExpr.or(CTX_INLINE_CHAT_FOCUSED, ChatContextKeys.inChatInput);
+const FocusInChatInput = ChatContextKeys.inChatInput;
 
 // Scoped Context Keys (set on per-chat-context scoped context key service)
 const ScopedVoiceChatGettingReady = new RawContextKey<boolean>('scopedVoiceChatGettingReady', false, { type: 'boolean', description: localize('scopedVoiceChatGettingReady', "True when getting ready for receiving voice input from the microphone for voice chat. This key is only defined scoped, per chat context.") });
@@ -101,7 +99,6 @@ class VoiceChatSessionControllerFactory {
 		const chatWidgetService = accessor.get(IChatWidgetService);
 		const quickChatService = accessor.get(IQuickChatService);
 		const layoutService = accessor.get(IWorkbenchLayoutService);
-		const editorService = accessor.get(IEditorService);
 
 		switch (context) {
 			case 'focused': {
@@ -112,19 +109,6 @@ class VoiceChatSessionControllerFactory {
 				const chatWidget = await chatWidgetService.revealWidget();
 				if (chatWidget) {
 					return VoiceChatSessionControllerFactory.doCreateForChatWidget('view', chatWidget);
-				}
-				break;
-			}
-			case 'inline': {
-				const activeCodeEditor = getCodeEditor(editorService.activeTextEditorControl);
-				if (activeCodeEditor) {
-					const inlineChat = InlineChatController.get(activeCodeEditor);
-					if (inlineChat) {
-						if (!inlineChat.isActive) {
-							inlineChat.run();
-						}
-						return VoiceChatSessionControllerFactory.doCreateForChatWidget('inline', inlineChat.widget.chatWidget);
-					}
 				}
 				break;
 			}
@@ -494,24 +478,6 @@ export class HoldToVoiceChatInChatViewAction extends Action2 {
 	}
 }
 
-export class InlineVoiceChatAction extends VoiceChatWithHoldModeAction {
-
-	static readonly ID = 'workbench.action.chat.inlineVoiceChat';
-
-	constructor() {
-		super({
-			id: InlineVoiceChatAction.ID,
-			title: localize2('workbench.action.chat.inlineVoiceChat', "Inline Voice Chat"),
-			category: CHAT_CATEGORY,
-			precondition: ContextKeyExpr.and(
-				CanVoiceChat,
-				ActiveEditorContext,
-			),
-			f1: true
-		}, 'inline');
-	}
-}
-
 export class QuickVoiceChatAction extends VoiceChatWithHoldModeAction {
 
 	static readonly ID = 'workbench.action.chat.quickVoiceChat';
@@ -866,16 +832,6 @@ export class ReadChatResponseAloud extends Action2 {
 				),
 				group: 'navigation',
 				order: -10 // first
-			}, {
-				id: MENU_INLINE_CHAT_WIDGET_SECONDARY,
-				when: ContextKeyExpr.and(
-					CanVoiceChat,
-					ChatContextKeys.isResponse,						// only for responses
-					ScopedChatSynthesisInProgress.negate(),			// but not when already in progress
-					ChatContextKeys.responseIsFiltered.negate()		// and not when response is filtered
-				),
-				group: 'navigation',
-				order: -10 // first
 			}]
 		});
 	}
@@ -969,16 +925,6 @@ export class StopReadChatItemAloud extends Action2 {
 			menu: [
 				{
 					id: MenuId.ChatMessageFooter,
-					when: ContextKeyExpr.and(
-						ScopedChatSynthesisInProgress,				// only when in progress
-						ChatContextKeys.isResponse,					// only for responses
-						ChatContextKeys.responseIsFiltered.negate()	// but not when response is filtered
-					),
-					group: 'navigation',
-					order: -10 // first
-				},
-				{
-					id: MENU_INLINE_CHAT_WIDGET_SECONDARY,
 					when: ContextKeyExpr.and(
 						ScopedChatSynthesisInProgress,				// only when in progress
 						ChatContextKeys.isResponse,					// only for responses
@@ -1146,13 +1092,13 @@ export class KeywordActivationContribution extends Disposable implements IWorkbe
 		const setting = this.configurationService.getValue(KEYWORD_ACTIVIATION_SETTING_ID);
 		switch (setting) {
 			case KeywordActivationContribution.SETTINGS_VALUE.INLINE_CHAT:
-				return InlineVoiceChatAction.ID;
+				return VoiceChatInChatViewAction.ID;
 			case KeywordActivationContribution.SETTINGS_VALUE.QUICK_CHAT:
 				return QuickVoiceChatAction.ID;
 			case KeywordActivationContribution.SETTINGS_VALUE.CHAT_IN_CONTEXT: {
 				const activeCodeEditor = getCodeEditor(this.editorService.activeTextEditorControl);
 				if (activeCodeEditor?.hasWidgetFocus()) {
-					return InlineVoiceChatAction.ID;
+					return VoiceChatInChatViewAction.ID;
 				}
 			}
 			default:

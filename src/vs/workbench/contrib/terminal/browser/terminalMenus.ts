@@ -21,10 +21,8 @@ import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import { HasSpeechProvider } from '../../speech/common/speechService.js';
 import { ChatContextKeys } from '../../chat/common/actions/chatContextKeys.js';
 import { hasKey } from '../../../../base/common/types.js';
-import { TerminalContribContextKeyStrings } from '../terminalContribExports.js';
 
 export const enum TerminalContextMenuGroup {
-	Chat = '0_chat',
 	Create = '1_create',
 	Edit = '3_edit',
 	Clear = '5_clear',
@@ -447,7 +445,6 @@ export function setupTerminalMenus(): void {
 					group: 'navigation',
 					order: 0,
 					when: ContextKeyExpr.and(
-						ContextKeyExpr.not(TerminalContribContextKeyStrings.ChatHasHiddenTerminals),
 						ContextKeyExpr.equals('view', TERMINAL_VIEW_ID),
 						ContextKeyExpr.has(`config.${TerminalSettingId.TabsEnabled}`),
 						ContextKeyExpr.or(

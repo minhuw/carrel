@@ -22,7 +22,6 @@ import { TerminalHistoryCommandId } from '../../history/common/terminal.history.
 import { TerminalSuggestCommandId } from '../../suggest/common/terminal.suggest.js';
 import { TerminalSuggestSettingId } from '../../suggest/common/terminalSuggestConfiguration.js';
 import { HasSpeechProvider } from '../../../speech/common/speechService.js';
-import { ChatContextKeys } from '../../../chat/common/actions/chatContextKeys.js';
 
 export const enum ClassName {
 	Active = 'active',
@@ -83,8 +82,7 @@ export class TerminalAccessibilityHelpProvider extends Disposable implements IAc
 			content.push(localize('commandPromptMigration', "Consider using powershell instead of command prompt for an improved experience"));
 		}
 
-		if (HasSpeechProvider.getValue(this._contextKeyService) ||
-			(ChatContextKeys.enabled.getValue(this._contextKeyService) && ChatContextKeys.speechToTextConfigured.getValue(this._contextKeyService))) {
+		if (HasSpeechProvider.getValue(this._contextKeyService)) {
 			content.push(localize('terminalDictation', 'Start or stop dictation in the terminal<keybinding:{0}>.', TerminalCommandId.StartVoice));
 		}
 

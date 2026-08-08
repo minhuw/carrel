@@ -11,7 +11,7 @@ The [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) is an open 
 - Run commands and keybindings
 - Navigate the explorer, search, debug, and other viewlets
 - Manage extensions, settings, and keybindings
-- Work with notebooks and chat features
+- Work with notebooks
 
 ## Quick Start - Stdio
 
@@ -92,7 +92,6 @@ The MCP server exposes a comprehensive set of VS Code automation tools through t
 - Problems panel
 - Settings and keybindings editors
 - Notebook support
-- Chat features
 
 ## Development
 

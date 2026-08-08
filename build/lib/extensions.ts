@@ -68,7 +68,7 @@ function fromLocal(extensionPath: string, forWeb: boolean): Stream {
 
 	let hasEsbuild = fs.existsSync(path.join(extensionPath, esbuildConfigFileName));
 
-	// Fallback: check for .esbuild.mts/.esbuild.ts (used by extensions with their own build system, e.g. copilot)
+	// Fallback: check for .esbuild.mts/.esbuild.ts (used by extensions with their own build system)
 	if (!hasEsbuild && !forWeb) {
 		for (const fallback of ['.esbuild.mts', '.esbuild.ts']) {
 			if (fs.existsSync(path.join(extensionPath, fallback))) {
@@ -316,7 +316,6 @@ const nativeExtensions = [
 ];
 
 const excludedExtensions = [
-	'copilot',
 	'vscode-api-tests',
 	'vscode-colorize-tests',
 	'vscode-colorize-perf-tests',
@@ -460,33 +459,104 @@ function doPackageLocalExtensionsStream(forWeb: boolean, native: boolean): Strea
 	);
 }
 
-/**
- * Package the built-in copilot extension specifically.
- * This is used by non-CI local builds where copilot is not downloaded as a VSIX
- * but must be compiled from source and included in the build.
- */
-export function packageCopilotExtensionStream(): Stream {
-	const extensionPath = path.join(root, 'extensions', 'copilot');
-	if (!fs.existsSync(extensionPath)) {
-		return es.readArray([]);
-	}
-
-	const localExtensionsStream = minifyExtensionResources(
-		fromLocal(extensionPath, false)
-			.pipe(rename(p => p.dirname = `extensions/copilot/${p.dirname}`))
-	);
-
-	const productionDependencies = getProductionDependencies('extensions/copilot');
-	const dependenciesSrc = productionDependencies.map(d => path.relative(root, d)).map(d => [`${d}/**`, `!${d}/**/{test,tests}/**`]).flat();
-
-	return es.merge(
-		localExtensionsStream,
-		gulp.src(dependenciesSrc, { base: '.' })
-			.pipe(util2.cleanNodeModules(path.join(root, 'build', '.moduleignore')))
-			.pipe(util2.cleanNodeModules(path.join(root, 'build', `.moduleignore.${process.platform}`)))
-	).pipe(util2.setExecutableBit(['**/*.sh']));
-}
-
+<<<<<<<<<<<<<<< conflict 1 of 1
++++++++++++++++ wszmmtyy 10dad267 "carrel: remove chat and agents window smoke tests" (rebase destination)
+<<<<<<<<<<< conflict 1 of 1
++++++++++++ wszmmtyy b5218c20 "carrel: remove chat and agents window smoke tests" (rebase destination)
+<<<<<<< conflict 1 of 1
+%%%%%%% diff from: wszmmtyy 0234ce9a "carrel: remove chat and agents window smoke tests" (parents of rebased revision)
+\\\\\\\        to: wszmmtyy 0234ce9a "carrel: remove chat and agents window smoke tests" (rebased revision)
+ /**
+  * Package the built-in copilot extension specifically.
+  * This is used by non-CI local builds where copilot is not downloaded as a VSIX
+  * but must be compiled from source and included in the build.
+  */
+-export function packageCopilotExtensionStream(disableMangle: boolean): Stream {
++export function packageCopilotExtensionStream(): Stream {
+ 	const extensionPath = path.join(root, 'extensions', 'copilot');
+ 	if (!fs.existsSync(extensionPath)) {
+ 		return es.readArray([]);
+ 	}
+ 
+ 	const localExtensionsStream = minifyExtensionResources(
+-		fromLocal(extensionPath, false, disableMangle)
++		fromLocal(extensionPath, false)
+ 			.pipe(rename(p => p.dirname = `extensions/copilot/${p.dirname}`))
+ 	);
+ 
+ 	const productionDependencies = getProductionDependencies('extensions/copilot');
+ 	const dependenciesSrc = productionDependencies.map(d => path.relative(root, d)).map(d => [`${d}/**`, `!${d}/**/{test,tests}/**`]).flat();
+ 
+ 	return es.merge(
+ 		localExtensionsStream,
+ 		gulp.src(dependenciesSrc, { base: '.' })
+ 			.pipe(util2.cleanNodeModules(path.join(root, 'build', '.moduleignore')))
+ 			.pipe(util2.cleanNodeModules(path.join(root, 'build', `.moduleignore.${process.platform}`)))
+ 	).pipe(util2.setExecutableBit(['**/*.sh']));
+ }
+ 
++++++++ slkqvsnl db29c39f "carrel: remove Copilot extension from build plumbing" (rebased revision)
+>>>>>>> conflict 1 of 1 ends
+%%%%%%%%%%% diff from: wszmmtyy 0234ce9a "carrel: remove chat and agents window smoke tests" (parents of rebased revision)
+\\\\\\\\\\\        to: slkqvsnl db29c39f "carrel: remove Copilot extension from build plumbing" (rebased revision)
+-/**
+- * Package the built-in copilot extension specifically.
+- * This is used by non-CI local builds where copilot is not downloaded as a VSIX
+- * but must be compiled from source and included in the build.
+- */
+-export function packageCopilotExtensionStream(disableMangle: boolean): Stream {
+-	const extensionPath = path.join(root, 'extensions', 'copilot');
+-	if (!fs.existsSync(extensionPath)) {
+-		return es.readArray([]);
+-	}
+-
+-	const localExtensionsStream = minifyExtensionResources(
+-		fromLocal(extensionPath, false, disableMangle)
+-			.pipe(rename(p => p.dirname = `extensions/copilot/${p.dirname}`))
+-	);
+-
+-	const productionDependencies = getProductionDependencies('extensions/copilot');
+-	const dependenciesSrc = productionDependencies.map(d => path.relative(root, d)).map(d => [`${d}/**`, `!${d}/**/{test,tests}/**`]).flat();
+-
+-	return es.merge(
+-		localExtensionsStream,
+-		gulp.src(dependenciesSrc, { base: '.' })
+-			.pipe(util2.cleanNodeModules(path.join(root, 'build', '.moduleignore')))
+-			.pipe(util2.cleanNodeModules(path.join(root, 'build', `.moduleignore.${process.platform}`)))
+-	).pipe(util2.setExecutableBit(['**/*.sh']));
+-}
+-
+>>>>>>>>>>> conflict 1 of 1 ends
+%%%%%%%%%%%%%%% diff from: wszmmtyy 0234ce9a "carrel: remove chat and agents window smoke tests" (parents of rebased revision)
+\\\\\\\\\\\\\\\        to: slkqvsnl db29c39f "carrel: remove Copilot extension from build plumbing" (rebased revision)
+-/**
+- * Package the built-in copilot extension specifically.
+- * This is used by non-CI local builds where copilot is not downloaded as a VSIX
+- * but must be compiled from source and included in the build.
+- */
+-export function packageCopilotExtensionStream(disableMangle: boolean): Stream {
+-	const extensionPath = path.join(root, 'extensions', 'copilot');
+-	if (!fs.existsSync(extensionPath)) {
+-		return es.readArray([]);
+-	}
+-
+-	const localExtensionsStream = minifyExtensionResources(
+-		fromLocal(extensionPath, false, disableMangle)
+-			.pipe(rename(p => p.dirname = `extensions/copilot/${p.dirname}`))
+-	);
+-
+-	const productionDependencies = getProductionDependencies('extensions/copilot');
+-	const dependenciesSrc = productionDependencies.map(d => path.relative(root, d)).map(d => [`${d}/**`, `!${d}/**/{test,tests}/**`]).flat();
+-
+-	return es.merge(
+-		localExtensionsStream,
+-		gulp.src(dependenciesSrc, { base: '.' })
+-			.pipe(util2.cleanNodeModules(path.join(root, 'build', '.moduleignore')))
+-			.pipe(util2.cleanNodeModules(path.join(root, 'build', `.moduleignore.${process.platform}`)))
+-	).pipe(util2.setExecutableBit(['**/*.sh']));
+-}
+-
+>>>>>>>>>>>>>>> conflict 1 of 1 ends
 export function packageMarketplaceExtensionsStream(forWeb: boolean): Stream {
 	const marketplaceExtensionsDescriptions = [
 		...builtInExtensions.filter(({ name }) => (forWeb ? !marketplaceWebExtensionsExclude.has(name) : true)),

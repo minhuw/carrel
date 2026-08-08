@@ -284,13 +284,43 @@ export const compileNativeExtensionsBuildTask = task.define('compile-native-exte
 task.task(compileNativeExtensionsBuildTask);
 
 /**
- * Compiles the built-in copilot extension for the build.
- * Used by non-CI local builds where copilot is not downloaded as a VSIX.
- */
-export const compileCopilotExtensionBuildTask = task.define('compile-copilot-extension-build', () => ext.packageCopilotExtensionStream().pipe(gulp.dest('.build')));
-task.task(compileCopilotExtensionBuildTask);
-
-/**
+<<<<<<<<<<<<<<< conflict 1 of 1
++++++++++++++++ wszmmtyy 10dad267 "carrel: remove chat and agents window smoke tests" (rebase destination)
+<<<<<<<<<<< conflict 1 of 1
++++++++++++ wszmmtyy b5218c20 "carrel: remove chat and agents window smoke tests" (rebase destination)
+<<<<<<< conflict 1 of 1
+%%%%%%% diff from: wszmmtyy 0234ce9a "carrel: remove chat and agents window smoke tests" (parents of rebased revision)
+\\\\\\\        to: wszmmtyy 0234ce9a "carrel: remove chat and agents window smoke tests" (rebased revision)
+  * Compiles the built-in copilot extension for the build.
+  * Used by non-CI local builds where copilot is not downloaded as a VSIX.
+  */
+-export const compileCopilotExtensionBuildTask = task.define('compile-copilot-extension-build', () => ext.packageCopilotExtensionStream(false).pipe(gulp.dest('.build')));
++export const compileCopilotExtensionBuildTask = task.define('compile-copilot-extension-build', () => ext.packageCopilotExtensionStream().pipe(gulp.dest('.build')));
+ task.task(compileCopilotExtensionBuildTask);
+ 
+ /**
++++++++ slkqvsnl db29c39f "carrel: remove Copilot extension from build plumbing" (rebased revision)
+>>>>>>> conflict 1 of 1 ends
+%%%%%%%%%%% diff from: wszmmtyy 0234ce9a "carrel: remove chat and agents window smoke tests" (parents of rebased revision)
+\\\\\\\\\\\        to: slkqvsnl db29c39f "carrel: remove Copilot extension from build plumbing" (rebased revision)
+- * Compiles the built-in copilot extension for the build.
+- * Used by non-CI local builds where copilot is not downloaded as a VSIX.
+- */
+-export const compileCopilotExtensionBuildTask = task.define('compile-copilot-extension-build', () => ext.packageCopilotExtensionStream(false).pipe(gulp.dest('.build')));
+-task.task(compileCopilotExtensionBuildTask);
+-
+-/**
+>>>>>>>>>>> conflict 1 of 1 ends
+%%%%%%%%%%%%%%% diff from: wszmmtyy 0234ce9a "carrel: remove chat and agents window smoke tests" (parents of rebased revision)
+\\\\\\\\\\\\\\\        to: slkqvsnl db29c39f "carrel: remove Copilot extension from build plumbing" (rebased revision)
+- * Compiles the built-in copilot extension for the build.
+- * Used by non-CI local builds where copilot is not downloaded as a VSIX.
+- */
+-export const compileCopilotExtensionBuildTask = task.define('compile-copilot-extension-build', () => ext.packageCopilotExtensionStream(false).pipe(gulp.dest('.build')));
+-task.task(compileCopilotExtensionBuildTask);
+-
+-/**
+>>>>>>>>>>>>>>> conflict 1 of 1 ends
  * Compiles the extensions for the build.
  * This is essentially a helper task that combines {@link cleanExtensionsBuildTask}, {@link compileNonNativeExtensionsBuildTask} and {@link compileNativeExtensionsBuildTask}
  */

@@ -22,15 +22,25 @@ import * as fs from 'fs';
 import glob from 'glob';
 import { promisify } from 'util';
 import rceditCallback from 'rcedit';
-import { compileApiProposalNamesTask, copyCodiconsTask } from './lib/compilation.ts';
-import { cleanExtensionsBuildTask, compileNonNativeExtensionsBuildTask, compileNativeExtensionsBuildTask, compileExtensionMediaBuildTask, compileCopilotExtensionBuildTask } from './gulpfile.extensions.ts';
+<<<<<<< conflict 1 of 2
+%%%%%%% diff from: wszmmtyy 0234ce9a "carrel: remove chat and agents window smoke tests" (parents of rebased revision)
+\\\\\\\        to: wszmmtyy 0234ce9a "carrel: remove chat and agents window smoke tests" (rebased revision)
+-import { compileBuildWithManglingTask } from './gulpfile.compile.ts';
++import { compileApiProposalNamesTask, copyCodiconsTask } from './lib/compilation.ts';
+ import { cleanExtensionsBuildTask, compileNonNativeExtensionsBuildTask, compileNativeExtensionsBuildTask, compileExtensionMediaBuildTask, compileCopilotExtensionBuildTask } from './gulpfile.extensions.ts';
+-import { vscodeWebResourceIncludes, createVSCodeWebFileContentMapper } from './gulpfile.vscode.web.ts';
++++++++ slkqvsnl db29c39f "carrel: remove Copilot extension from build plumbing" (rebased revision)
+import { compileBuildWithManglingTask } from './gulpfile.compile.ts';
+import { cleanExtensionsBuildTask, compileNonNativeExtensionsBuildTask, compileNativeExtensionsBuildTask, compileExtensionMediaBuildTask } from './gulpfile.extensions.ts';
+import { vscodeWebResourceIncludes, createVSCodeWebFileContentMapper } from './gulpfile.vscode.web.ts';
+>>>>>>> conflict 1 of 2 ends
 import * as cp from 'child_process';
 import crypto from 'crypto';
 import log from 'fancy-log';
 import { runEsbuildBundle, getBootstrapEntryPointsForTarget } from './lib/esbuild.ts';
 import { fetchUrls } from './lib/fetch.ts';
 import { downloadFeedPackage } from './lib/azureFeed.ts';
-import { ensureCopilotPlatformPackage, getCopilotExcludeFilter, getCopilotRuntimePrebuildFiles, getCopilotTgrepExcludeFilter, getMxcExcludeFilter, getRipgrepExcludeFilter, prepareBuiltInCopilotRipgrepShim } from './lib/copilot.ts';
+import { getMxcExcludeFilter, getRipgrepExcludeFilter } from './lib/dependencies.ts';
 import { readAgentSdkResults } from './agent-sdk/common.ts';
 
 
@@ -359,11 +369,7 @@ function packageTask(type: string, platform: string, arch: string, sourceFolderN
 			.pipe(filter(['**', '!**/package-lock.json', '!**/*.{js,css}.map']))
 			.pipe(util.cleanNodeModules(path.join(import.meta.dirname, '.moduleignore')))
 			.pipe(util.cleanNodeModules(path.join(import.meta.dirname, `.moduleignore.${process.platform}`)));
-		ensureCopilotPlatformPackage(platform, arch, 'remote/node_modules');
-		const copilotRuntimePrebuilds = gulp.src(getCopilotRuntimePrebuildFiles(platform, arch, 'remote/node_modules'), { base: 'remote', dot: true, allowEmpty: true });
-		const deps = es.merge(cleanedDeps, copilotRuntimePrebuilds)
-			.pipe(filter(getCopilotExcludeFilter(platform, arch)))
-			.pipe(filter(getCopilotTgrepExcludeFilter(platform, arch)))
+		const deps = es.merge(cleanedDeps)
 			.pipe(filter(getRipgrepExcludeFilter(platform, arch)))
 			.pipe(filter(getMxcExcludeFilter(arch)))
 			.pipe(jsFilter)
@@ -521,16 +527,69 @@ function patchWin32DependenciesTask(destinationFolderName: string) {
 	};
 }
 
-function prepareCopilotRipgrepShimTaskREH(platform: string, arch: string, destinationFolderName: string) {
-	return async () => {
-		const outputDir = path.join(BUILD_ROOT, destinationFolderName);
-		const nodeModulesDir = path.join(outputDir, 'node_modules');
-
-		const builtInCopilotExtensionDir = path.join(outputDir, 'extensions', 'copilot');
-		prepareBuiltInCopilotRipgrepShim(platform, arch, builtInCopilotExtensionDir, nodeModulesDir);
-	};
+<<<<<<<<<<<<<<< conflict 1 of 1
++++++++++++++++ wszmmtyy 10dad267 "carrel: remove chat and agents window smoke tests" (rebase destination)
+<<<<<<<<<<< conflict 1 of 1
++++++++++++ wszmmtyy b5218c20 "carrel: remove chat and agents window smoke tests" (rebase destination)
+<<<<<<< conflict 2 of 2
+%%%%%%% diff from: wszmmtyy 0234ce9a "carrel: remove chat and agents window smoke tests" (parents of rebased revision)
+\\\\\\\        to: wszmmtyy 0234ce9a "carrel: remove chat and agents window smoke tests" (rebased revision)
+ function prepareCopilotRipgrepShimTaskREH(platform: string, arch: string, destinationFolderName: string) {
+ 	return async () => {
+ 		const outputDir = path.join(BUILD_ROOT, destinationFolderName);
+ 		const nodeModulesDir = path.join(outputDir, 'node_modules');
+ 
+ 		const builtInCopilotExtensionDir = path.join(outputDir, 'extensions', 'copilot');
+ 		prepareBuiltInCopilotRipgrepShim(platform, arch, builtInCopilotExtensionDir, nodeModulesDir);
+ 	};
+ }
+ 
+-/**
+- * @param product The parsed product.json file contents
+- */
+-function tweakProductForServerWeb(product: typeof import('../product.json')) {
+-	const result: typeof product & { webEndpointUrlTemplate?: string } = { ...product };
+-	delete result.webEndpointUrlTemplate;
+-	return result;
+-}
+-
++++++++ slkqvsnl db29c39f "carrel: remove Copilot extension from build plumbing" (rebased revision)
+%%%%%%%%%%% diff from: wszmmtyy 0234ce9a "carrel: remove chat and agents window smoke tests" (parents of rebased revision)
+\\\\\\\\\\\        to: slkqvsnl db29c39f "carrel: remove Copilot extension from build plumbing" (rebased revision)
+-function prepareCopilotRipgrepShimTaskREH(platform: string, arch: string, destinationFolderName: string) {
+-	return async () => {
+-		const outputDir = path.join(BUILD_ROOT, destinationFolderName);
+-		const nodeModulesDir = path.join(outputDir, 'node_modules');
+-
+-		const builtInCopilotExtensionDir = path.join(outputDir, 'extensions', 'copilot');
+-		prepareBuiltInCopilotRipgrepShim(platform, arch, builtInCopilotExtensionDir, nodeModulesDir);
+-	};
+-}
+-
+>>>>>>>>>>> conflict 1 of 1 ends
+%%%%%%%%%%%%%%% diff from: wszmmtyy 0234ce9a "carrel: remove chat and agents window smoke tests" (parents of rebased revision)
+\\\\\\\\\\\\\\\        to: slkqvsnl db29c39f "carrel: remove Copilot extension from build plumbing" (rebased revision)
+-function prepareCopilotRipgrepShimTaskREH(platform: string, arch: string, destinationFolderName: string) {
+-	return async () => {
+-		const outputDir = path.join(BUILD_ROOT, destinationFolderName);
+-		const nodeModulesDir = path.join(outputDir, 'node_modules');
+-
+-		const builtInCopilotExtensionDir = path.join(outputDir, 'extensions', 'copilot');
+-		prepareBuiltInCopilotRipgrepShim(platform, arch, builtInCopilotExtensionDir, nodeModulesDir);
+-	};
+-}
+-
+>>>>>>>>>>>>>>> conflict 1 of 1 ends
+/**
+ * @param product The parsed product.json file contents
+ */
+function tweakProductForServerWeb(product: typeof import('../product.json')) {
+	const result: typeof product & { webEndpointUrlTemplate?: string } = { ...product };
+	delete result.webEndpointUrlTemplate;
+	return result;
 }
 
+>>>>>>> conflict 2 of 2 ends
 ['reh', 'reh-web'].forEach(type => {
 	const target = type === 'reh' ? 'server' : 'server-web';
 	const esbuildBundleTask = task.define(`esbuild-vscode-${type}`, () => runEsbuildBundle(`out-vscode-${type}`, false, true, target));
@@ -549,8 +608,7 @@ function prepareCopilotRipgrepShimTaskREH(platform: string, arch: string, destin
 				compileNativeExtensionsBuildTask,
 				task.task(`node-${platform}-${arch}`) as task.Task,
 				util.rimraf(path.join(BUILD_ROOT, destinationFolderName)),
-				packageTask(type, platform, arch, sourceFolderName, destinationFolderName),
-				prepareCopilotRipgrepShimTaskREH(platform, arch, destinationFolderName)
+				packageTask(type, platform, arch, sourceFolderName, destinationFolderName)
 			];
 
 			if (platform === 'win32') {
@@ -565,7 +623,6 @@ function prepareCopilotRipgrepShimTaskREH(platform: string, arch: string, destin
 				compileApiProposalNamesTask,
 				cleanExtensionsBuildTask,
 				compileNonNativeExtensionsBuildTask,
-				compileCopilotExtensionBuildTask,
 				compileExtensionMediaBuildTask,
 				writeISODate('out-build'),
 				minified ? esbuildBundleMinTask : esbuildBundleTask,

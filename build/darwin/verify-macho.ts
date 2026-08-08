@@ -26,21 +26,58 @@ const FILES_TO_SKIP = [
 	// MSAL runtime files are only present in ARM64 builds
 	'**/extensions/microsoft-authentication/dist/libmsalruntime.dylib',
 	'**/extensions/microsoft-authentication/dist/msal-node-runtime.node',
-	// Copilot SDK: universal app has both x64 and arm64 platform packages
-	'**/node_modules/@github/copilot-darwin-x64/**',
-	'**/node_modules/@github/copilot-darwin-arm64/**',
-	'**/node_modules.asar.unpacked/@github/copilot-darwin-x64/**',
-	'**/node_modules.asar.unpacked/@github/copilot-darwin-arm64/**',
-	'**/node_modules/@github/copilot-sdk-darwin-x64/**',
-	'**/node_modules/@github/copilot-sdk-darwin-arm64/**',
-	'**/node_modules.asar.unpacked/@github/copilot-sdk-darwin-x64/**',
-	'**/node_modules.asar.unpacked/@github/copilot-sdk-darwin-arm64/**',
-	// Copilot prebuilds: single-arch binaries in per-platform directories
-	'**/node_modules/@github/copilot/prebuilds/darwin-*/**',
-	'**/node_modules.asar.unpacked/@github/copilot/prebuilds/darwin-*/**',
-	// Copilot SDK (extensions/copilot): single-arch prebuilds and ripgrep binaries
-	'**/node_modules/@github/copilot/sdk/prebuilds/darwin-*/**',
-	'**/node_modules/@github/copilot/sdk/ripgrep/bin/darwin-*/**',
+<<<<<<<<<<<<<<< conflict 1 of 1
++++++++++++++++ wszmmtyy 10dad267 "carrel: remove chat and agents window smoke tests" (rebase destination)
+<<<<<<<<<<< conflict 1 of 1
++++++++++++ wszmmtyy b5218c20 "carrel: remove chat and agents window smoke tests" (rebase destination)
+<<<<<<< conflict 1 of 1
+%%%%%%% diff from: wszmmtyy 0234ce9a "carrel: remove chat and agents window smoke tests" (parents of rebased revision)
+\\\\\\\        to: wszmmtyy 0234ce9a "carrel: remove chat and agents window smoke tests" (rebased revision)
+ 	// Copilot SDK: universal app has both x64 and arm64 platform packages
+ 	'**/node_modules/@github/copilot-darwin-x64/**',
+ 	'**/node_modules/@github/copilot-darwin-arm64/**',
+ 	'**/node_modules.asar.unpacked/@github/copilot-darwin-x64/**',
+ 	'**/node_modules.asar.unpacked/@github/copilot-darwin-arm64/**',
++	'**/node_modules/@github/copilot-sdk-darwin-x64/**',
++	'**/node_modules/@github/copilot-sdk-darwin-arm64/**',
++	'**/node_modules.asar.unpacked/@github/copilot-sdk-darwin-x64/**',
++	'**/node_modules.asar.unpacked/@github/copilot-sdk-darwin-arm64/**',
+ 	// Copilot prebuilds: single-arch binaries in per-platform directories
+ 	'**/node_modules/@github/copilot/prebuilds/darwin-*/**',
+ 	'**/node_modules.asar.unpacked/@github/copilot/prebuilds/darwin-*/**',
+ 	// Copilot SDK (extensions/copilot): single-arch prebuilds and ripgrep binaries
+ 	'**/node_modules/@github/copilot/sdk/prebuilds/darwin-*/**',
+ 	'**/node_modules/@github/copilot/sdk/ripgrep/bin/darwin-*/**',
++++++++ slkqvsnl db29c39f "carrel: remove Copilot extension from build plumbing" (rebased revision)
+>>>>>>> conflict 1 of 1 ends
+%%%%%%%%%%% diff from: wszmmtyy 0234ce9a "carrel: remove chat and agents window smoke tests" (parents of rebased revision)
+\\\\\\\\\\\        to: slkqvsnl db29c39f "carrel: remove Copilot extension from build plumbing" (rebased revision)
+-	// Copilot SDK: universal app has both x64 and arm64 platform packages
+-	'**/node_modules/@github/copilot-darwin-x64/**',
+-	'**/node_modules/@github/copilot-darwin-arm64/**',
+-	'**/node_modules.asar.unpacked/@github/copilot-darwin-x64/**',
+-	'**/node_modules.asar.unpacked/@github/copilot-darwin-arm64/**',
+-	// Copilot prebuilds: single-arch binaries in per-platform directories
+-	'**/node_modules/@github/copilot/prebuilds/darwin-*/**',
+-	'**/node_modules.asar.unpacked/@github/copilot/prebuilds/darwin-*/**',
+-	// Copilot SDK (extensions/copilot): single-arch prebuilds and ripgrep binaries
+-	'**/node_modules/@github/copilot/sdk/prebuilds/darwin-*/**',
+-	'**/node_modules/@github/copilot/sdk/ripgrep/bin/darwin-*/**',
+>>>>>>>>>>> conflict 1 of 1 ends
+%%%%%%%%%%%%%%% diff from: wszmmtyy 0234ce9a "carrel: remove chat and agents window smoke tests" (parents of rebased revision)
+\\\\\\\\\\\\\\\        to: slkqvsnl db29c39f "carrel: remove Copilot extension from build plumbing" (rebased revision)
+-	// Copilot SDK: universal app has both x64 and arm64 platform packages
+-	'**/node_modules/@github/copilot-darwin-x64/**',
+-	'**/node_modules/@github/copilot-darwin-arm64/**',
+-	'**/node_modules.asar.unpacked/@github/copilot-darwin-x64/**',
+-	'**/node_modules.asar.unpacked/@github/copilot-darwin-arm64/**',
+-	// Copilot prebuilds: single-arch binaries in per-platform directories
+-	'**/node_modules/@github/copilot/prebuilds/darwin-*/**',
+-	'**/node_modules.asar.unpacked/@github/copilot/prebuilds/darwin-*/**',
+-	// Copilot SDK (extensions/copilot): single-arch prebuilds and ripgrep binaries
+-	'**/node_modules/@github/copilot/sdk/prebuilds/darwin-*/**',
+-	'**/node_modules/@github/copilot/sdk/ripgrep/bin/darwin-*/**',
+>>>>>>>>>>>>>>> conflict 1 of 1 ends
 	// ripgrep-universal: single-arch binaries in per-platform directories
 	'**/node_modules/@vscode/ripgrep-universal/bin/darwin-*/**',
 	'**/node_modules.asar.unpacked/@vscode/ripgrep-universal/bin/darwin-*/**',
@@ -51,11 +88,6 @@ const FILES_TO_SKIP = [
 	// includes both arm64 and x64 trees regardless of host arch.
 	'**/node_modules/@microsoft/mxc-sdk/bin/**',
 	'**/node_modules.asar.unpacked/@microsoft/mxc-sdk/bin/**',
-	// Copilot SDK tgrep prebuilds: single-arch binaries in per-platform directories
-	'**/node_modules/@github/copilot/tgrep/bin/darwin-*/**',
-	'**/node_modules.asar.unpacked/@github/copilot/tgrep/bin/darwin-*/**',
-	'**/node_modules/@github/copilot/sdk/tgrep/bin/darwin-*/**',
-	'**/node_modules.asar.unpacked/@github/copilot/sdk/tgrep/bin/darwin-*/**',
 ];
 
 

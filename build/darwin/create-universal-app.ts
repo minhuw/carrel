@@ -49,39 +49,42 @@ async function main(buildDir?: string) {
 	const outAppPath = path.join(buildDir, `VSCode-darwin-${arch}`, appName);
 	const productJsonPath = path.resolve(outAppPath, 'Contents', 'Resources', 'app', 'product.json');
 
-	// Copilot SDK ships platform-specific native binaries that npm only installs
-	// for the host architecture. The universal app merger requires both builds to
-	// have identical file trees, so we cross-copy each missing directory from the
-	// other build. The binaries are then excluded from comparison (filesToSkip)
-	// and the x64 binary is tagged as arch-specific (x64ArchFiles) so the merger
-	// keeps both.
+	// Some dependencies ship platform-specific native binaries that npm only
+	// installs for the host architecture. The universal app merger requires both
+	// builds to have identical file trees, so we cross-copy each missing
+	// directory from the other build. The binaries are then excluded from
+	// comparison (filesToSkip) and the x64 binary is tagged as arch-specific
+	// (x64ArchFiles) so the merger keeps both.
 	for (const plat of ['darwin-x64', 'darwin-arm64']) {
 		for (const base of nodeModulesBases) {
-			// @github/copilot-{platform} packages (e.g. copilot-darwin-x64)
-			crossCopyPlatformDir(x64AppPath, arm64AppPath, path.join(base, '@github', `copilot-${plat}`));
-			// @github/copilot-sdk-{platform} packages
-			crossCopyPlatformDir(x64AppPath, arm64AppPath, path.join(base, '@github', `copilot-sdk-${plat}`));
+<<<<<<<<<<<<<<< conflict 1 of 3
++++++++++++++++ wszmmtyy 10dad267 "carrel: remove chat and agents window smoke tests" (rebase destination)
+<<<<<<<<<<< conflict 1 of 3
++++++++++++ wszmmtyy b5218c20 "carrel: remove chat and agents window smoke tests" (rebase destination)
+<<<<<<< conflict 1 of 3
+%%%%%%% diff from: wszmmtyy 0234ce9a "carrel: remove chat and agents window smoke tests" (parents of rebased revision)
+\\\\\\\        to: wszmmtyy 0234ce9a "carrel: remove chat and agents window smoke tests" (rebased revision)
+ 			// @github/copilot-{platform} packages (e.g. copilot-darwin-x64)
+ 			crossCopyPlatformDir(x64AppPath, arm64AppPath, path.join(base, '@github', `copilot-${plat}`));
++			// @github/copilot-sdk-{platform} packages
++			crossCopyPlatformDir(x64AppPath, arm64AppPath, path.join(base, '@github', `copilot-sdk-${plat}`));
++++++++ slkqvsnl db29c39f "carrel: remove Copilot extension from build plumbing" (rebased revision)
+>>>>>>> conflict 1 of 3 ends
+%%%%%%%%%%% diff from: wszmmtyy 0234ce9a "carrel: remove chat and agents window smoke tests" (parents of rebased revision)
+\\\\\\\\\\\        to: slkqvsnl db29c39f "carrel: remove Copilot extension from build plumbing" (rebased revision)
+-			// @github/copilot-{platform} packages (e.g. copilot-darwin-x64)
+-			crossCopyPlatformDir(x64AppPath, arm64AppPath, path.join(base, '@github', `copilot-${plat}`));
+>>>>>>>>>>> conflict 1 of 3 ends
+%%%%%%%%%%%%%%% diff from: wszmmtyy 0234ce9a "carrel: remove chat and agents window smoke tests" (parents of rebased revision)
+\\\\\\\\\\\\\\\        to: slkqvsnl db29c39f "carrel: remove Copilot extension from build plumbing" (rebased revision)
+-			// @github/copilot-{platform} packages (e.g. copilot-darwin-x64)
+-			crossCopyPlatformDir(x64AppPath, arm64AppPath, path.join(base, '@github', `copilot-${plat}`));
+>>>>>>>>>>>>>>> conflict 1 of 3 ends
 			// @vscode/os-proxy-resolver-{platform} packages
 			crossCopyPlatformDir(x64AppPath, arm64AppPath, path.join(base, '@vscode', `os-proxy-resolver-${plat}`));
-			// @github/copilot/prebuilds/{platform} (pty.node, spawn-helper)
-			crossCopyPlatformDir(x64AppPath, arm64AppPath, path.join(base, '@github', 'copilot', 'prebuilds', plat));
-			// @github/copilot/tgrep/bin/{platform} (tgrep binary)
-			crossCopyPlatformDir(x64AppPath, arm64AppPath, path.join(base, '@github', 'copilot', 'tgrep', 'bin', plat));
-			// @github/copilot/sdk/tgrep/bin/{platform} (tgrep binary)
-			crossCopyPlatformDir(x64AppPath, arm64AppPath, path.join(base, '@github', 'copilot', 'sdk', 'tgrep', 'bin', plat));
 			// @vscode/ripgrep-universal/bin/{platform} (rg binary)
 			crossCopyPlatformDir(x64AppPath, arm64AppPath, path.join(base, '@vscode', 'ripgrep-universal', 'bin', plat));
 		}
-
-		const copilotExtensionNodeModules = path.join('Contents', 'Resources', 'app', 'extensions', 'copilot', 'node_modules');
-		// @github/copilot/sdk/prebuilds/{platform} (pty.node, spawn-helper)
-		crossCopyPlatformDir(x64AppPath, arm64AppPath, path.join(copilotExtensionNodeModules, '@github', 'copilot', 'sdk', 'prebuilds', plat));
-		// @github/copilot/sdk/ripgrep/bin/{platform} (ripgrep shim)
-		crossCopyPlatformDir(x64AppPath, arm64AppPath, path.join(copilotExtensionNodeModules, '@github', 'copilot', 'sdk', 'ripgrep', 'bin', plat));
-		// @github/copilot/sdk/tgrep/bin/{platform} (tgrep binary)
-		crossCopyPlatformDir(x64AppPath, arm64AppPath, path.join(copilotExtensionNodeModules, '@github', 'copilot', 'sdk', 'tgrep', 'bin', plat));
-		// @github/copilot/tgrep/bin/{platform} (tgrep binary)
-		crossCopyPlatformDir(x64AppPath, arm64AppPath, path.join(copilotExtensionNodeModules, '@github', 'copilot', 'tgrep', 'bin', plat));
 	}
 
 	for (const base of nodeModulesBases) {
@@ -94,6 +97,12 @@ async function main(buildDir?: string) {
 		'**/CodeResources',
 		'**/Credits.rtf',
 		'**/policies/{*.mobileconfig,**/*.plist}',
+<<<<<<<<<<<<<<< conflict 2 of 3
++++++++++++++++ wszmmtyy 10dad267 "carrel: remove chat and agents window smoke tests" (rebase destination)
+<<<<<<<<<<< conflict 2 of 3
++++++++++++ wszmmtyy b5218c20 "carrel: remove chat and agents window smoke tests" (rebase destination)
+<<<<<<< conflict 2 of 3
++++++++ wszmmtyy 0234ce9a "carrel: remove chat and agents window smoke tests" (rebased revision)
 		'**/node_modules/@github/copilot-darwin-x64/**',
 		'**/node_modules/@github/copilot-darwin-arm64/**',
 		'**/node_modules.asar.unpacked/@github/copilot-darwin-x64/**',
@@ -102,26 +111,31 @@ async function main(buildDir?: string) {
 		'**/node_modules/@github/copilot-sdk-darwin-arm64/**',
 		'**/node_modules.asar.unpacked/@github/copilot-sdk-darwin-x64/**',
 		'**/node_modules.asar.unpacked/@github/copilot-sdk-darwin-arm64/**',
+%%%%%%% diff from: wszmmtyy 0234ce9a "carrel: remove chat and agents window smoke tests" (parents of rebased revision)
+\\\\\\\        to: slkqvsnl db29c39f "carrel: remove Copilot extension from build plumbing" (rebased revision)
+-		'**/node_modules/@github/copilot-darwin-x64/**',
+-		'**/node_modules/@github/copilot-darwin-arm64/**',
+-		'**/node_modules.asar.unpacked/@github/copilot-darwin-x64/**',
+-		'**/node_modules.asar.unpacked/@github/copilot-darwin-arm64/**',
+>>>>>>> conflict 2 of 3 ends
+%%%%%%%%%%% diff from: wszmmtyy 0234ce9a "carrel: remove chat and agents window smoke tests" (parents of rebased revision)
+\\\\\\\\\\\        to: slkqvsnl db29c39f "carrel: remove Copilot extension from build plumbing" (rebased revision)
+-		'**/node_modules/@github/copilot-darwin-x64/**',
+-		'**/node_modules/@github/copilot-darwin-arm64/**',
+-		'**/node_modules.asar.unpacked/@github/copilot-darwin-x64/**',
+-		'**/node_modules.asar.unpacked/@github/copilot-darwin-arm64/**',
+>>>>>>>>>>> conflict 2 of 3 ends
+%%%%%%%%%%%%%%% diff from: wszmmtyy 0234ce9a "carrel: remove chat and agents window smoke tests" (parents of rebased revision)
+\\\\\\\\\\\\\\\        to: slkqvsnl db29c39f "carrel: remove Copilot extension from build plumbing" (rebased revision)
+-		'**/node_modules/@github/copilot-darwin-x64/**',
+-		'**/node_modules/@github/copilot-darwin-arm64/**',
+-		'**/node_modules.asar.unpacked/@github/copilot-darwin-x64/**',
+-		'**/node_modules.asar.unpacked/@github/copilot-darwin-arm64/**',
+>>>>>>>>>>>>>>> conflict 2 of 3 ends
 		'**/node_modules/@vscode/os-proxy-resolver-darwin-x64/**',
 		'**/node_modules/@vscode/os-proxy-resolver-darwin-arm64/**',
 		'**/node_modules.asar.unpacked/@vscode/os-proxy-resolver-darwin-x64/**',
 		'**/node_modules.asar.unpacked/@vscode/os-proxy-resolver-darwin-arm64/**',
-		'**/node_modules/@github/copilot/prebuilds/darwin-x64/**',
-		'**/node_modules/@github/copilot/prebuilds/darwin-arm64/**',
-		'**/node_modules.asar.unpacked/@github/copilot/prebuilds/darwin-x64/**',
-		'**/node_modules.asar.unpacked/@github/copilot/prebuilds/darwin-arm64/**',
-		'**/node_modules/@github/copilot/tgrep/bin/darwin-x64/**',
-		'**/node_modules/@github/copilot/tgrep/bin/darwin-arm64/**',
-		'**/node_modules.asar.unpacked/@github/copilot/tgrep/bin/darwin-x64/**',
-		'**/node_modules.asar.unpacked/@github/copilot/tgrep/bin/darwin-arm64/**',
-		'**/node_modules/@github/copilot/sdk/tgrep/bin/darwin-x64/**',
-		'**/node_modules/@github/copilot/sdk/tgrep/bin/darwin-arm64/**',
-		'**/node_modules.asar.unpacked/@github/copilot/sdk/tgrep/bin/darwin-x64/**',
-		'**/node_modules.asar.unpacked/@github/copilot/sdk/tgrep/bin/darwin-arm64/**',
-		'**/node_modules/@github/copilot/sdk/prebuilds/darwin-x64/**',
-		'**/node_modules/@github/copilot/sdk/prebuilds/darwin-arm64/**',
-		'**/node_modules/@github/copilot/sdk/ripgrep/bin/darwin-x64/**',
-		'**/node_modules/@github/copilot/sdk/ripgrep/bin/darwin-arm64/**',
 		'**/node_modules/@vscode/ripgrep-universal/bin/darwin-x64/**',
 		'**/node_modules/@vscode/ripgrep-universal/bin/darwin-arm64/**',
 		'**/node_modules.asar.unpacked/@vscode/ripgrep-universal/bin/darwin-x64/**',
@@ -145,8 +159,35 @@ async function main(buildDir?: string) {
 		// them as arch-unique. Paths here are ASAR-internal (top level, no `node_modules`
 		// prefix). Over-covering is harmless: the allowlist is only consulted for files
 		// that are actually unique to one arch.
+<<<<<<<<<<<<<<< conflict 3 of 3
++++++++++++++++ wszmmtyy 10dad267 "carrel: remove chat and agents window smoke tests" (rebase destination)
+<<<<<<<<<<< conflict 3 of 3
++++++++++++ wszmmtyy b5218c20 "carrel: remove chat and agents window smoke tests" (rebase destination)
+<<<<<<< conflict 3 of 3
++++++++ wszmmtyy 0234ce9a "carrel: remove chat and agents window smoke tests" (rebased revision)
 		singleArchFiles: '{**/@github/copilot-darwin-*,**/@github/copilot-darwin-*/**,**/@github/copilot-sdk-darwin-*,**/@github/copilot-sdk-darwin-*/**,**/@github/copilot/prebuilds/darwin-*,**/@github/copilot/prebuilds/darwin-*/**,**/@github/copilot/tgrep/bin/darwin-*,**/@github/copilot/tgrep/bin/darwin-*/**,**/@github/copilot/sdk/tgrep/bin/darwin-*,**/@github/copilot/sdk/tgrep/bin/darwin-*/**,**/@github/copilot/sdk/prebuilds/darwin-*,**/@github/copilot/sdk/prebuilds/darwin-*/**,**/@github/copilot/sdk/ripgrep/bin/darwin-*,**/@github/copilot/sdk/ripgrep/bin/darwin-*/**,**/@vscode/ripgrep-universal/bin/darwin-*,**/@vscode/ripgrep-universal/bin/darwin-*/**,**/@vscode/os-proxy-resolver-darwin-*,**/@vscode/os-proxy-resolver-darwin-*/**,**/@microsoft/mxc-sdk/bin/*,**/@microsoft/mxc-sdk/bin/*/**}',
 		x64ArchFiles: '{*/kerberos.node,**/extensions/microsoft-authentication/dist/libmsalruntime.dylib,**/extensions/microsoft-authentication/dist/msal-node-runtime.node,**/node_modules/@github/copilot-darwin-*/**,**/node_modules/@github/copilot-sdk-darwin-*/**,**/node_modules/@github/copilot/prebuilds/darwin-*/*,**/node_modules/@github/copilot/tgrep/bin/darwin-*/*,**/node_modules/@github/copilot/sdk/tgrep/bin/darwin-*/*,**/node_modules.asar.unpacked/@github/copilot-darwin-*/**,**/node_modules.asar.unpacked/@github/copilot-sdk-darwin-*/**,**/node_modules.asar.unpacked/@github/copilot/prebuilds/darwin-*/*,**/node_modules.asar.unpacked/@github/copilot/tgrep/bin/darwin-*/*,**/node_modules.asar.unpacked/@github/copilot/sdk/tgrep/bin/darwin-*/*,**/extensions/copilot/node_modules/@github/copilot/sdk/prebuilds/darwin-*/*,**/extensions/copilot/node_modules/@github/copilot/sdk/ripgrep/bin/darwin-*/*,**/extensions/copilot/node_modules/@github/copilot/sdk/tgrep/bin/darwin-*/*,**/extensions/copilot/node_modules/@github/copilot/tgrep/bin/darwin-*/*,**/node_modules/@vscode/ripgrep-universal/bin/darwin-*/*,**/node_modules.asar.unpacked/@vscode/ripgrep-universal/bin/darwin-*/*,**/node_modules/@vscode/os-proxy-resolver-darwin-*/**,**/node_modules.asar.unpacked/@vscode/os-proxy-resolver-darwin-*/**,**/node_modules/@microsoft/mxc-sdk/bin/**,**/node_modules.asar.unpacked/@microsoft/mxc-sdk/bin/**}',
+%%%%%%% diff from: wszmmtyy 0234ce9a "carrel: remove chat and agents window smoke tests" (parents of rebased revision)
+\\\\\\\        to: slkqvsnl db29c39f "carrel: remove Copilot extension from build plumbing" (rebased revision)
+-		singleArchFiles: '{**/@github/copilot-darwin-*,**/@github/copilot-darwin-*/**,**/@github/copilot/prebuilds/darwin-*,**/@github/copilot/prebuilds/darwin-*/**,**/@github/copilot/tgrep/bin/darwin-*,**/@github/copilot/tgrep/bin/darwin-*/**,**/@github/copilot/sdk/tgrep/bin/darwin-*,**/@github/copilot/sdk/tgrep/bin/darwin-*/**,**/@github/copilot/sdk/prebuilds/darwin-*,**/@github/copilot/sdk/prebuilds/darwin-*/**,**/@github/copilot/sdk/ripgrep/bin/darwin-*,**/@github/copilot/sdk/ripgrep/bin/darwin-*/**,**/@vscode/ripgrep-universal/bin/darwin-*,**/@vscode/ripgrep-universal/bin/darwin-*/**,**/@vscode/os-proxy-resolver-darwin-*,**/@vscode/os-proxy-resolver-darwin-*/**,**/@microsoft/mxc-sdk/bin/*,**/@microsoft/mxc-sdk/bin/*/**}',
+-		x64ArchFiles: '{*/kerberos.node,**/extensions/microsoft-authentication/dist/libmsalruntime.dylib,**/extensions/microsoft-authentication/dist/msal-node-runtime.node,**/node_modules/@github/copilot-darwin-*/**,**/node_modules/@github/copilot/prebuilds/darwin-*/*,**/node_modules/@github/copilot/tgrep/bin/darwin-*/*,**/node_modules/@github/copilot/sdk/tgrep/bin/darwin-*/*,**/node_modules.asar.unpacked/@github/copilot-darwin-*/**,**/node_modules.asar.unpacked/@github/copilot/prebuilds/darwin-*/*,**/node_modules.asar.unpacked/@github/copilot/tgrep/bin/darwin-*/*,**/node_modules.asar.unpacked/@github/copilot/sdk/tgrep/bin/darwin-*/*,**/extensions/copilot/node_modules/@github/copilot/sdk/prebuilds/darwin-*/*,**/extensions/copilot/node_modules/@github/copilot/sdk/ripgrep/bin/darwin-*/*,**/extensions/copilot/node_modules/@github/copilot/sdk/tgrep/bin/darwin-*/*,**/extensions/copilot/node_modules/@github/copilot/tgrep/bin/darwin-*/*,**/node_modules/@vscode/ripgrep-universal/bin/darwin-*/*,**/node_modules.asar.unpacked/@vscode/ripgrep-universal/bin/darwin-*/*,**/node_modules/@vscode/os-proxy-resolver-darwin-*/**,**/node_modules.asar.unpacked/@vscode/os-proxy-resolver-darwin-*/**,**/node_modules/@microsoft/mxc-sdk/bin/**,**/node_modules.asar.unpacked/@microsoft/mxc-sdk/bin/**}',
++		singleArchFiles: '{**/@vscode/ripgrep-universal/bin/darwin-*,**/@vscode/ripgrep-universal/bin/darwin-*/**,**/@vscode/os-proxy-resolver-darwin-*,**/@vscode/os-proxy-resolver-darwin-*/**,**/@microsoft/mxc-sdk/bin/*,**/@microsoft/mxc-sdk/bin/*/**}',
++		x64ArchFiles: '{*/kerberos.node,**/extensions/microsoft-authentication/dist/libmsalruntime.dylib,**/extensions/microsoft-authentication/dist/msal-node-runtime.node,**/node_modules/@vscode/ripgrep-universal/bin/darwin-*/*,**/node_modules.asar.unpacked/@vscode/ripgrep-universal/bin/darwin-*/*,**/node_modules/@vscode/os-proxy-resolver-darwin-*/**,**/node_modules.asar.unpacked/@vscode/os-proxy-resolver-darwin-*/**,**/node_modules/@microsoft/mxc-sdk/bin/**,**/node_modules.asar.unpacked/@microsoft/mxc-sdk/bin/**}',
+>>>>>>> conflict 3 of 3 ends
+%%%%%%%%%%% diff from: wszmmtyy 0234ce9a "carrel: remove chat and agents window smoke tests" (parents of rebased revision)
+\\\\\\\\\\\        to: slkqvsnl db29c39f "carrel: remove Copilot extension from build plumbing" (rebased revision)
+-		singleArchFiles: '{**/@github/copilot-darwin-*,**/@github/copilot-darwin-*/**,**/@github/copilot/prebuilds/darwin-*,**/@github/copilot/prebuilds/darwin-*/**,**/@github/copilot/tgrep/bin/darwin-*,**/@github/copilot/tgrep/bin/darwin-*/**,**/@github/copilot/sdk/tgrep/bin/darwin-*,**/@github/copilot/sdk/tgrep/bin/darwin-*/**,**/@github/copilot/sdk/prebuilds/darwin-*,**/@github/copilot/sdk/prebuilds/darwin-*/**,**/@github/copilot/sdk/ripgrep/bin/darwin-*,**/@github/copilot/sdk/ripgrep/bin/darwin-*/**,**/@vscode/ripgrep-universal/bin/darwin-*,**/@vscode/ripgrep-universal/bin/darwin-*/**,**/@vscode/os-proxy-resolver-darwin-*,**/@vscode/os-proxy-resolver-darwin-*/**,**/@microsoft/mxc-sdk/bin/*,**/@microsoft/mxc-sdk/bin/*/**}',
+-		x64ArchFiles: '{*/kerberos.node,**/extensions/microsoft-authentication/dist/libmsalruntime.dylib,**/extensions/microsoft-authentication/dist/msal-node-runtime.node,**/node_modules/@github/copilot-darwin-*/**,**/node_modules/@github/copilot/prebuilds/darwin-*/*,**/node_modules/@github/copilot/tgrep/bin/darwin-*/*,**/node_modules/@github/copilot/sdk/tgrep/bin/darwin-*/*,**/node_modules.asar.unpacked/@github/copilot-darwin-*/**,**/node_modules.asar.unpacked/@github/copilot/prebuilds/darwin-*/*,**/node_modules.asar.unpacked/@github/copilot/tgrep/bin/darwin-*/*,**/node_modules.asar.unpacked/@github/copilot/sdk/tgrep/bin/darwin-*/*,**/extensions/copilot/node_modules/@github/copilot/sdk/prebuilds/darwin-*/*,**/extensions/copilot/node_modules/@github/copilot/sdk/ripgrep/bin/darwin-*/*,**/extensions/copilot/node_modules/@github/copilot/sdk/tgrep/bin/darwin-*/*,**/extensions/copilot/node_modules/@github/copilot/tgrep/bin/darwin-*/*,**/node_modules/@vscode/ripgrep-universal/bin/darwin-*/*,**/node_modules.asar.unpacked/@vscode/ripgrep-universal/bin/darwin-*/*,**/node_modules/@vscode/os-proxy-resolver-darwin-*/**,**/node_modules.asar.unpacked/@vscode/os-proxy-resolver-darwin-*/**,**/node_modules/@microsoft/mxc-sdk/bin/**,**/node_modules.asar.unpacked/@microsoft/mxc-sdk/bin/**}',
++		singleArchFiles: '{**/@vscode/ripgrep-universal/bin/darwin-*,**/@vscode/ripgrep-universal/bin/darwin-*/**,**/@vscode/os-proxy-resolver-darwin-*,**/@vscode/os-proxy-resolver-darwin-*/**,**/@microsoft/mxc-sdk/bin/*,**/@microsoft/mxc-sdk/bin/*/**}',
++		x64ArchFiles: '{*/kerberos.node,**/extensions/microsoft-authentication/dist/libmsalruntime.dylib,**/extensions/microsoft-authentication/dist/msal-node-runtime.node,**/node_modules/@vscode/ripgrep-universal/bin/darwin-*/*,**/node_modules.asar.unpacked/@vscode/ripgrep-universal/bin/darwin-*/*,**/node_modules/@vscode/os-proxy-resolver-darwin-*/**,**/node_modules.asar.unpacked/@vscode/os-proxy-resolver-darwin-*/**,**/node_modules/@microsoft/mxc-sdk/bin/**,**/node_modules.asar.unpacked/@microsoft/mxc-sdk/bin/**}',
+>>>>>>>>>>> conflict 3 of 3 ends
+%%%%%%%%%%%%%%% diff from: wszmmtyy 0234ce9a "carrel: remove chat and agents window smoke tests" (parents of rebased revision)
+\\\\\\\\\\\\\\\        to: slkqvsnl db29c39f "carrel: remove Copilot extension from build plumbing" (rebased revision)
+-		singleArchFiles: '{**/@github/copilot-darwin-*,**/@github/copilot-darwin-*/**,**/@github/copilot/prebuilds/darwin-*,**/@github/copilot/prebuilds/darwin-*/**,**/@github/copilot/tgrep/bin/darwin-*,**/@github/copilot/tgrep/bin/darwin-*/**,**/@github/copilot/sdk/tgrep/bin/darwin-*,**/@github/copilot/sdk/tgrep/bin/darwin-*/**,**/@github/copilot/sdk/prebuilds/darwin-*,**/@github/copilot/sdk/prebuilds/darwin-*/**,**/@github/copilot/sdk/ripgrep/bin/darwin-*,**/@github/copilot/sdk/ripgrep/bin/darwin-*/**,**/@vscode/ripgrep-universal/bin/darwin-*,**/@vscode/ripgrep-universal/bin/darwin-*/**,**/@vscode/os-proxy-resolver-darwin-*,**/@vscode/os-proxy-resolver-darwin-*/**,**/@microsoft/mxc-sdk/bin/*,**/@microsoft/mxc-sdk/bin/*/**}',
+-		x64ArchFiles: '{*/kerberos.node,**/extensions/microsoft-authentication/dist/libmsalruntime.dylib,**/extensions/microsoft-authentication/dist/msal-node-runtime.node,**/node_modules/@github/copilot-darwin-*/**,**/node_modules/@github/copilot/prebuilds/darwin-*/*,**/node_modules/@github/copilot/tgrep/bin/darwin-*/*,**/node_modules/@github/copilot/sdk/tgrep/bin/darwin-*/*,**/node_modules.asar.unpacked/@github/copilot-darwin-*/**,**/node_modules.asar.unpacked/@github/copilot/prebuilds/darwin-*/*,**/node_modules.asar.unpacked/@github/copilot/tgrep/bin/darwin-*/*,**/node_modules.asar.unpacked/@github/copilot/sdk/tgrep/bin/darwin-*/*,**/extensions/copilot/node_modules/@github/copilot/sdk/prebuilds/darwin-*/*,**/extensions/copilot/node_modules/@github/copilot/sdk/ripgrep/bin/darwin-*/*,**/extensions/copilot/node_modules/@github/copilot/sdk/tgrep/bin/darwin-*/*,**/extensions/copilot/node_modules/@github/copilot/tgrep/bin/darwin-*/*,**/node_modules/@vscode/ripgrep-universal/bin/darwin-*/*,**/node_modules.asar.unpacked/@vscode/ripgrep-universal/bin/darwin-*/*,**/node_modules/@vscode/os-proxy-resolver-darwin-*/**,**/node_modules.asar.unpacked/@vscode/os-proxy-resolver-darwin-*/**,**/node_modules/@microsoft/mxc-sdk/bin/**,**/node_modules.asar.unpacked/@microsoft/mxc-sdk/bin/**}',
++		singleArchFiles: '{**/@vscode/ripgrep-universal/bin/darwin-*,**/@vscode/ripgrep-universal/bin/darwin-*/**,**/@vscode/os-proxy-resolver-darwin-*,**/@vscode/os-proxy-resolver-darwin-*/**,**/@microsoft/mxc-sdk/bin/*,**/@microsoft/mxc-sdk/bin/*/**}',
++		x64ArchFiles: '{*/kerberos.node,**/extensions/microsoft-authentication/dist/libmsalruntime.dylib,**/extensions/microsoft-authentication/dist/msal-node-runtime.node,**/node_modules/@vscode/ripgrep-universal/bin/darwin-*/*,**/node_modules.asar.unpacked/@vscode/ripgrep-universal/bin/darwin-*/*,**/node_modules/@vscode/os-proxy-resolver-darwin-*/**,**/node_modules.asar.unpacked/@vscode/os-proxy-resolver-darwin-*/**,**/node_modules/@microsoft/mxc-sdk/bin/**,**/node_modules.asar.unpacked/@microsoft/mxc-sdk/bin/**}',
+>>>>>>>>>>>>>>> conflict 3 of 3 ends
 		filesToSkipComparison: (file: string) => {
 			for (const expected of filesToSkip) {
 				if (minimatch(file, expected)) {

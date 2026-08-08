@@ -20,7 +20,6 @@ import { DEFAULT_LABELS_CONTAINER, ResourceLabels } from '../../../../browser/la
 import '../../../../contrib/scm/browser/media/scm.css';
 import { DecorationsService } from '../../../../services/decorations/browser/decorationsService.js';
 import { IDecorationData, IDecorationsProvider, IDecorationsService } from '../../../../services/decorations/common/decorations.js';
-import { INotebookDocumentService } from '../../../../services/notebook/common/notebookDocumentService.js';
 import { ITextFileService } from '../../../../services/textfile/common/textfiles.js';
 import { ComponentFixtureContext, createEditorServices, defineComponentFixture, defineThemedFixtureGroup, registerWorkbenchServices } from '../fixtureUtils.js';
 
@@ -100,9 +99,6 @@ function renderResourceDecorations({ container, disposableStore, theme, fileIcon
 				override readonly untitled = new class extends mock<ITextFileService['untitled']>() {
 					override readonly onDidChangeLabel = Event.None;
 				}();
-			}());
-			registration.defineInstance(INotebookDocumentService, new class extends mock<INotebookDocumentService>() {
-				override getNotebook() { return undefined; }
 			}());
 		},
 	});

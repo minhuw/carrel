@@ -187,32 +187,6 @@ function clearInheritedNpmrcConfig(dir: string, env: NodeJS.ProcessEnv): void {
 	}
 }
 
-function ensureAgentHarnessLink(sourceRelativePath: string, linkPath: string): 'existing' | 'junction' | 'symlink' | 'hard link' {
-	if (fs.existsSync(linkPath)) {
-		return 'existing';
-	}
-
-	const sourcePath = path.resolve(path.dirname(linkPath), sourceRelativePath);
-	const isDirectory = fs.statSync(sourcePath).isDirectory();
-
-	try {
-		if (process.platform === 'win32' && isDirectory) {
-			fs.symlinkSync(sourcePath, linkPath, 'junction');
-			return 'junction';
-		}
-
-		fs.symlinkSync(sourceRelativePath, linkPath, isDirectory ? 'dir' : 'file');
-		return 'symlink';
-	} catch (error) {
-		if (process.platform === 'win32' && !isDirectory && (error as NodeJS.ErrnoException).code === 'EPERM') {
-			fs.linkSync(sourcePath, linkPath);
-			return 'hard link';
-		}
-
-		throw error;
-	}
-}
-
 async function runWithConcurrency(tasks: (() => Promise<void>)[], concurrency: number): Promise<void> {
 	const errors: Error[] = [];
 	let index = 0;
@@ -322,55 +296,6 @@ async function main() {
 	fs.writeFileSync(stateFile, JSON.stringify(_state));
 	fs.writeFileSync(stateContentsFile, JSON.stringify(computeContents()));
 
-	// Symlink .claude/ files to their canonical locations to test Claude agent harness
-	const claudeDir = path.join(root, '.claude');
-	fs.mkdirSync(claudeDir, { recursive: true });
-
-	const claudeMdLink = path.join(claudeDir, 'CLAUDE.md');
-	const claudeMdLinkType = ensureAgentHarnessLink(path.join('..', '.github', 'copilot-instructions.md'), claudeMdLink);
-	if (claudeMdLinkType !== 'existing') {
-		log('.', `Created ${claudeMdLinkType} .claude/CLAUDE.md -> .github/copilot-instructions.md`);
-	}
-
-	const claudeSkillsLink = path.join(claudeDir, 'skills');
-	const claudeSkillsLinkType = ensureAgentHarnessLink(path.join('..', '.agents', 'skills'), claudeSkillsLink);
-	if (claudeSkillsLinkType !== 'existing') {
-		log('.', `Created ${claudeSkillsLinkType} .claude/skills -> .agents/skills`);
-	}
-
-	// foundry-local-sdk's libraryPath redirects its shared libraries but not its
-	// two N-API addons. Packaged builds provision all native files together, so
-	// patch the lazy loader to resolve the addons from libraryPath as well.
-	for (const dir of ['', 'remote']) {
-		const nativeLoaderFile = path.join(root, dir, 'node_modules', 'foundry-local-sdk', 'dist', 'detail', 'native.js');
-		if (!fs.existsSync(nativeLoaderFile)) {
-			continue;
-		}
-		const content = fs.readFileSync(nativeLoaderFile, 'utf8');
-		const marker = '// VSCODE_PATCH:foundry-addons-from-library-path';
-		if (content.includes(marker)) {
-			continue;
-		}
-		const replacements: readonly [string, string][] = [
-			[
-				`const addonPath = resolve(prebuildDir, "foundry_local_node.node");\nconst preloadAddonPath = resolve(prebuildDir, "foundry_local_preload.node");`,
-				`${marker}\nlet addonPath = resolve(prebuildDir, "foundry_local_node.node");\nlet preloadAddonPath = resolve(prebuildDir, "foundry_local_preload.node");`,
-			],
-			[
-				`if (!existsSync(fullPath)) {\n        throw new Error(\`libraryPath does not contain \${expected}: \${libraryPath}\`);\n    }`,
-				`if (!existsSync(fullPath)) {\n        throw new Error(\`libraryPath does not contain \${expected}: \${libraryPath}\`);\n    }\n    const configuredAddonPath = resolve(libraryPath, "foundry_local_node.node");\n    const configuredPreloadAddonPath = resolve(libraryPath, "foundry_local_preload.node");\n    if (!existsSync(configuredAddonPath) || !existsSync(configuredPreloadAddonPath)) {\n        throw new Error(\`libraryPath does not contain both Foundry Local addons: \${libraryPath}\`);\n    }\n    addonPath = configuredAddonPath;\n    preloadAddonPath = configuredPreloadAddonPath;`,
-			],
-		];
-		let patched = content;
-		for (const [needle, replacement] of replacements) {
-			if (!patched.includes(needle)) {
-				throw new Error(`Unexpected foundry-local-sdk native loader shape in ${nativeLoaderFile}`);
-			}
-			patched = patched.replace(needle, replacement);
-		}
-		fs.writeFileSync(nativeLoaderFile, patched);
-		log(dir || '.', 'Patched foundry-local-sdk native loader (addons from libraryPath)');
-	}
 }
 
 main().catch(err => {

@@ -5,10 +5,9 @@
 
 import assert from 'assert';
 import { IStringDictionary } from '../../../../base/common/collections.js';
-import { IPolicyData } from '../../../../base/common/defaultAccount.js';
-import { ManagedSettingsData } from '../../../../base/common/policy.js';
+import { IPolicyData } from '../../../../base/common/policy.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import { collectManagedSettingsDefinitions, COPILOT_FORCE_REMOTE_SETTINGS_REFRESH_KEY, COPILOT_MODEL_KEY, COPILOT_OTEL_CAPTURE_IDENTITY_KEY, COPILOT_SANDBOX_ALLOWED_HOSTS_KEY, COPILOT_SANDBOX_ALLOW_BYPASS_KEY, COPILOT_SANDBOX_ALLOW_DEV_TOOL_ACCESS_KEY, COPILOT_SANDBOX_ALLOW_LOCAL_NETWORK_KEY, COPILOT_SANDBOX_ALLOW_OUTBOUND_KEY, COPILOT_SANDBOX_AUTH_GH_KEY, COPILOT_SANDBOX_AUTH_GIT_KEY, COPILOT_SANDBOX_DENIED_PATHS_KEY, COPILOT_SANDBOX_ENABLED_KEY, COPILOT_SANDBOX_LSP_SERVERS_KEY, COPILOT_SANDBOX_MCP_SERVERS_KEY, COPILOT_SANDBOX_READONLY_PATHS_KEY, COPILOT_SANDBOX_READWRITE_PATHS_KEY, COPILOT_TOP_LEVEL_MODEL_KEY, MANAGED_SETTINGS_CONTROL_DEFINITIONS, hasManagedSettingsDefinitions, managedModelValue, managedSettingsDisabledValue, managedSettingValue, normalizeManagedSettings, projectManagedSettings, pickManagedSettings, resolveForceRemoteSettingsRefresh } from '../../common/copilotManagedSettings.js';
+import { collectManagedSettingsDefinitions, COPILOT_FORCE_REMOTE_SETTINGS_REFRESH_KEY, COPILOT_MODEL_KEY, COPILOT_OTEL_CAPTURE_IDENTITY_KEY, COPILOT_SANDBOX_ALLOW_BYPASS_KEY, COPILOT_SANDBOX_ALLOW_DEV_TOOL_ACCESS_KEY, COPILOT_SANDBOX_ALLOW_LOCAL_NETWORK_KEY, COPILOT_SANDBOX_ALLOW_OUTBOUND_KEY, COPILOT_SANDBOX_ALLOWED_HOSTS_KEY, COPILOT_SANDBOX_AUTH_GH_KEY, COPILOT_SANDBOX_AUTH_GIT_KEY, COPILOT_SANDBOX_DENIED_PATHS_KEY, COPILOT_SANDBOX_ENABLED_KEY, COPILOT_SANDBOX_LSP_SERVERS_KEY, COPILOT_SANDBOX_MCP_SERVERS_KEY, COPILOT_SANDBOX_READONLY_PATHS_KEY, COPILOT_SANDBOX_READWRITE_PATHS_KEY, COPILOT_TOP_LEVEL_MODEL_KEY, hasManagedSettingsDefinitions, MANAGED_SETTINGS_CONTROL_DEFINITIONS, ManagedSettingsData, managedModelValue, managedSettingValue, normalizeManagedSettings, projectManagedSettings, pickManagedSettings, resolveForceRemoteSettingsRefresh } from '../../common/copilotManagedSettings.js';
 import { PolicyDefinition } from '../../common/policy.js';
 
 suite('Copilot managed settings projection', () => {
@@ -123,20 +122,6 @@ suite('Copilot managed settings projection', () => {
 
 	test('managedModelValue returns the same memoized callback (stable reference identity)', () => {
 		assert.strictEqual(managedModelValue(), managedModelValue());
-	});
-
-	test('managedSettingsDisabledValue forces false only while managed settings are active', () => {
-		assert.deepStrictEqual({
-			active: managedSettingsDisabledValue({ managedSettingsActive: true }),
-			inactive: managedSettingsDisabledValue({ managedSettingsActive: false }),
-			unset: managedSettingsDisabledValue({}),
-			previewFeaturesDisabled: managedSettingsDisabledValue({ chat_preview_features_enabled: false }),
-		}, {
-			active: false,
-			inactive: undefined,
-			unset: undefined,
-			previewFeaturesDisabled: undefined,
-		});
 	});
 
 	test('forceRemoteSettingsRefresh resolves across all channels and reports the winning source', () => {

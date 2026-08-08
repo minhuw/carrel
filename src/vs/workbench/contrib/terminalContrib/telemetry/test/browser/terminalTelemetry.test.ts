@@ -10,7 +10,6 @@ import { upcastPartial } from '../../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../../base/test/common/utils.js';
 import { captureGlobalTimeApi, type TimeoutId } from '../../../../../../base/test/common/virtualScheduling/timeApi.js';
 import { pushGlobalTimeApi } from '../../../../../../base/test/common/virtualScheduling/globalTimeApi.js';
-import { TestConfigurationService } from '../../../../../../platform/configuration/test/common/testConfigurationService.js';
 import { TerminalCapabilityStore } from '../../../../../../platform/terminal/common/capabilities/terminalCapabilityStore.js';
 import { TerminalLocation } from '../../../../../../platform/terminal/common/terminal.js';
 import { ITelemetryService } from '../../../../../../platform/telemetry/common/telemetry.js';
@@ -52,9 +51,7 @@ suite('TerminalTelemetryContribution', () => {
 		const telemetryService = upcastPartial<ITelemetryService>({
 			publicLog2: () => { telemetryEvents++; },
 		});
-		const configurationService = new TestConfigurationService();
-		store.add(configurationService.onDidChangeConfigurationEmitter);
-		const contribution = store.add(new TerminalTelemetryContribution(lifecycleService, terminalService, terminalEditorService, configurationService, telemetryService));
+		const contribution = store.add(new TerminalTelemetryContribution(lifecycleService, terminalService, terminalEditorService, telemetryService));
 
 		const instance = upcastPartial<ITerminalInstance>({
 			resource: URI.parse('terminal:test'),

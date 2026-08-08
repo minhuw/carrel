@@ -25,16 +25,6 @@ export interface NativeParsedArgs {
 	};
 	'serve-web'?: INativeCliOptions;
 	'agent'?: INativeCliOptions;
-	chat?: {
-		_: string[];
-		'add-file'?: string[];
-		mode?: string;
-		maximize?: boolean;
-		'reuse-window'?: boolean;
-		'new-window'?: boolean;
-		profile?: string;
-		help?: boolean;
-	};
 
 	// arguments
 	_: string[];
@@ -54,8 +44,6 @@ export interface NativeParsedArgs {
 	goto?: boolean;
 	'new-window'?: boolean;
 	'reuse-window'?: boolean;
-	'agents'?: boolean;
-	'session-title-base64'?: string;
 	locale?: string;
 	'user-data-dir'?: string;
 	'prof-startup'?: boolean;
@@ -78,8 +66,6 @@ export interface NativeParsedArgs {
 	'builtin-extensions-dir'?: string;
 	'shared-data-dir'?: string;
 	'agent-plugins-dir'?: string;
-	'agents-user-data-dir'?: string;
-	'agents-extensions-dir'?: string;
 	extensionDevelopmentPath?: string[]; // undefined or array of 1 or more local paths or URIs
 	extensionTestsPath?: string; // either a local path or a URI
 	extensionDevelopmentKind?: string[];
@@ -90,8 +76,6 @@ export interface NativeParsedArgs {
 	debugRenderer?: boolean; // whether we expect a debugger (js-debug) to attach to the renderer, incl webviews+webworker
 	'inspect-ptyhost'?: string;
 	'inspect-brk-ptyhost'?: string;
-	'inspect-agenthost'?: string;
-	'inspect-brk-agenthost'?: string;
 	'inspect-sharedprocess'?: string;
 	'inspect-brk-sharedprocess'?: string;
 	'disable-extensions'?: boolean;
@@ -116,9 +100,7 @@ export interface NativeParsedArgs {
 	'export-policy-data'?: string;
 	'export-default-keybindings'?: string;
 	'install-source'?: string;
-	'add-mcp'?: string[];
 	'disable-updates'?: boolean;
-	'share-secrets-with-agents-app'?: boolean;
 	'transient'?: boolean;
 	'use-inmemory-secretstorage'?: boolean;
 	'password-store'?: string;

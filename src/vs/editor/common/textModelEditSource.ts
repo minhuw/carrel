@@ -75,7 +75,6 @@ export function isAiEdit(source: TextModelEditSource): boolean {
 	switch (source.metadata.source) {
 		case 'inlineCompletionAccept':
 		case 'inlineCompletionPartialAccept':
-		case 'inlineChat.applyEdits':
 		case 'Chat.applyEdits':
 			return true;
 	}
@@ -177,19 +176,6 @@ export const EditSources = {
 		} as const);
 	},
 
-	inlineChatApplyEdit(data: { modelId: string | undefined; autoTier?: string; requestId: string | undefined; sessionId: string | undefined; languageId: string; extensionId: VersionedExtensionId | undefined }) {
-		return createEditSource({
-			source: 'inlineChat.applyEdits',
-			$modelId: avoidPathRedaction(data.modelId),
-			$autoTier: data.autoTier,
-			$extensionId: data.extensionId?.extensionId,
-			$extensionVersion: data.extensionId?.version,
-			$$sessionId: data.sessionId,
-			$$requestId: data.requestId,
-			$$languageId: data.languageId,
-		} as const);
-	},
-
 	reloadFromDisk: () => createEditSource({ source: 'reloadFromDisk' } as const),
 
 	cursor(data: { kind: 'compositionType' | 'compositionEnd' | 'type' | 'paste' | 'cut' | 'executeCommands' | 'executeCommand'; detailedSource?: string | null }) {
@@ -281,7 +267,7 @@ export interface EditSuggestionId {
 
 export namespace EditSuggestionId {
 	/**
-	 * Use AiEditTelemetryServiceImpl to create a new id!
+	 * Creates a new unique edit identity.
 	*/
 	export function newId(genPrefixedUuid?: (ns: string) => string): EditSuggestionId {
 		const id = genPrefixedUuid ? genPrefixedUuid('sgt') : prefixedUuid('sgt');

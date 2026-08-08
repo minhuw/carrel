@@ -23,7 +23,6 @@ export const enum AccessibleViewProviderId {
 	CustomizationMigrations = 'customizationMigrations',
 	ChatTerminalOutput = 'chatTerminalOutput',
 	ChatThinking = 'chatThinking',
-	InlineChat = 'inlineChat',
 	AgentChat = 'agentChat',
 	QuickChat = 'quickChat',
 	InlineCompletions = 'inlineCompletions',

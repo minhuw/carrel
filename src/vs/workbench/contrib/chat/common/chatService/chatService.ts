@@ -1696,12 +1696,6 @@ export interface IChatBugReportAction {
 	kind: 'bug';
 }
 
-export interface IChatInlineChatCodeAction {
-	kind: 'inlineChat';
-	action: 'accepted' | 'discarded';
-}
-
-
 export interface IChatEditingSessionAction {
 	kind: 'chatEditingSessionAction';
 	uri: URI;
@@ -1722,7 +1716,7 @@ export interface IChatEditingHunkAction {
 	languageId?: string;
 }
 
-export type ChatUserAction = IChatVoteAction | IChatCopyAction | IChatInsertAction | IChatApplyAction | IChatTerminalAction | IChatCommandAction | IChatFollowupAction | IChatBugReportAction | IChatInlineChatCodeAction | IChatEditingSessionAction | IChatEditingHunkAction;
+export type ChatUserAction = IChatVoteAction | IChatCopyAction | IChatInsertAction | IChatApplyAction | IChatTerminalAction | IChatCommandAction | IChatFollowupAction | IChatBugReportAction | IChatEditingSessionAction | IChatEditingHunkAction;
 
 export interface IChatUserActionEvent {
 	action: ChatUserAction;

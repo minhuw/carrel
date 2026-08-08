@@ -54,7 +54,7 @@ suite('Default theme colors', () => {
 
 		test(`${name} defines a distinct confetti palette visible on workbench surfaces`, async () => {
 			const theme = await loadDefaultTheme(file, selector);
-			const surfaces = ['editor.background', 'sideBar.background', 'agents.background', 'agentsChatInput.background', 'editorWidget.background'];
+			const surfaces = ['editor.background', 'sideBar.background', 'editorWidget.background'];
 			const palette = Array.from({ length: 6 }, (_, index) => {
 				const id = `confetti.color${index + 1}`;
 				return { id, color: theme.getColor(id, false) };

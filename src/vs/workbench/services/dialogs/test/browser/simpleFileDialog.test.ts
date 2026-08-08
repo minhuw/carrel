@@ -13,7 +13,6 @@ import * as resources from '../../../../../base/common/resources.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { mock } from '../../../../../base/test/common/mock.js';
-import { AGENT_HOST_SCHEME } from '../../../../../platform/agentHost/common/agentHostUri.js';
 import { createFileSystemProviderError, FileSystemProviderErrorCode, IFileService, IFileStat } from '../../../../../platform/files/common/files.js';
 import { FileService } from '../../../../../platform/files/common/fileService.js';
 import { InMemoryFileSystemProvider } from '../../../../../platform/files/common/inMemoryFilesystemProvider.js';
@@ -254,14 +253,14 @@ suite('SimpleFileDialog', () => {
 
 	for (const value of ['Q:\\', 'Q:/', 'Q:']) {
 		test(`handles typing ${value} from a scoped Windows filesystem root`, async () => {
-			const currentFolder = URI.from({ scheme: AGENT_HOST_SCHEME, authority: 'windows-host', path: '/' });
+			const currentFolder = URI.from({ scheme: Schemas.vscodeRemote, authority: 'windows-host', path: '/' });
 			const navigatedFolders: { value: string; path: string }[] = [];
 			const filteredValues: string[] = [];
 			const dialog = Object.assign(Object.create(SimpleFileDialog.prototype), {
 				currentFolder,
 				filePickBox: { value, validationMessage: undefined },
 				isWindows: true,
-				scheme: AGENT_HOST_SCHEME,
+				scheme: Schemas.vscodeRemote,
 				scopedAuthority: 'windows-host',
 				separator: '\\',
 				userEnteredPathSegment: '',

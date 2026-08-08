@@ -7,7 +7,6 @@ import * as vscode from 'vscode';
 import { getTsNativeExtension, tsNativeExtensionOldId } from '../commands/useTsgo';
 import { ExperimentationService } from '../experimentationService';
 import type { PluginManager } from '../tsServer/plugins.js';
-import { copilotChatExtensionId } from '../typescriptServiceClient.js';
 import { hasModifiedUnifiedConfig } from '../utils/configuration';
 
 const suggestTS7NoPluginsStorageKey = 'typescript.suggestTS7NoPlugins.dismissed';
@@ -35,7 +34,7 @@ export async function suggestNativePreview(
 	}
 
 	// TSServer plugins are not supported by TypeScript 7
-	if (pluginManager.plugins.some(plugin => plugin.extension.id.toLowerCase() !== copilotChatExtensionId)) {
+	if (pluginManager.plugins.length) {
 		return;
 	}
 

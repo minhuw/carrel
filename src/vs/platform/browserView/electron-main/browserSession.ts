@@ -20,8 +20,6 @@ import { BrowserSessionRemote, IBrowserSessionRemote } from './browserSessionRem
 import { FileAccess, Schemas } from '../../../base/common/network.js';
 import { IInstantiationService } from '../../instantiation/common/instantiation.js';
 import { localize } from '../../../nls.js';
-import { IAgentNetworkFilterService } from '../../networkFilter/common/networkFilterService.js';
-import { ISandboxNetworkRestrictions } from '../../sandbox/common/sandboxSettingsResolutionHelper.js';
 
 /**
  * Holds an Electron session along with its storage scope and unique browser
@@ -118,17 +116,6 @@ export class BrowserSession {
 		return ids;
 	}
 
-	/** Update network filtering on all live browser sessions. */
-	static updateNetworkFiltering(): void {
-		for (const [id, ref] of BrowserSession._byId) {
-			const browserSession = ref.deref();
-			if (browserSession) {
-				browserSession.updateNetworkFilter();
-			} else {
-				BrowserSession._byId.delete(id);
-			}
-		}
-	}
 
 	/**
 	 * Get or create the singleton global-scope session.
@@ -280,21 +267,8 @@ export class BrowserSession {
 	private readonly _history: BrowserSessionHistory;
 	private readonly _remote: BrowserSessionRemote;
 	private readonly _permissions: BrowserSessionPermissions;
-	private _networkFilterEnabled = false;
-	private _sandboxNetworkRestrictions?: ISandboxNetworkRestrictions;
 	sandboxSessionId?: string;
 
-	setSandboxNetworkRestrictions(sessionId: string, restrictions: ISandboxNetworkRestrictions): void {
-		if (this.storageScope !== BrowserViewStorageScope.Agent) {
-			throw new Error('Sandbox network restrictions require an isolated Agent browser session');
-		}
-		if (this.sandboxSessionId !== undefined && this.sandboxSessionId !== sessionId) {
-			throw new Error('Browser sandbox restrictions cannot be shared across agent sessions');
-		}
-		this.sandboxSessionId = sessionId;
-		this._sandboxNetworkRestrictions = restrictions;
-		this.updateNetworkFilter(true);
-	}
 
 	/**
 	 * @deprecated Don't use this directly. Create sessions via the static factory methods.
@@ -312,13 +286,11 @@ export class BrowserSession {
 		readonly storageScope: BrowserViewStorageScope,
 		private _network: IBrowserViewNetwork | undefined,
 		private readonly affinity: string | undefined,
-		@IAgentNetworkFilterService private readonly agentNetworkFilterService: IAgentNetworkFilterService,
 	) {
 		this._trust = new BrowserSessionTrust(this);
 		this._history = new BrowserSessionHistory(this);
 		this._remote = new BrowserSessionRemote(this);
 		this._permissions = new BrowserSessionPermissions(this);
-		this.updateNetworkFilter();
 		this.configure();
 		BrowserSession.knownSessions.add(electronSession);
 		BrowserSession._bySession.set(electronSession, this);
@@ -376,30 +348,6 @@ export class BrowserSession {
 		this._permissions.connectStorage(storage);
 	}
 
-	/**
-	 * Dynamically apply network filtering to Agent sessions.
-	 */
-	private updateNetworkFilter(force = false): void {
-		if (this.storageScope !== BrowserViewStorageScope.Agent) {
-			return;
-		}
-
-		const enabled = this.agentNetworkFilterService.isEnabled(this._sandboxNetworkRestrictions);
-		if (!force && this._networkFilterEnabled === enabled) {
-			return;
-		}
-		this._networkFilterEnabled = enabled;
-		this.electronSession.webRequest.onBeforeRequest(enabled ? (details, callback) => {
-			let uri: URI;
-			try {
-				uri = URI.parse(details.url, true);
-			} catch {
-				callback({ cancel: true });
-				return;
-			}
-			callback({ cancel: !this.agentNetworkFilterService.isUriAllowed(uri, this._sandboxNetworkRestrictions) });
-		} : null);
-	}
 
 	/**
 	 * Apply permissions, protocols, and preload scripts to the session.

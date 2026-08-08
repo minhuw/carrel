@@ -167,14 +167,6 @@ const revealInFilesViewCommand = {
 	title: nls.localize('revealInFilesView', "Reveal in Files View")
 };
 
-/**
- * Appends the reveal command to a menu, labelled after the view it reveals in.
- */
-function appendRevealInSideBarMenuItem(menuId: MenuId, group: string, order: number, when: ContextKeyExpression): void {
-	MenuRegistry.appendMenuItem(menuId, { group, order, command: revealInSideBarCommand, when: ContextKeyExpr.and(when, IsSessionsWindowContext.negate()) });
-	MenuRegistry.appendMenuItem(menuId, { group, order, command: revealInFilesViewCommand, when: ContextKeyExpr.and(when, IsSessionsWindowContext) });
-}
-
 // Editor Title Context Menu
 appendEditorTitleContextMenuItem(SAVE_FILE_COMMAND_ID, SAVE_FILE_LABEL.value, ActiveEditorDirtyContext, '1_close_save', true, 10);
 appendEditorTitleContextMenuItem(SAVE_FILE_AS_COMMAND_ID, SAVE_FILE_AS_LABEL.value, ActiveEditorDirtyContext, '1_close_save', false, 20);
@@ -778,56 +770,3 @@ MenuRegistry.appendMenuItem(MenuId.MenubarGoMenu, {
 	},
 	order: 1
 });
-
-
-// Chat used attachment anchor context menu
-
-MenuRegistry.appendMenuItem(MenuId.ChatAttachmentsContext, {
-	group: 'navigation',
-	order: 10,
-	command: openToSideCommand,
-	when: ContextKeyExpr.and(ResourceContextKey.IsFileSystemResource, ExplorerFolderContext.toNegated())
-});
-
-appendRevealInSideBarMenuItem(MenuId.ChatAttachmentsContext, 'navigation', 20, ResourceContextKey.IsFileSystemResource);
-
-MenuRegistry.appendMenuItem(MenuId.ChatAttachmentsContext, {
-	group: '1_cutcopypaste',
-	order: 10,
-	command: copyPathCommand,
-	when: ResourceContextKey.IsFileSystemResource
-});
-
-MenuRegistry.appendMenuItem(MenuId.ChatAttachmentsContext, {
-	group: '1_cutcopypaste',
-	order: 20,
-	command: copyRelativePathCommand,
-	when: ResourceContextKey.IsFileSystemResource
-});
-
-// Chat resource anchor attachments/anchors context menu
-
-for (const menuId of [MenuId.ChatInlineResourceAnchorContext, MenuId.ChatInputResourceAttachmentContext]) {
-	MenuRegistry.appendMenuItem(menuId, {
-		group: 'navigation',
-		order: 10,
-		command: openToSideCommand,
-		when: ContextKeyExpr.and(ResourceContextKey.HasResource, ExplorerFolderContext.toNegated())
-	});
-
-	appendRevealInSideBarMenuItem(menuId, 'navigation', 20, ResourceContextKey.IsFileSystemResource);
-
-	MenuRegistry.appendMenuItem(menuId, {
-		group: '1_cutcopypaste',
-		order: 10,
-		command: copyPathCommand,
-		when: ResourceContextKey.IsFileSystemResource
-	});
-
-	MenuRegistry.appendMenuItem(menuId, {
-		group: '1_cutcopypaste',
-		order: 20,
-		command: copyRelativePathCommand,
-		when: ResourceContextKey.IsFileSystemResource
-	});
-}

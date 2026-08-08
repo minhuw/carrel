@@ -326,9 +326,6 @@ mod tests {
 		let migrated_paths = LauncherPaths::migrate(None).unwrap();
 		assert_eq!(migrated_paths.root(), expected.as_path());
 
-		let expected_agent_host = portable_dir.join(SERVER_DATA_PARENT_DIR).join("cli");
-		assert_eq!(paths.agent_host_root(), expected_agent_host);
-
 		std::env::remove_var("VSCODE_PORTABLE");
 	}
 }

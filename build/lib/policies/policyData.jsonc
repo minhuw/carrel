@@ -1020,37 +1020,14 @@
             }
         },
         {
-            "key": "dictation.model",
-            "name": "DictationModel",
-            "category": "InteractiveSession",
-            "minimumVersion": "1.136",
-            "localization": {
-                "description": {
-                    "key": "dictation.model.policy",
-                    "value": "Controls the transcription model used for dictation."
-                },
-                "enumDescriptions": [
-                    {
-                        "key": "dictation.model.nemotronMultilingual.policy",
-                        "value": "Use the on-device transcription model. Audio does not leave the device."
-                    },
-                    {
-                        "key": "dictation.model.mai.policy",
-                        "value": "Use the cloud transcription service. Audio is streamed to the service."
-                    }
-                ]
-            },
-            "type": "string",
-            "default": "nemotron-3.5-asr-streaming-0.6b",
-            "enum": [
-                "nemotron-3.5-asr-streaming-0.6b",
-                "mai"
-            ],
-            "included": true,
-            "agentHost": {
-                "status": "enforced"
+            "key": "Update",
+            "name": {
+                "key": "updateConfigurationTitle",
+                "value": "Update"
             }
-        },
+        }
+    ],
+    "policies": [
         {
             "key": "extensions.allowed",
             "name": "AllowedExtensions",
@@ -1167,78 +1144,6 @@
             "included": false,
             "agentHost": {
                 "status": "enforced"
-            }
-        },
-        {
-            "key": "github.copilot.chat.reviewAgent.enabled",
-            "name": "CopilotReviewAgent",
-            "category": "InteractiveSession",
-            "minimumVersion": "1.104",
-            "localization": {
-                "description": {
-                    "key": "github.copilot.chat.reviewAgent.enabled",
-                    "value": "Enables the code review agent."
-                }
-            },
-            "type": "boolean",
-            "default": true,
-            "included": true,
-            "agentHost": {
-                "status": "notApplicable"
-            }
-        },
-        {
-            "key": "github.copilot.chat.reviewSelection.enabled",
-            "name": "CopilotReviewSelection",
-            "category": "InteractiveSession",
-            "minimumVersion": "1.104",
-            "localization": {
-                "description": {
-                    "key": "github.copilot.chat.reviewSelection.enabled",
-                    "value": "Enables code review on current selection."
-                }
-            },
-            "type": "boolean",
-            "default": true,
-            "included": true,
-            "agentHost": {
-                "status": "notApplicable"
-            }
-        },
-        {
-            "key": "github.copilot.nextEditSuggestions.enabled",
-            "name": "CopilotNextEditSuggestions",
-            "category": "InteractiveSession",
-            "minimumVersion": "1.99",
-            "localization": {
-                "description": {
-                    "key": "github.copilot.nextEditSuggestions.enabled",
-                    "value": "Whether to enable next edit suggestions (NES). NES can propose a next edit based on your recent changes."
-                }
-            },
-            "type": "boolean",
-            "default": true,
-            "included": true,
-            "agentHost": {
-                "status": "notApplicable"
-            }
-        },
-        {
-            "key": "mcp.enterpriseManagedAuth.idp",
-            "name": "McpEnterpriseManagedAuthIdp",
-            "category": "InteractiveSession",
-            "minimumVersion": "1.122",
-            "localization": {
-                "description": {
-                    "key": "mcp.enterpriseManagedAuth.idp.policy",
-                    "value": "The OAuth/OIDC IdP configuration used for enterprise-managed Model Context Protocol (MCP) server authentication."
-                }
-            },
-            "type": "object",
-            "default": {},
-            "included": false,
-            "agentHost": {
-                "status": "notEnforced"
             }
         },
         {

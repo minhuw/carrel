@@ -18,7 +18,7 @@ import { INotificationService } from '../../../../../platform/notification/commo
 import { IProductService } from '../../../../../platform/product/common/productService.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { ITelemetryService } from '../../../../../platform/telemetry/common/telemetry.js';
-import { TestExperimentTriggerTelemetryService } from '../../../../../platform/telemetry/test/common/experimentTriggerTestUtils.js';
+import { NullTelemetryService } from '../../../../../platform/telemetry/common/telemetryUtils.js';
 import { IColorTheme, IThemeService } from '../../../../../platform/theme/common/themeService.js';
 import { IWorkspaceTrustManagementService } from '../../../../../platform/workspace/common/workspaceTrust.js';
 import { IWorkbenchAssignmentService } from '../../../../services/assignment/common/assignmentService.js';
@@ -40,7 +40,7 @@ suite('NativeIssueService additional repositories', () => {
 		const opened: IssueReporterData[] = [];
 		const authenticationProviders: string[] = [];
 		const authenticationSessions: AuthenticationSession[] = [];
-		const telemetry = new TestExperimentTriggerTelemetryService();
+		const telemetry = NullTelemetryService;
 		const warnings: string[] = [];
 		const errors: string[] = [];
 		const configurationReads: string[] = [];
@@ -137,7 +137,7 @@ suite('NativeIssueService additional repositories', () => {
 
 		for (const repositories of [undefined, [], ['owner/extra'], ['Owner/extra', 'owner/EXTRA', 'other/third']]) {
 			test(`${wizard ? 'wizard loads' : 'legacy ignores'} additional repositories ${JSON.stringify(repositories)}`, async () => {
-				const { service, opened, authenticationProviders, telemetry, configurationReads, errors, warnings } = createService(wizard, repositories);
+				const { service, opened, authenticationProviders, configurationReads, errors, warnings } = createService(wizard, repositories);
 				await service.openReporter();
 				await opened[0].whenDataComplete;
 				const data = opened[0];
@@ -148,7 +148,6 @@ suite('NativeIssueService additional repositories', () => {
 					repositories: data.additionalRepositories,
 					wizard: !!data.whenDataComplete,
 					authenticationProviders,
-					triggers: telemetry.triggers,
 					configurationReads, errors, warnings,
 				}, {
 					target: wizard ? { url: product.reportIssueUrl, external: false, isPrivate: false, isPublic: true, repository: { owner: 'microsoft', repositoryName: 'vscode' } } : undefined,
@@ -157,7 +156,6 @@ suite('NativeIssueService additional repositories', () => {
 					repositories: wizard ? repositories?.length === 3 ? ['Owner/extra', 'other/third'] : repositories ?? [] : undefined,
 					wizard,
 					authenticationProviders: ['github'],
-					triggers: wizard ? [`config.${issueReporterAdditionalRepositoriesSettingId}`] : [],
 					configurationReads: wizard ? ['issueReporter.wizard.enabled', issueReporterAdditionalRepositoriesSettingId] : ['issueReporter.wizard.enabled'],
 					errors: [], warnings: [],
 				});
@@ -166,17 +164,16 @@ suite('NativeIssueService additional repositories', () => {
 
 		for (const repositories of [true, 'owner/repo', [123], ['valid/repo', 'https://github.com/owner/repo']]) {
 			test(`${wizard ? 'wizard rejects' : 'legacy does not read or validate'} invalid additional repositories ${JSON.stringify(repositories)}`, async () => {
-				const { service, opened, warnings, errors, telemetry, configurationReads } = createService(wizard, repositories);
+				const { service, opened, warnings, errors, configurationReads } = createService(wizard, repositories);
 				await service.openReporter();
 				assert.deepStrictEqual({
 					repositories: opened[0].additionalRepositories,
 					target: wizard ? resolveIssueReporterTarget(opened[0], product)?.url : undefined,
-					errors, warnings, triggers: telemetry.triggers, configurationReads,
+					errors, warnings, configurationReads,
 				}, {
 					repositories: wizard ? [] : undefined, target: wizard ? product.reportIssueUrl : undefined,
 					errors: wizard ? ['[IssueReporter] Invalid additional repositories setting.'] : [],
 					warnings: wizard ? ['The issueReporter.additionalRepositories setting must be an array of GitHub repositories in owner/repo format. Additional destinations were not loaded.'] : [],
-					triggers: wizard ? [`config.${issueReporterAdditionalRepositoriesSettingId}`] : [],
 					configurationReads: wizard ? ['issueReporter.wizard.enabled', issueReporterAdditionalRepositoriesSettingId] : ['issueReporter.wizard.enabled'],
 				});
 			});
@@ -190,7 +187,7 @@ suite('NativeIssueService additional repositories', () => {
 			{ issueSource: IssueSource.Marketplace },
 		]) {
 			test(`${wizard ? 'wizard' : 'classic'} preserves caller routing ${JSON.stringify(overrides)}`, async () => {
-				const { service, opened, telemetry } = createService(wizard, ['owner/extra']);
+				const { service, opened } = createService(wizard, ['owner/extra']);
 				await service.openReporter(overrides);
 				await opened[0].whenDataComplete;
 				assert.deepStrictEqual({
@@ -198,13 +195,11 @@ suite('NativeIssueService additional repositories', () => {
 					privateUri: opened[0].privateUri,
 					extensionId: opened[0].extensionId,
 					issueSource: opened[0].issueSource,
-					triggers: telemetry.triggers,
 				}, {
 					uri: overrides.uri,
 					privateUri: overrides.privateUri,
 					extensionId: overrides.extensionId,
 					issueSource: overrides.issueSource,
-					triggers: wizard && !overrides.uri && overrides.privateUri ? [`config.${issueReporterAdditionalRepositoriesSettingId}`] : [],
 				});
 			});
 		}

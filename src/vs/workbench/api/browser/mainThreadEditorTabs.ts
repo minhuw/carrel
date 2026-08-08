@@ -16,7 +16,6 @@ import { isGroupEditorMoveEvent } from '../../common/editor/editorGroupModel.js'
 import { EditorInput } from '../../common/editor/editorInput.js';
 import { SideBySideEditorInput } from '../../common/editor/sideBySideEditorInput.js';
 import { AbstractTextResourceEditorInput } from '../../common/editor/textResourceEditorInput.js';
-import { ChatEditorInput } from '../../contrib/chat/browser/widgetHosts/editor/chatEditorInput.js';
 import { CustomEditorInput } from '../../contrib/customEditor/browser/customEditorInput.js';
 import { isCustomEditorCompatibleInput } from '../../contrib/customEditor/common/customEditor.js';
 import { InteractiveEditorInput } from '../../contrib/interactive/browser/interactiveEditorInput.js';
@@ -215,12 +214,6 @@ export class MainThreadEditorTabs implements MainThreadEditorTabsShape {
 				kind: TabInputKind.InteractiveEditorInput,
 				uri: editor.resource,
 				inputBoxUri: editor.inputResource
-			};
-		}
-
-		if (editor instanceof ChatEditorInput) {
-			return {
-				kind: TabInputKind.ChatEditorInput,
 			};
 		}
 

@@ -122,7 +122,7 @@ class RemoteSocketStream extends TunnelSocketStream {
 	}
 }
 
-/** Adapts a pull-based {@link ITunnelByteStream} (such as an agent host TCP connection) to a Node {@link Duplex}. */
+/** Adapts a pull-based {@link ITunnelByteStream} (such as a raw TCP connection) to a Node {@link Duplex}. */
 class PullTunnelStream extends TunnelSocketStream {
 
 	private _reading = false;

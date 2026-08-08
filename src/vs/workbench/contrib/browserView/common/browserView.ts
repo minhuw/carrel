@@ -11,10 +11,7 @@ import { URI } from '../../../../base/common/uri.js';
 import { VSBuffer } from '../../../../base/common/buffer.js';
 import { CDPEvent, CDPRequest, CDPResponse } from '../../../../platform/browserView/common/cdp/types.js';
 import { ITunnelProxyInfo } from '../../../../platform/tunnel/common/tunnelProxy.js';
-import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
-import { IStorageService, StorageScope, StorageTarget } from '../../../../platform/storage/common/storage.js';
-import { localize } from '../../../../nls.js';
-import { ISandboxNetworkRestrictions } from '../../../../platform/sandbox/common/sandboxSettingsResolutionHelper.js';
+import { IStorageService, StorageScope } from '../../../../platform/storage/common/storage.js';
 import {
 	BrowserHistoryStore,
 	ISerializedBrowserFaviconsSnapshot,
@@ -59,30 +56,16 @@ import {
 	IBrowserDeviceProfile,
 	IBrowserViewPermissionRequestEvent,
 	IBrowserElementSelectionState,
-	isBrowserViewStorageScopeShareableWithAgent,
 	IBrowserViewHost,
-	IBrowserViewAccessibilitySnapshot,
 	IBrowserViewNetwork,
 	IBrowserViewSessionOptions,
 	getBrowserViewSessionNetwork,
 } from '../../../../platform/browserView/common/browserView.js';
 import { ITelemetryService } from '../../../../platform/telemetry/common/telemetry.js';
 import { isLocalhostAuthority } from '../../../../platform/url/common/trustedDomains.js';
-import { IAgentNetworkFilterService } from '../../../../platform/networkFilter/common/networkFilterService.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
 import { IBrowserZoomService } from './browserZoomService.js';
 import type { IntegratedBrowserOpenSource } from '../../../../platform/browserView/common/browserViewTelemetry.js';
-
-export const enum BrowserViewSharingState {
-	/** Tools are available and the page is shared with the agent. */
-	Shared = 'shared',
-	/** Tools are available but the page is not shared. */
-	Available = 'available',
-	/** The current page cannot be shared because its URL is blocked by network policy. */
-	BlockedByNetworkPolicy = 'blockedByNetworkPolicy',
-	/** Browser tools are disabled — sharing is not possible. */
-	Unavailable = 'unavailable',
-}
 
 /** Whether a browser URL belongs to the same destination host as the target URL. */
 export function browserViewUrlMatches(candidateUrl: string | undefined, targetUrl: string, includeBlank = false): boolean {
@@ -172,19 +155,6 @@ type IntegratedBrowserNavigationClassification = {
 	isLocalhost: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; isMeasurement: true; comment: 'Whether the URL is a localhost address' };
 	owner: 'kycutler';
 	comment: 'Tracks navigation patterns in integrated browser';
-};
-
-
-type IntegratedBrowserShareWithAgentEvent = {
-	shared: boolean;
-	dontAskAgain: boolean;
-};
-
-type IntegratedBrowserShareWithAgentClassification = {
-	shared: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'Whether the content was shared with the agent' };
-	dontAskAgain: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; isMeasurement: true; comment: 'Whether the user chose to not be asked again' };
-	owner: 'kycutler';
-	comment: 'Tracks user choices around sharing browser content with agents';
 };
 
 type IntegratedBrowserAddElementToChatStartEvent = {};
@@ -318,7 +288,6 @@ export interface IBrowserViewNetworkProxyProvider {
 }
 
 export interface IBrowserViewWorkbenchCreateOptions {
-	readonly sandboxNetworkRestrictions?: ISandboxNetworkRestrictions;
 	readonly owner: IBrowserViewOwner;
 	readonly session: BrowserViewSessionSelector;
 	readonly initialAudiences?: readonly IBrowserViewAudience[];
@@ -375,17 +344,6 @@ export interface IBrowserViewWorkbenchService {
 	 * Fires when the set of known browser views changes, or a model is created for an existing input.
 	 */
 	readonly onDidChangeBrowserViews: Event<void>;
-
-	/**
-	 * Whether sharing browser pages with the agent is currently available
-	 * (chat enabled, agent mode enabled, browser tools setting enabled, etc.).
-	 */
-	readonly isSharingAvailable: boolean;
-
-	/**
-	 * Fires when {@link isSharingAvailable} changes.
-	 */
-	readonly onDidChangeSharingAvailable: Event<boolean>;
 
 	/**
 	 * Get all known browser views, keyed by id and iterated in the order they
@@ -492,7 +450,6 @@ export interface IBrowserViewCDPService {
 	onDidDestroy(groupId: string): Event<void>;
 }
 
-
 /**
  * A browser view model that represents a single browser view instance in the workbench.
  * This model proxies calls to the main process browser view service using its unique ID.
@@ -518,8 +475,6 @@ export interface IBrowserViewModel extends IDisposable {
 	readonly storageScope: BrowserViewStorageScope;
 	readonly history: BrowserHistoryStore;
 	readonly permissions: BrowserPermissionStore;
-	readonly sharingState: BrowserViewSharingState;
-	readonly isDirectlyShareable: boolean;
 	/** The remote network the view's storage is bound to, or `undefined` for the local network. */
 	readonly network: IBrowserViewNetwork | undefined;
 	readonly zoomFactor: number;
@@ -529,7 +484,6 @@ export interface IBrowserViewModel extends IDisposable {
 	readonly isAreaSelectionActive: boolean;
 	readonly device: IBrowserDeviceProfile | undefined;
 
-	readonly onDidChangeSharingState: Event<BrowserViewSharingState>;
 	readonly onDidChangeZoom: Event<void>;
 	readonly onWillNavigate: Event<string>;
 	readonly onDidNavigate: Event<IBrowserViewNavigationEvent>;
@@ -561,14 +515,12 @@ export interface IBrowserViewModel extends IDisposable {
 	reload(hard?: boolean): Promise<void>;
 	toggleDevTools(): Promise<void>;
 	captureScreenshot(options?: IBrowserViewCaptureScreenshotOptions): Promise<VSBuffer>;
-	getAccessibilitySnapshot(): Promise<IBrowserViewAccessibilitySnapshot>;
 	focus(force?: boolean): Promise<void>;
 	findInPage(text: string, options?: IBrowserViewFindInPageOptions): Promise<void>;
 	stopFindInPage(keepSelection?: boolean): Promise<void>;
 	getSelectedText(): Promise<string>;
 	clearStorage(): Promise<void>;
 	setOwner(owner: IBrowserViewOwner): Promise<void>;
-	setSharedWithAgent(shared: boolean): Promise<IBrowserViewModel | undefined>;
 	trustCertificate(host: string, fingerprint: string): Promise<void>;
 	untrustCertificate(host: string, fingerprint: string): Promise<void>;
 	deleteHistory(entryIds?: readonly number[]): Promise<void>;
@@ -630,8 +582,6 @@ export class BrowserViewModel extends Disposable implements IBrowserViewModel {
 	private readonly _session: IBrowserViewSessionOptions;
 	private _isInMemory: boolean = false;
 	private _zoomHost: string | undefined = undefined;
-	private _audiences: readonly IBrowserViewAudience[] = [];
-	private _lastSharingState: BrowserViewSharingState;
 	private _browserZoomIndex: number = browserZoomDefaultIndex;
 	private _elementSelectionState: IBrowserElementSelectionState = { active: false, options: {} };
 	private _isAreaSelectionActive: boolean = false;
@@ -662,9 +612,6 @@ export class BrowserViewModel extends Disposable implements IBrowserViewModel {
 	private readonly _onDidChangeDevice = this._register(new Emitter<IBrowserDeviceProfile | undefined>());
 	readonly onDidChangeDevice: Event<IBrowserDeviceProfile | undefined> = this._onDidChangeDevice.event;
 
-	private readonly _onDidChangeSharingState = this._register(new Emitter<BrowserViewSharingState>());
-	readonly onDidChangeSharingState: Event<BrowserViewSharingState> = this._onDidChangeSharingState.event;
-
 	private readonly _onDidChangeZoom = this._register(new Emitter<void>());
 	readonly onDidChangeZoom: Event<void> = this._onDidChangeZoom.event;
 
@@ -682,12 +629,9 @@ export class BrowserViewModel extends Disposable implements IBrowserViewModel {
 		initialState: IBrowserViewState,
 		private readonly browserViewService: IBrowserViewService,
 		private readonly _remoteEvents: BrowserViewEventEmitters,
-		@IBrowserViewWorkbenchService private readonly browserViewWorkbenchService: IBrowserViewWorkbenchService,
 		@ITelemetryService private readonly telemetryService: ITelemetryService,
-		@IDialogService private readonly dialogService: IDialogService,
 		@IStorageService private readonly storageService: IStorageService,
 		@IBrowserZoomService private readonly zoomService: IBrowserZoomService,
-		@IAgentNetworkFilterService private readonly agentNetworkFilterService: IAgentNetworkFilterService,
 		@ILogService private readonly logService: ILogService,
 	) {
 		super();
@@ -712,10 +656,8 @@ export class BrowserViewModel extends Disposable implements IBrowserViewModel {
 		this._elementSelectionState = initialState.elementSelectionState;
 		this._isAreaSelectionActive = initialState.isAreaSelectionActive;
 		this._device = initialState.device;
-		this._audiences = initialState.audiences;
 		this._isInMemory = isInMemoryStorageScope(this._session.scope);
 		this._zoomHost = parseZoomHost(this._url);
-		this._lastSharingState = this.sharingState;
 
 		const { history: entriesKey, favicons: faviconsKey } = initialState.storageKeys;
 		if (entriesKey) {
@@ -769,7 +711,6 @@ export class BrowserViewModel extends Disposable implements IBrowserViewModel {
 			this._canGoBack = e.canGoBack;
 			this._canGoForward = e.canGoForward;
 			this._certificateError = e.certificateError;
-			this._updateSharingState();
 
 			// Always forceApply because Chromium resets zoom on cross-origin navigation,
 			// and an origin change may not correspond to a host change (e.g. http→https).
@@ -826,16 +767,6 @@ export class BrowserViewModel extends Disposable implements IBrowserViewModel {
 			this._isAreaSelectionActive = active;
 		}));
 
-		this._register(this._remoteEvents.onDidChangeAudiences.event(audiences => {
-			this._audiences = audiences;
-			this._updateSharingState();
-		}));
-
-		this._register(this.browserViewWorkbenchService.onDidChangeSharingAvailable(() => {
-			this._updateSharingState();
-		}));
-
-		this._register(this.agentNetworkFilterService.onDidChange(() => this._updateSharingState()));
 	}
 
 	get url(): string { return this._url; }
@@ -853,21 +784,6 @@ export class BrowserViewModel extends Disposable implements IBrowserViewModel {
 	get certificateError(): IBrowserViewCertificateError | undefined { return this._certificateError; }
 	get storageScope(): BrowserViewStorageScope { return this._session.scope; }
 	get network(): IBrowserViewNetwork | undefined { return getBrowserViewSessionNetwork(this._session); }
-	get sharingState(): BrowserViewSharingState {
-		if (!this.browserViewWorkbenchService.isSharingAvailable) {
-			return BrowserViewSharingState.Unavailable;
-		}
-		if (this._audiences.some(audience => audience.type === 'agent')) {
-			return BrowserViewSharingState.Shared;
-		}
-		if (!this.isDirectlyShareable && this._url && !this.agentNetworkFilterService.isUriAllowed(URI.parse(this._url))) {
-			return BrowserViewSharingState.BlockedByNetworkPolicy;
-		}
-		return BrowserViewSharingState.Available;
-	}
-	get isDirectlyShareable(): boolean {
-		return isBrowserViewStorageScopeShareableWithAgent(this.storageScope, this.agentNetworkFilterService.isEnabled());
-	}
 	get zoomFactor(): number { return browserZoomFactors[this._browserZoomIndex]; }
 	get canZoomIn(): boolean { return this._browserZoomIndex < browserZoomFactors.length - 1; }
 	get canZoomOut(): boolean { return this._browserZoomIndex > 0; }
@@ -925,10 +841,6 @@ export class BrowserViewModel extends Disposable implements IBrowserViewModel {
 			this._screenshot = result;
 		}
 		return result;
-	}
-
-	async getAccessibilitySnapshot(): Promise<IBrowserViewAccessibilitySnapshot> {
-		return this.browserViewService.getAccessibilitySnapshot(this.id, this.host.windowId);
 	}
 
 	async focus(force?: boolean): Promise<void> {
@@ -1054,108 +966,6 @@ export class BrowserViewModel extends Disposable implements IBrowserViewModel {
 			this._onDidChangeDevice.fire(device);
 		}
 		return this.browserViewService.setDeviceEmulation(this.id, device);
-	}
-
-	private static readonly SHARE_DONT_ASK_KEY = 'browserView.shareWithAgent.dontAskAgain';
-
-	async setSharedWithAgent(shared: boolean): Promise<IBrowserViewModel | undefined> {
-		if (!shared) {
-			await this.browserViewService.setAudience(this.id, { type: 'agent' }, false);
-			return this;
-		}
-		if (this.sharingState === BrowserViewSharingState.Shared) {
-			return this;
-		}
-		if (this.sharingState === BrowserViewSharingState.BlockedByNetworkPolicy) {
-			const uri = URI.parse(this._url);
-			await this.dialogService.info(
-				localize('browserView.shareBlocked.title', "Cannot Share with Agent"),
-				this.agentNetworkFilterService.formatError(uri),
-			);
-			return undefined;
-		}
-		if (!this.isDirectlyShareable) {
-			const result = await this.dialogService.confirm({
-				type: 'question',
-				message: localize('browserView.openShareableCopy.message', "Open a New Tab for Sharing?"),
-				detail: localize('browserView.openShareableCopy.detail', "This tab does not enforce the configured policy restrictions required for agent sharing.\n\nOpen the page in a new tab to share it with agents."),
-				primaryButton: localize('browserView.openShareableCopy.confirm', "&&Open and Share"),
-				cancelButton: localize('browserView.openShareableCopy.cancel', "Cancel"),
-			});
-			this.telemetryService.publicLog2<IntegratedBrowserShareWithAgentEvent, IntegratedBrowserShareWithAgentClassification>(
-				'integratedBrowser.shareWithAgent',
-				{ shared: result.confirmed, dontAskAgain: false }
-			);
-			if (!result.confirmed) {
-				return undefined;
-			}
-
-			const input = await this.browserViewWorkbenchService.createBrowserView({
-				owner: { type: 'user' },
-				// The isolated copy keeps the page's network.
-				session: {
-					scope: BrowserViewStorageScope.Agent,
-					network: this.network,
-				},
-				initialAudiences: [{ type: 'agent' }],
-				initialUrl: this.url,
-			}, { preserveFocus: false, parentViewId: this.id });
-			return input.resolve();
-		}
-
-		const storedChoice = this.storageService.getBoolean(BrowserViewModel.SHARE_DONT_ASK_KEY, StorageScope.PROFILE);
-
-		if (!storedChoice) {
-			// First time (or no stored preference) -- ask.
-			const result = await this.dialogService.confirm({
-				type: 'question',
-				title: localize('browserView.shareWithAgent.title', 'Share with Agent?'),
-				message: localize('browserView.shareWithAgent.message', 'Share this browser page with the agent?'),
-				detail: localize(
-					'browserView.shareWithAgent.detail',
-					'The agent will be able to read and modify browser content and saved data, including cookies.'
-				),
-				primaryButton: localize('browserView.shareWithAgent.allow', '&&Allow'),
-				cancelButton: localize('browserView.shareWithAgent.deny', 'Deny'),
-				checkbox: { label: localize('browserView.shareWithAgent.dontAskAgain', "Don't ask again"), checked: false },
-			});
-
-			// Only persist "don't ask again" if user accepted sharing, so the button doesn't just do nothing.
-			if (result.confirmed && result.checkboxChecked) {
-				this.storageService.store(BrowserViewModel.SHARE_DONT_ASK_KEY, result.confirmed, StorageScope.PROFILE, StorageTarget.USER);
-			}
-
-			this.telemetryService.publicLog2<IntegratedBrowserShareWithAgentEvent, IntegratedBrowserShareWithAgentClassification>(
-				'integratedBrowser.shareWithAgent',
-				{
-					shared: result.confirmed,
-					dontAskAgain: result.checkboxChecked ?? false
-				}
-			);
-
-			if (!result.confirmed) {
-				return undefined;
-			}
-		} else {
-			this.telemetryService.publicLog2<IntegratedBrowserShareWithAgentEvent, IntegratedBrowserShareWithAgentClassification>(
-				'integratedBrowser.shareWithAgent',
-				{
-					shared: true,
-					dontAskAgain: true
-				}
-			);
-		}
-
-		await this.browserViewService.setAudience(this.id, { type: 'agent' }, true);
-		return this;
-	}
-
-	private _updateSharingState(): void {
-		const sharingState = this.sharingState;
-		if (sharingState !== this._lastSharingState) {
-			this._lastSharingState = sharingState;
-			this._onDidChangeSharingState.fire(sharingState);
-		}
 	}
 
 	private _reloadHistoryEntries(key: string): void {

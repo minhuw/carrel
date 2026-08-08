@@ -143,16 +143,8 @@ suite('code-prefer-event-or-observable configuration', () => {
 	test('enforces errors only in migrated areas', async () => {
 		const eslint = new ESLint();
 		const files = [
-			'src/vs/workbench/api/browser/mainThreadMcp.ts',
 			'src/vs/workbench/api/common/extHostQuickOpen.ts',
-			'src/vs/platform/agentHost/node/claude/claudeAgentSession.ts',
-			'src/vs/platform/agentHost/node/claude/customizations/claudeSessionCustomizationDiscovery.ts',
-			'src/vs/platform/agentHost/node/claude/future/nested/example.ts',
-			'src/vs/platform/agentHost/node/copilot/copilotAgent.ts',
-			'src/vs/platform/agentHost/node/codex/codexAgent.ts',
-			'src/vs/workbench/api/common/extHostMcp.ts',
 			'src/vs/workbench/api/browser/mainThreadAuthentication.ts',
-			'src/vs/workbench/api/test/browser/mainThreadMcp.test.ts',
 		];
 		const errors = [{ messageId: 'constructorCallback', severity: 2 }, { messageId: 'methodCallback', severity: 2 }];
 		assert.deepStrictEqual(await Promise.all(files.map(async file => {
@@ -162,14 +154,6 @@ suite('code-prefer-event-or-observable configuration', () => {
 				.map(message => ({ messageId: message.messageId, severity: message.severity })));
 		})), [
 			errors,
-			errors,
-			errors,
-			errors,
-			errors,
-			[],
-			[],
-			[],
-			[],
 			[],
 		]);
 	});

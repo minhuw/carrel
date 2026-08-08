@@ -37,10 +37,10 @@ import product from '../../product/common/product.js';
 import { IProtocolMainService } from '../../protocol/electron-main/protocol.js';
 import { getRemoteAuthority } from '../../remote/common/remoteHosts.js';
 import { IStateService } from '../../state/node/state.js';
-import { AgentsWindowOpenSource, IAgentsWindowDraft, IAddRemoveFoldersRequest, INativeOpenFileRequest, INativeWindowConfiguration, IOpenEmptyWindowOptions, IPath, IPathsToWaitFor, isFileToOpen, isFolderToOpen, isWorkspaceToOpen, IWindowOpenable, IWindowSettings } from '../../window/common/window.js';
+import { IAddRemoveFoldersRequest, INativeOpenFileRequest, INativeWindowConfiguration, IOpenEmptyWindowOptions, IPath, IPathsToWaitFor, isFileToOpen, isFolderToOpen, isWorkspaceToOpen, IWindowOpenable, IWindowSettings } from '../../window/common/window.js';
 import { CodeWindow } from './windowImpl.js';
 import { IOpenConfiguration, IOpenEmptyConfiguration, IWindowsCountChangedEvent, IWindowsMainService, OpenContext, getLastFocused } from './windows.js';
-import { findWindowOnExtensionDevelopmentPath, findWindowOnFile, findWindowOnRequestedPath, findWindowOnWorkspaceOrFolder } from './windowsFinder.js';
+import { findWindowOnExtensionDevelopmentPath, findWindowOnFile, findWindowOnWorkspaceOrFolder } from './windowsFinder.js';
 import { IWindowState, WindowsStateHandler } from './windowsStateHandler.js';
 import { IRecent } from '../../workspaces/common/workspaces.js';
 import { hasWorkspaceFileExtension, IAnyWorkspaceIdentifier, ISingleFolderWorkspaceIdentifier, isSingleFolderWorkspaceIdentifier, isWorkspaceIdentifier, IWorkspaceIdentifier, toWorkspaceIdentifier } from '../../workspace/common/workspace.js';
@@ -58,8 +58,6 @@ import { IAuxiliaryWindowsMainService } from '../../auxiliaryWindow/electron-mai
 import { IAuxiliaryWindow } from '../../auxiliaryWindow/electron-main/auxiliaryWindow.js';
 import { ICSSDevelopmentService } from '../../cssDev/node/cssDevService.js';
 import { ResourceSet } from '../../../base/common/map.js';
-import { VSBuffer } from '../../../base/common/buffer.js';
-import { resolveAgentsWindowFolder, sendAgentsWindowOpenIntent } from './agentsWindow.js';
 
 //#region Helper Interfaces
 
@@ -288,50 +286,6 @@ export class WindowsMainService extends Disposable implements IWindowsMainServic
 
 		// Handle `<app> --wait`
 		this.handleWaitMarkerFile(openConfig, [window]);
-
-		// Handle `<app> chat`
-		this.handleChatRequest(openConfig, [window]);
-	}
-
-	async openAgentsWindow(openConfig: IOpenConfiguration, folderUri?: URI, reveal?: URI | 'new', source?: AgentsWindowOpenSource, folderUriIsDefault = false, draft?: IAgentsWindowDraft, onboardingSessionResource?: URI, revealRemoteAuthority?: string): Promise<ICodeWindow[]> {
-		this.logService.trace('windowsManager#openAgentsWindow');
-
-		const existingWindows = this.getWindows();
-		folderUri = await resolveAgentsWindowFolder(openConfig, folderUri, reveal === 'new' ? undefined : reveal, source, cli => this.doExtractPathsFromCLI(cli));
-
-		// Open in a new browser window with the agent sessions workspace
-		const windows = await this.open(await this.ensureAgentsWindow(openConfig));
-
-		if (windows.length > 0) {
-			sendAgentsWindowOpenIntent(windows[0], existingWindows.includes(windows[0]), openConfig, { folderUri, reveal, revealRemoteAuthority, source, folderUriIsDefault, draft, onboardingSessionResource });
-		}
-
-		return windows;
-	}
-
-	private async ensureAgentsWindow(openConfig: IOpenConfiguration): Promise<IOpenConfiguration> {
-		const agentSessionsWorkspaceUri = this.environmentMainService.agentSessionsWorkspace;
-		if (!agentSessionsWorkspaceUri) {
-			throw new Error('Agents workspace is not configured');
-		}
-
-		// Ensure the workspace file exists
-		const workspaceExists = await this.fileService.exists(agentSessionsWorkspaceUri);
-		if (!workspaceExists) {
-			const emptyWorkspaceContent = JSON.stringify({ folders: [] }, null, '\t');
-			await this.fileService.writeFile(agentSessionsWorkspaceUri, VSBuffer.fromString(emptyWorkspaceContent));
-		}
-
-		return {
-			urisToOpen: [{ workspaceUri: agentSessionsWorkspaceUri }],
-			userEnv: openConfig.userEnv,
-			cli: openConfig.cli,
-			noRecentEntry: true,
-			context: openConfig.context,
-			contextWindowId: openConfig.contextWindowId,
-			initialStartup: openConfig.initialStartup,
-			forceNewWindow: true,
-		};
 	}
 
 	async open(openConfig: IOpenConfiguration): Promise<ICodeWindow[]> {
@@ -357,7 +311,7 @@ export class WindowsMainService extends Disposable implements IWindowsMainServic
 		let maybeOpenEmptyWindow = false;
 
 		// Identify things to open from open config
-		const { pathsToOpen, requestedPaths } = await this.getPathsToOpen(openConfig);
+		const { pathsToOpen } = await this.getPathsToOpen(openConfig);
 		this.logService.trace('windowsManager#open pathsToOpen', pathsToOpen);
 		for (const path of pathsToOpen) {
 			if (isSingleFolderWorkspacePathToOpen(path)) {
@@ -496,12 +450,6 @@ export class WindowsMainService extends Disposable implements IWindowsMainServic
 		// Handle `<app> --wait`
 		this.handleWaitMarkerFile(openConfig, usedWindows);
 
-		// Handle `<app> chat`
-		this.handleChatRequest(openConfig, usedWindows);
-
-		// Handle a chat session to open in the window of the requested path
-		this.handleChatSessionToOpen(openConfig, requestedPaths, usedWindows, filesOpenedInWindow);
-
 		return usedWindows;
 	}
 
@@ -521,48 +469,6 @@ export class WindowsMainService extends Disposable implements IWindowsMainServic
 					// ignore - could have been deleted from the window already
 				}
 			})();
-		}
-	}
-
-	private handleChatRequest(openConfig: IOpenConfiguration, usedWindows: ICodeWindow[]): void {
-		if (openConfig.context !== OpenContext.CLI || !openConfig.cli.chat || usedWindows.length === 0) {
-			return;
-		}
-
-		let windowHandlingChatRequest: ICodeWindow | undefined;
-		if (usedWindows.length === 1) {
-			windowHandlingChatRequest = usedWindows[0];
-		} else {
-			const chatRequestFolder = openConfig.cli._[0]; // chat request gets cwd() as folder to open
-			if (chatRequestFolder) {
-				windowHandlingChatRequest = findWindowOnWorkspaceOrFolder(usedWindows, URI.file(chatRequestFolder));
-			}
-		}
-
-		if (windowHandlingChatRequest) {
-			windowHandlingChatRequest.sendWhenReady('vscode:handleChatRequest', CancellationToken.None, openConfig.cli.chat);
-			windowHandlingChatRequest.focus();
-		}
-	}
-
-	private handleChatSessionToOpen(openConfig: IOpenConfiguration, requestedPaths: readonly IPathToOpen[], usedWindows: ICodeWindow[], filesOpenedInWindow: ICodeWindow | undefined): void {
-		const chatSessionToOpen = openConfig.chatSessionToOpen;
-		if (!chatSessionToOpen) {
-			return;
-		}
-
-		// Windows from the previous session can open next to the requested
-		// path (`window.restoreWindows`), so only its own window qualifies
-		const window = findWindowOnRequestedPath(usedWindows, requestedPaths, filesOpenedInWindow);
-		if (!window) {
-			this.logService.trace('windowsManager#open: no window opened the requested path, not opening its chat session');
-			return;
-		}
-
-		if (chatSessionToOpen.kind === 'copilotCli') {
-			window.sendWhenReady('vscode:openCopilotCliSession', CancellationToken.None, chatSessionToOpen.sessionId);
-		} else {
-			window.sendWhenReady('vscode:openChatSession', CancellationToken.None, chatSessionToOpen.resource);
 		}
 	}
 
@@ -851,7 +757,7 @@ export class WindowsMainService extends Disposable implements IWindowsMainServic
 		});
 	}
 
-	private async getPathsToOpen(openConfig: IOpenConfiguration): Promise<{ readonly pathsToOpen: IPathToOpen[]; readonly requestedPaths: readonly IPathToOpen[] }> {
+	private async getPathsToOpen(openConfig: IOpenConfiguration): Promise<{ readonly pathsToOpen: IPathToOpen[] }> {
 		let pathsToOpen: IPathToOpen[];
 		let isCommandLineOrAPICall = false;
 		let isRestoringPaths = false;
@@ -912,9 +818,6 @@ export class WindowsMainService extends Disposable implements IWindowsMainServic
 			}
 		}
 
-		// The paths that were asked for, without windows restored next to them
-		const requestedPaths = isCommandLineOrAPICall ? [...pathsToOpen] : [];
-
 		// Check for `window.restoreWindows` setting to include all windows
 		// from the previous session if this is the initial startup and we have
 		// not restored windows already otherwise.
@@ -925,7 +828,7 @@ export class WindowsMainService extends Disposable implements IWindowsMainServic
 			pathsToOpen.unshift(...lastSessionPaths.filter(path => isWorkspacePathToOpen(path) || isSingleFolderWorkspacePathToOpen(path) || path.backupPath));
 		}
 
-		return { pathsToOpen, requestedPaths };
+		return { pathsToOpen };
 	}
 
 	private async doExtractPathsFromAPI(openConfig: IOpenConfiguration): Promise<IPathToOpen[]> {

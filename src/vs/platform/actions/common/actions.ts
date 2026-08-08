@@ -302,7 +302,6 @@ export class MenuId {
 	static readonly ChatInputAttachmentToolbar = new MenuId('ChatInputAttachmentToolbar');
 	static readonly ChatEditingWidgetModifiedFilesToolbar = new MenuId('ChatEditingWidgetModifiedFilesToolbar');
 	static readonly ChatInputResourceAttachmentContext = new MenuId('ChatInputResourceAttachmentContext');
-	static readonly ChatImageContext = new MenuId('ChatImageContext');
 	static readonly ChatInputSymbolAttachmentContext = new MenuId('ChatInputSymbolAttachmentContext');
 	static readonly ChatInlineResourceAnchorContext = new MenuId('ChatInlineResourceAnchorContext');
 	static readonly ChatInlineSymbolAnchorContext = new MenuId('ChatInlineSymbolAnchorContext');
@@ -311,7 +310,6 @@ export class MenuId {
 	static readonly ChatNewMenu = new MenuId('ChatNewMenu');
 	static readonly ChatEditingCodeBlockContext = new MenuId('ChatEditingCodeBlockContext');
 	static readonly ChatTitleBarMenu = new MenuId('ChatTitleBarMenu');
-	static readonly ChatViewMode = new MenuId('ChatViewMode');
 	static readonly ChatAttachmentsContext = new MenuId('ChatAttachmentsContext');
 	static readonly ChatTipContext = new MenuId('ChatTipContext');
 	static readonly ChatTipToolbar = new MenuId('ChatTipToolbar');
@@ -321,9 +319,6 @@ export class MenuId {
 	static readonly ChatMultiDiffContext = new MenuId('ChatMultiDiffContext');
 	static readonly ChatConfirmationMenu = new MenuId('ChatConfirmationMenu');
 	static readonly ChatEditorInlineMenu = new MenuId('ChatEditorInlineGutter');
-	static readonly ChatEditorInlineExecute = new MenuId('ChatEditorInputExecute');
-	static readonly ChatEditorInlineInputSide = new MenuId('ChatEditorInputSide');
-	static readonly InlineChatEditorAffordance = new MenuId('InlineChatEditorAffordance');
 
 	static readonly AccessibleView = new MenuId('AccessibleView');
 	static readonly MultiDiffEditorContent = new MenuId('MultiDiffEditorContent');

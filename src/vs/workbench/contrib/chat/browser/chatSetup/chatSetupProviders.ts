@@ -43,7 +43,6 @@ import { IRange, Range } from '../../../../../editor/common/core/range.js';
 import { ISelection, Selection } from '../../../../../editor/common/core/selection.js';
 import { ResourceMap } from '../../../../../base/common/map.js';
 import { CodeActionKind } from '../../../../../editor/contrib/codeAction/common/types.js';
-import { ACTION_START as INLINE_CHAT_START } from '../../../inlineChat/common/inlineChat.js';
 import { IPosition } from '../../../../../editor/common/core/position.js';
 import { IMarker, IMarkerService, MarkerSeverity } from '../../../../../platform/markers/common/markers.js';
 import { ChatSetupController } from './chatSetupController.js';
@@ -963,6 +962,10 @@ export class ChatCodeActionsProvider {
 		};
 	}
 }
+
+// TODO: commands produced by AICodeActionsHelper target the removed inline chat
+// feature and are dead until this file is removed together with the chat contribution.
+const INLINE_CHAT_START = 'inlineChat.start';
 
 export class AICodeActionsHelper {
 

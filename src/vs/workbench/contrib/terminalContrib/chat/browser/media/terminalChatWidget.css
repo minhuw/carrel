@@ -17,14 +17,14 @@
 	border-radius: unset;
 	border: unset;
 	box-shadow: unset;
-	background: var(--vscode-inlineChat-background);
+	background: var(--vscode-editor-background);
 	position: relative;
 	outline: none;
 
 	border-top-style: solid;
 	border-bottom-style: solid;
-	border-top-color: var(--vscode-inlineChat-border);
-	border-bottom-color: var(--vscode-inlineChat-border);
+	border-top-color: var(--vscode-editorWidget-border);
+	border-bottom-color: var(--vscode-editorWidget-border);
 	border-top-width: 1px;
 	border-bottom-width: 1px;
 }
@@ -44,7 +44,7 @@
 
 .monaco-workbench .terminal-inline-chat .inline-chat-input .monaco-editor-background {
 	/* Override the global panel rule for monaco backgrounds */
-	background-color: var(--vscode-inlineChatInput-background) !important;
+	background-color: var(--vscode-input-background) !important;
 }
 
 @property --inline-chat-frame-progress {

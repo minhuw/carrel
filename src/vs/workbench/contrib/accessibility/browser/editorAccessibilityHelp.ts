@@ -147,7 +147,7 @@ export function getCommentCommandInfo(keybindingService: IKeybindingService, con
 
 export function getChatCommandInfo(keybindingService: IKeybindingService, contextKeyService: IContextKeyService): string | undefined {
 	if (ChatContextKeys.enabled.getValue(contextKeyService)) {
-		return [AccessibilityHelpNLS.quickChat, AccessibilityHelpNLS.startInlineChat].join('\n');
+		return AccessibilityHelpNLS.quickChat;
 	}
 	return;
 }

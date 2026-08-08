@@ -12,7 +12,6 @@ import { IInstantiationService } from '../../../../../platform/instantiation/com
 import { IWorkbenchContribution } from '../../../../common/contributions.js';
 import { EditorResourceAccessor, SideBySideEditor } from '../../../../common/editor.js';
 import { IEditorGroup, IEditorGroupsService } from '../../../../services/editor/common/editorGroupsService.js';
-import { IInlineChatSessionService } from '../../../inlineChat/browser/inlineChatSessionService.js';
 import { IChatEditingService, IChatEditingSession, IModifiedFileEntry, ModifiedFileEntryState } from '../../common/editing/chatEditingService.js';
 import { IChatService } from '../../common/chatService/chatService.js';
 
@@ -83,7 +82,6 @@ class ContextKeyGroup {
 
 	constructor(
 		group: IEditorGroup,
-		@IInlineChatSessionService inlineChatSessionService: IInlineChatSessionService,
 		@IChatEditingService chatEditingService: IChatEditingService,
 		@IChatService chatService: IChatService,
 	) {
@@ -104,7 +102,7 @@ class ContextKeyGroup {
 				return;
 			}
 
-			return new ObservableEditorSession(uri, chatEditingService, inlineChatSessionService).value.read(r);
+			return new ObservableEditorSession(uri, chatEditingService).value.read(r);
 		});
 
 		this._store.add(autorun(r => {
@@ -149,35 +147,21 @@ class ContextKeyGroup {
 
 export class ObservableEditorSession {
 
-	readonly value: IObservable<undefined | { session: IChatEditingSession; entry: IModifiedFileEntry | undefined; isInlineChat: boolean }>;
+	readonly value: IObservable<undefined | { session: IChatEditingSession; entry: IModifiedFileEntry | undefined }>;
 
 	constructor(
 		uri: URI,
 		@IChatEditingService chatEditingService: IChatEditingService,
-		@IInlineChatSessionService inlineChatService: IInlineChatSessionService
 	) {
 
-		const inlineSessionObs = observableFromEvent(this, inlineChatService.onDidChangeSessions, () => inlineChatService.getSessionByTextModel(uri));
-
-		const sessionObs = chatEditingService.editingSessionsObs.map((value, r) => {
+		this.value = chatEditingService.editingSessionsObs.map((value, r) => {
 			for (const session of value) {
 				const entry = session.readEntry(uri, r);
 				if (entry) {
-					return { session, entry, isInlineChat: false };
+					return { session, entry };
 				}
 			}
 			return undefined;
-		});
-
-		this.value = derived(r => {
-
-			const inlineSession = inlineSessionObs.read(r);
-
-			if (inlineSession) {
-				return { session: inlineSession.editingSession, entry: inlineSession.editingSession.readEntry(uri, r), isInlineChat: true };
-			}
-
-			return sessionObs.read(r);
 		});
 	}
 }

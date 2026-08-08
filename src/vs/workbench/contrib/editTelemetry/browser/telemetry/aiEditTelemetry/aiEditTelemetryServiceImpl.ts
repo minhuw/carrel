@@ -29,7 +29,7 @@ export class AiEditTelemetryServiceImpl implements IAiEditTelemetryService {
 			suggestionId: string | undefined;
 
 			presentation: 'codeBlock' | 'highlightedEdit' | 'inlineCompletion' | 'nextEditSuggestion' | undefined;
-			feature: 'sideBarChat' | 'inlineChat' | 'inlineSuggestion' | string | undefined;
+			feature: string | undefined;
 
 			sourceExtensionId: string | undefined;
 			sourceExtensionVersion: string | undefined;
@@ -102,7 +102,7 @@ export class AiEditTelemetryServiceImpl implements IAiEditTelemetryService {
 			suggestionId: string | undefined;
 
 			presentation: 'codeBlock' | 'highlightedEdit' | 'inlineCompletion' | 'nextEditSuggestion' | undefined;
-			feature: 'sideBarChat' | 'inlineChat' | 'inlineSuggestion' | string | undefined;
+			feature: string | undefined;
 
 			sourceExtensionId: string | undefined;
 			sourceExtensionVersion: string | undefined;
@@ -185,7 +185,7 @@ export class AiEditTelemetryServiceImpl implements IAiEditTelemetryService {
 			suggestionId: string | undefined;
 
 			presentation: 'codeBlock' | 'highlightedEdit' | 'inlineCompletion' | 'nextEditSuggestion' | undefined;
-			feature: 'sideBarChat' | 'inlineChat' | 'inlineSuggestion' | string | undefined;
+			feature: string | undefined;
 
 			sourceExtensionId: string | undefined;
 			sourceExtensionVersion: string | undefined;

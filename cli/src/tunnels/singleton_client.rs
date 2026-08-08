@@ -129,15 +129,8 @@ pub async fn start_singleton_client(args: SingletonClientArgs) -> bool {
 			// connected though, it will be soon, and that'll be in the log replays.
 			if let Ok(Ok(s)) = res.await {
 				if let Some(name) = s.name {
-					// Older singletons may serve only the agent-host port.
-					let serves_editor = s.has_editor_link.unwrap_or(true);
-					print_listening(&c.log, &name, serves_editor);
-					machine_status::emit_connected(
-						&name,
-						s.tunnel_id.as_deref(),
-						true,
-						serves_editor,
-					);
+					print_listening(&c.log, &name);
+					machine_status::emit_connected(&name, s.tunnel_id.as_deref(), true);
 				}
 			}
 

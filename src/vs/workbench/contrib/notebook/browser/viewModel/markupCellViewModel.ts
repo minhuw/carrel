@@ -17,7 +17,6 @@ import { IUndoRedoService } from '../../../../../platform/undoRedo/common/undoRe
 import { NotebookOptionsChangeEvent } from '../notebookOptions.js';
 import { ICodeEditorService } from '../../../../../editor/browser/services/codeEditorService.js';
 import { NotebookCellStateChangedEvent, NotebookLayoutInfo } from '../notebookViewEvents.js';
-import { IInlineChatSessionService } from '../../../inlineChat/browser/inlineChatSessionService.js';
 
 export class MarkupCellViewModel extends BaseCellViewModel implements ICellViewModel {
 
@@ -122,9 +121,8 @@ export class MarkupCellViewModel extends BaseCellViewModel implements ICellViewM
 		@ITextModelService textModelService: ITextModelService,
 		@IUndoRedoService undoRedoService: IUndoRedoService,
 		@ICodeEditorService codeEditorService: ICodeEditorService,
-		@IInlineChatSessionService inlineChatSessionService: IInlineChatSessionService
 	) {
-		super(viewType, model, UUID.generateUuid(), viewContext, configurationService, textModelService, undoRedoService, codeEditorService, inlineChatSessionService);
+		super(viewType, model, UUID.generateUuid(), viewContext, configurationService, textModelService, undoRedoService, codeEditorService);
 
 		const { bottomToolbarGap } = this.viewContext.notebookOptions.computeBottomToolbarDimensions(this.viewType);
 		const layoutConfiguration = this.viewContext.notebookOptions.getLayoutConfiguration();

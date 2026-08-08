@@ -5,7 +5,6 @@
 
 import { Event } from '../../../base/common/event.js';
 import type { TelemetryLevel } from '../../telemetry/common/telemetry.js';
-import type { MissionControlClientOptions } from './missionControl/missionControlClient.js';
 import { RequestError, RequestErrorKind, RequestFetch } from './types.js';
 
 /** Allowlisted hosting environments for GitHub telemetry. */
@@ -114,8 +113,6 @@ export interface GitHubClientOptions {
 	readonly authorization: GitHubAuthorizationContext;
 	readonly apiBaseUri: string;
 	readonly graphQlUri: string;
-	/** Approved service endpoints; their absence disables only the Mission Control domains. */
-	readonly missionControl?: MissionControlClientOptions;
 }
 
 /** Trusted API base for public reads; callers cannot override authentication or network execution. */

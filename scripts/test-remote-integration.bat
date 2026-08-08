@@ -95,13 +95,6 @@ call "%INTEGRATION_TEST_ELECTRON_PATH%" --folder-uri=%AUTHORITY%%GITWORKSPACE% -
 if %errorlevel% neq 0 exit /b %errorlevel%
 
 echo.
-echo ### Ipynb tests
-set IPYNBWORKSPACE=%TEMPDIR%\ipynb-%RANDOM%
-mkdir %IPYNBWORKSPACE%
-call "%INTEGRATION_TEST_ELECTRON_PATH%" --folder-uri=%AUTHORITY%%IPYNBWORKSPACE% --extensionDevelopmentPath=%REMOTE_EXT_PATH%/ipynb --extensionTestsPath=%REMOTE_EXT_PATH%/ipynb/out/test %API_TESTS_EXTRA_ARGS% %API_TESTS_EXTRA_ARGS_BUILT%
-if %errorlevel% neq 0 exit /b %errorlevel%
-
-echo.
 echo ### Configuration editing tests
 set CFWORKSPACE=%TEMPDIR%\cf-%RANDOM%
 mkdir %CFWORKSPACE%

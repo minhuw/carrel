@@ -7863,7 +7863,6 @@
 /Users/example/out/vs/workbench/api/browser/mainThreadSCM.js
 /Users/example/out/vs/workbench/api/browser/mainThreadNotebookSaveParticipant.js
 /Users/example/out/vs/workbench/api/browser/mainThreadSaveParticipant.js
-/Users/example/out/vs/workbench/api/browser/mainThreadAiRelatedInformation.js
 /Users/example/out/vs/workbench/api/browser/mainThreadTask.js
 /Users/example/out/vs/workbench/api/browser/mainThreadDocuments.js
 /Users/example/out/vs/workbench/api/browser/mainThreadCustomEditors.js
@@ -7974,7 +7973,6 @@
 /Users/example/out/vs/workbench/api/common/configurationExtensionPoint.js
 /Users/example/out/vs/workbench/api/common/extHostVariableResolverService.js
 /Users/example/out/vs/workbench/api/common/extHostLanguageModels.js
-/Users/example/out/vs/workbench/api/common/extHostAiRelatedInformation.js
 /Users/example/out/vs/workbench/api/common/extHostQuickOpen.js
 /Users/example/out/vs/workbench/api/common/extHostNotebookEditor.js
 /Users/example/out/vs/workbench/api/common/extHostUriOpener.js
@@ -8471,9 +8469,6 @@
 /Users/example/out/vs/workbench/services/integrity/browser/integrityService.js
 /Users/example/out/vs/workbench/services/integrity/common/integrity.js
 /Users/example/out/vs/workbench/services/integrity/electron-sandbox/integrityService.js
-/Users/example/out/vs/workbench/services/aiRelatedInformation/test/common/aiRelatedInformationService.test.js
-/Users/example/out/vs/workbench/services/aiRelatedInformation/common/aiRelatedInformation.js
-/Users/example/out/vs/workbench/services/aiRelatedInformation/common/aiRelatedInformationService.js
 /Users/example/out/vs/workbench/services/commands/test/common/commandService.test.js
 /Users/example/out/vs/workbench/services/commands/common/commandService.js
 /Users/example/out/vs/workbench/services/userActivity/test/browser/domActivityTracker.test.js
@@ -99815,7 +99810,6 @@
 /Users/example/src/vs/workbench/api/browser/mainThreadSCM.ts
 /Users/example/src/vs/workbench/api/browser/mainThreadNotebookSaveParticipant.ts
 /Users/example/src/vs/workbench/api/browser/mainThreadSaveParticipant.ts
-/Users/example/src/vs/workbench/api/browser/mainThreadAiRelatedInformation.ts
 /Users/example/src/vs/workbench/api/browser/mainThreadTask.ts
 /Users/example/src/vs/workbench/api/browser/mainThreadCustomEditors.ts
 /Users/example/src/vs/workbench/api/browser/mainThreadDocuments.ts
@@ -99934,7 +99928,6 @@
 /Users/example/src/vs/workbench/api/common/extHostLoggerService.ts
 /Users/example/src/vs/workbench/api/common/extHostVariableResolverService.ts
 /Users/example/src/vs/workbench/api/common/configurationExtensionPoint.ts
-/Users/example/src/vs/workbench/api/common/extHostAiRelatedInformation.ts
 /Users/example/src/vs/workbench/api/common/extHostLanguageModels.ts
 /Users/example/src/vs/workbench/api/common/extHostQuickOpen.ts
 /Users/example/src/vs/workbench/api/common/shared/dataTransferCache.ts
@@ -100475,9 +100468,6 @@
 /Users/example/src/vs/workbench/services/integrity/browser/integrityService.ts
 /Users/example/src/vs/workbench/services/integrity/common/integrity.ts
 /Users/example/src/vs/workbench/services/integrity/electron-sandbox/integrityService.ts
-/Users/example/src/vs/workbench/services/aiRelatedInformation/test/common/aiRelatedInformationService.test.ts
-/Users/example/src/vs/workbench/services/aiRelatedInformation/common/aiRelatedInformation.ts
-/Users/example/src/vs/workbench/services/aiRelatedInformation/common/aiRelatedInformationService.ts
 /Users/example/src/vs/workbench/services/commands/test/common/commandService.test.ts
 /Users/example/src/vs/workbench/services/commands/common/commandService.ts
 /Users/example/src/vs/workbench/services/userActivity/test/browser/domActivityTracker.test.ts
@@ -102076,7 +102066,6 @@
 /Users/example/src/vscode-dts/vscode.proposed.scmSelectedProvider.d.ts
 /Users/example/src/vscode-dts/vscode.proposed.chatParticipant.d.ts
 /Users/example/src/vscode-dts/vscode.proposed.fsChunks.d.ts
-/Users/example/src/vscode-dts/vscode.proposed.aiTextSearchProvider.d.ts
 /Users/example/src/vscode-dts/vscode.proposed.interactiveWindow.d.ts
 /Users/example/src/vscode-dts/vscode.proposed.contribSourceControlHistoryItemMenu.d.ts
 /Users/example/src/vscode-dts/vscode.proposed.findFiles2.d.ts
@@ -102120,7 +102109,6 @@
 /Users/example/src/vscode-dts/vscode.proposed.notebookKernelSource.d.ts
 /Users/example/src/vscode-dts/vscode.proposed.scmTextDocument.d.ts
 /Users/example/src/vscode-dts/vscode.proposed.contribCommentPeekContext.d.ts
-/Users/example/src/vscode-dts/vscode.proposed.aiRelatedInformation.d.ts
 /Users/example/src/vscode-dts/vscode.proposed.canonicalUriProvider.d.ts
 /Users/example/src/vscode-dts/vscode.proposed.codeActionRanges.d.ts
 /Users/example/src/vscode-dts/vscode.proposed.terminalDataWriteEvent.d.ts

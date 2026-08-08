@@ -8,7 +8,6 @@ parameters:
   - name: VSCODE_TEST_IDS
     type: object
     default: []
-  - name: VSCODE_SKIP_FOUNDRY_LOCAL_INSTALL
     type: boolean
     default: false
   - name: VSCODE_BUILD_LINUX_SNAP
@@ -25,7 +24,6 @@ steps:
   - template: product-build-linux-setup.yml@self
     parameters:
       VSCODE_CIBUILD: ${{ parameters.VSCODE_CIBUILD }}
-      VSCODE_SKIP_FOUNDRY_LOCAL_INSTALL: ${{ parameters.VSCODE_SKIP_FOUNDRY_LOCAL_INSTALL }}
       VSCODE_TEST_IDS: ${{ parameters.VSCODE_TEST_IDS }}
 
   # Start pulling the CG-generated NOTICE from the parallel Quality stage
@@ -42,20 +40,6 @@ steps:
 
   - script: node build/npm/electronTypes.ts
     displayName: Prepare Electron types
-
-  - ${{ if ne(parameters.VSCODE_ARCH, 'armhf') }}:
-    - template: ../../common/agent-sdk-produce.yml@self
-      parameters:
-        vscodePlatform: linux
-
-    - template: ../../common/dictation-runtime-produce.yml@self
-      parameters:
-        vscodePlatform: linux
-
-  - script: npx deemon --detach --wait -- node build/azure-pipelines/common/downloadCopilotVsix.ts
-    env:
-      SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-    displayName: Download Copilot VSIX (background)
 
   - template: ../../common/mixin-vscode-capi.yml@self
 
@@ -80,11 +64,6 @@ steps:
     - script: npm run copy-policy-dto --prefix build && node build/lib/policies/policyGenerator.ts build/lib/policies/policyData.jsonc linux
       displayName: Generate policy definitions
       retryCountOnTaskFailure: 3
-
-  - script: npx deemon --attach -- node build/azure-pipelines/common/downloadCopilotVsix.ts
-    env:
-      SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-    displayName: Download Copilot VSIX
 
   # Block on the CG NOTICE download and overwrite ThirdPartyNotices.txt
   # right before gulp packages it. Non-fatal: falls back to legacy on any problem.
@@ -116,9 +95,6 @@ steps:
         AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
       displayName: Build server
 
-    # Compile-only CI jobs, such as flaky-smoke builds, also check the packaged host.
-    - ${{ if and(eq(parameters.VSCODE_ARCH, 'x64'), or(ne(parameters.VSCODE_CIBUILD, true), eq(length(parameters.VSCODE_TEST_IDS), 0), containsValue(parameters.VSCODE_TEST_IDS, 'smoke-electron'))) }}:
-      - script: node build/azure-pipelines/common/smokeTestAgentHost.ts "$(Agent.BuildDirectory)/vscode-server-linux-$(VSCODE_ARCH)"
         displayName: 🧪 Smoke test packaged Agent Host
 
     - script: |

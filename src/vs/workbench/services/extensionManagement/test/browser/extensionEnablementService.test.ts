@@ -11,7 +11,7 @@ import { TestInstantiationService } from '../../../../../platform/instantiation/
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { IWorkspace, IWorkspaceContextService, WorkbenchState } from '../../../../../platform/workspace/common/workspace.js';
 import { IWorkbenchEnvironmentService } from '../../../environment/common/environmentService.js';
-import { IStorageService, InMemoryStorageService, StorageScope, StorageTarget } from '../../../../../platform/storage/common/storage.js';
+import { IStorageService, InMemoryStorageService } from '../../../../../platform/storage/common/storage.js';
 import { EXTENSIONS_ENABLE_AGENTS_WINDOW_CAPABILITY, IExtensionContributions, ExtensionType, IExtension, IExtensionManifest, IExtensionIdentifier } from '../../../../../platform/extensions/common/extensions.js';
 import { isUndefinedOrNull } from '../../../../../base/common/types.js';
 import { areSameExtensions } from '../../../../../platform/extensionManagement/common/extensionManagementUtil.js';
@@ -31,7 +31,7 @@ import { mock } from '../../../../../base/test/common/mock.js';
 import { IExtensionBisectService } from '../../browser/extensionBisect.js';
 import { IWorkspaceTrustManagementService, IWorkspaceTrustRequestService, WorkspaceTrustRequestOptions } from '../../../../../platform/workspace/common/workspaceTrust.js';
 import { EXTENSIONS_SUPPORT_AGENTS_WINDOW, ExtensionManifestPropertiesService, IExtensionManifestPropertiesService } from '../../../extensions/common/extensionManifestPropertiesService.js';
-import { TestChatEntitlementService, TestContextService, TestProductService, TestWorkspaceTrustEnablementService, TestWorkspaceTrustManagementService } from '../../../../test/common/workbenchTestServices.js';
+import { TestContextService, TestProductService, TestWorkspaceTrustEnablementService, TestWorkspaceTrustManagementService } from '../../../../test/common/workbenchTestServices.js';
 import { TestWorkspace } from '../../../../../platform/workspace/test/common/testWorkspace.js';
 import { ExtensionManagementService } from '../../common/extensionManagementService.js';
 import { ILogService, NullLogService } from '../../../../../platform/log/common/log.js';
@@ -42,18 +42,6 @@ import { FileService } from '../../../../../platform/files/common/fileService.js
 import { IProductService } from '../../../../../platform/product/common/productService.js';
 import { AllowedExtensionsService } from '../../../../../platform/extensionManagement/common/allowedExtensionsService.js';
 import { IStringDictionary } from '../../../../../base/common/collections.js';
-import { ChatEntitlementContext, IChatEntitlementService } from '../../../chat/common/chatEntitlementService.js';
-import { Lazy } from '../../../../../base/common/lazy.js';
-import { IDefaultAccountService } from '../../../../../platform/defaultAccount/common/defaultAccount.js';
-import { IDefaultAccountAuthenticationProvider } from '../../../../../base/common/defaultAccount.js';
-import { ValidationStatus } from '../../../../../base/common/parsers.js';
-import { platform } from '../../../../../base/common/platform.js';
-import { ContextKeyService } from '../../../../../platform/contextkey/browser/contextKeyService.js';
-import { parse, TaskConfigSource } from '../../../../contrib/tasks/common/taskConfiguration.js';
-import { ShellExecutionSupportedContext } from '../../../../contrib/tasks/common/taskService.js';
-import { filterEnabledExtensions } from '../../../extensions/common/abstractExtensionService.js';
-import { toExtensionDescription } from '../../../extensions/common/extensions.js';
-import { ExtensionMessageCollector, ExtensionsRegistry } from '../../../extensions/common/extensionsRegistry.js';
 
 function createStorageService(instantiationService: TestInstantiationService, disposableStore: DisposableStore): IStorageService {
 	let service = instantiationService.get(IStorageService);
@@ -71,7 +59,7 @@ function createStorageService(instantiationService: TestInstantiationService, di
 }
 
 export class TestExtensionEnablementService extends ExtensionEnablementService {
-	constructor(instantiationService: TestInstantiationService, chatEntitlementService?: IChatEntitlementService) {
+	constructor(instantiationService: TestInstantiationService) {
 		const disposables = new DisposableStore();
 		const storageService = createStorageService(instantiationService, disposables);
 		const extensionManagementServerService = instantiationService.get(IExtensionManagementServerService) ||
@@ -100,7 +88,6 @@ export class TestExtensionEnablementService extends ExtensionEnablementService {
 			instantiationService.get(IConfigurationService),
 			extensionManagementServerService,
 			instantiationService.get(IUserDataSyncEnablementService) || instantiationService.stub(IUserDataSyncEnablementService, <Partial<IUserDataSyncEnablementService>>{ isEnabled() { return false; } }),
-			instantiationService.get(IDefaultAccountService) || instantiationService.stub(IDefaultAccountService, new class extends mock<IDefaultAccountService>() { override getDefaultAccountAuthenticationProvider(): IDefaultAccountAuthenticationProvider { return { id: 'default-auth-provider', name: 'default-auth-provider', enterprise: false }; } }),
 			instantiationService.get(IUserDataSyncAccountService) || instantiationService.stub(IUserDataSyncAccountService, UserDataSyncAccountService),
 			instantiationService.get(ILifecycleService) || instantiationService.stub(ILifecycleService, disposables.add(new TestLifecycleService())),
 			instantiationService.get(INotificationService) || instantiationService.stub(INotificationService, new TestNotificationService()),
@@ -110,7 +97,6 @@ export class TestExtensionEnablementService extends ExtensionEnablementService {
 			workspaceTrustManagementService,
 			new class extends mock<IWorkspaceTrustRequestService>() { override requestWorkspaceTrust(options?: WorkspaceTrustRequestOptions): Promise<boolean> { return Promise.resolve(true); } },
 			instantiationService.get(IExtensionManifestPropertiesService) || instantiationService.stub(IExtensionManifestPropertiesService, disposables.add(new ExtensionManifestPropertiesService(TestProductService, instantiationService.get(IConfigurationService), new TestWorkspaceTrustEnablementService(), new NullLogService()))),
-			chatEntitlementService ?? new TestChatEntitlementService(),
 			instantiationService,
 			new NullLogService(),
 			productService
@@ -1194,37 +1180,6 @@ suite('ExtensionEnablementService Test', () => {
 		assert.deepStrictEqual((<IExtension>target.args[0][0][0]).identifier, { id: 'pub.a' });
 	});
 
-	test('test chat extension is disabled on profile switch when setup is not completed', async () => {
-		const chatExtensionId = productService.defaultChatAgent!.chatExtensionId;
-		const chatExtension = aLocalExtension(chatExtensionId, undefined, ExtensionType.System);
-		installed.push(chatExtension);
-
-		// Clear migration flag set by the setup() instance so the migration runs fresh
-		let storageService = instantiationService.get(IStorageService);
-		storageService.store('builtinChatExtensionEnablementMigration', false, StorageScope.PROFILE, StorageTarget.MACHINE);
-
-		// Create a chat entitlement service with context where setup is not completed
-		const chatEntitlementService = new TestChatEntitlementService();
-		chatEntitlementService.context = new Lazy(() => ({ state: { completed: false }, onDidChange: Event.None })) as unknown as Lazy<ChatEntitlementContext>;
-
-		testObject = disposableStore.add(new TestExtensionEnablementService(instantiationService, chatEntitlementService));
-		await testObject.waitUntilInitialized();
-
-		// Chat extension should be disabled after initial setup
-		assert.strictEqual(testObject.getEnablementState(chatExtension), EnablementState.DisabledGlobally);
-
-		// Enable the chat extension to simulate it being enabled in a previous profile
-		await testObject.setEnablement([chatExtension], EnablementState.EnabledGlobally);
-		assert.strictEqual(testObject.getEnablementState(chatExtension), EnablementState.EnabledGlobally);
-
-		// Simulate switching to a fresh profile by clearing the migration flag
-		storageService = instantiationService.get(IStorageService);
-		storageService.store('builtinChatExtensionEnablementMigration', false, StorageScope.PROFILE, StorageTarget.MACHINE);
-
-		// Chat extension should be disabled again after computing enablement state
-		assert.strictEqual(testObject.getEnablementState(chatExtension), EnablementState.DisabledGlobally);
-	});
-
 	test('test extension is disabled by allowed list', async () => {
 		const target = aLocalExtension2('unallowed.extension');
 		assert.strictEqual(testObject.getEnablementState(target), EnablementState.DisabledByAllowlist);
@@ -1264,11 +1219,6 @@ suite('ExtensionEnablementService Test', () => {
 		const withBrowser = aLocalExtension2('pub.withBrowser', { browser: 'main.browser.js', contributes: aContributes('themes') });
 		const nonThemeContrib = aLocalExtension2('pub.nonThemeContrib', { contributes: aContributes('commands') });
 		const builtinWithMain = aLocalExtension2('pub.builtinWithMain', { main: 'main.js' }, { type: ExtensionType.System });
-		const builtinWithViews = aLocalExtension('pub.builtinWithViews', aContributes('views'), ExtensionType.System);
-		const builtinWithViewContainers = aLocalExtension('pub.builtinWithViewContainers', aContributes('viewsContainers'), ExtensionType.System);
-		const builtinWithDebuggers = aLocalExtension('pub.builtinWithDebuggers', aContributes('debuggers'), ExtensionType.System);
-		const builtinWithWalkthroughs = aLocalExtension('pub.builtinWithWalkthroughs', aContributes('walkthroughs'), ExtensionType.System);
-		const userNpm = aLocalExtension2('vscode.npm', { main: 'main.js', contributes: aContributes('views') });
 
 		assert.deepStrictEqual([
 			themeOnly,
@@ -1279,11 +1229,6 @@ suite('ExtensionEnablementService Test', () => {
 			withBrowser,
 			nonThemeContrib,
 			builtinWithMain,
-			builtinWithViews,
-			builtinWithViewContainers,
-			builtinWithDebuggers,
-			builtinWithWalkthroughs,
-			userNpm,
 		].map(ext => testObject.getEnablementState(ext)), [
 			EnablementState.EnabledGlobally,
 			EnablementState.EnabledGlobally,
@@ -1293,127 +1238,8 @@ suite('ExtensionEnablementService Test', () => {
 			EnablementState.DisabledByEnvironment,
 			EnablementState.DisabledByEnvironment,
 			EnablementState.EnabledGlobally,
-			EnablementState.DisabledByEnvironment,
-			EnablementState.DisabledByEnvironment,
-			EnablementState.DisabledByEnvironment,
-			EnablementState.DisabledByEnvironment,
-			EnablementState.DisabledByEnvironment,
 		]);
 	});
-
-	for (const isSessionsWindow of [false, true]) {
-		test(`test built-in npm tasks are parsed in ${isSessionsWindow ? 'sessions' : 'editor'} window`, () => {
-			instantiationService.stub(IWorkbenchEnvironmentService, { isSessionsWindow });
-			testObject = disposableStore.add(new TestExtensionEnablementService(instantiationService));
-			const contributes = {
-				views: { explorer: [{ id: 'npm', name: 'Npm Scripts' }] },
-				taskDefinitions: [{
-					type: 'npm',
-					required: ['script'],
-					properties: { script: { type: 'string' }, path: { type: 'string' } },
-					when: 'shellExecutionSupported'
-				}]
-			};
-			const npm = aLocalExtension2('vscode.npm', {
-				main: './out/npmMain',
-				enabledApiProposals: ['agentsWindowActivation'],
-				capabilities: { agentsWindow: { supported: true } },
-				activationEvents: ['onTaskType:npm'],
-				contributes
-			}, { type: ExtensionType.System });
-			const enabled = filterEnabledExtensions(new NullLogService(), testObject, [toExtensionDescription(npm)], false);
-			const taskDefinitions = ExtensionsRegistry.getExtensionPoints().find(point => point.name === 'taskDefinitions');
-			assert.ok(taskDefinitions);
-			const messages: string[] = [];
-			const reportMessage = (message: string) => { messages.push(message); };
-			const contextKeyService = disposableStore.add(instantiationService.createInstance(ContextKeyService));
-			ShellExecutionSupportedContext.bindTo(contextKeyService).set(true);
-
-			try {
-				taskDefinitions.acceptUsers(enabled.map(description => ({
-					description,
-					value: contributes.taskDefinitions,
-					collector: new ExtensionMessageCollector(message => reportMessage(message.message), description, 'taskDefinitions')
-				})));
-				const configuration = {
-					version: '2.0.0',
-					tasks: [{ type: 'npm', script: 'build', path: 'client', label: 'npm: build' }]
-				};
-				const result = parse(TestWorkspace.folders[0], undefined, platform, configuration, {
-					status: new ValidationStatus(),
-					info: reportMessage,
-					warn: reportMessage,
-					error: reportMessage,
-					fatal: reportMessage
-				}, TaskConfigSource.TasksJson, contextKeyService);
-
-				assert.deepStrictEqual({
-					messages,
-					tasks: result.configured.map(task => ({
-						type: task.type,
-						script: task.configures.script,
-						path: task.configures.path,
-						label: task._label
-					}))
-				}, {
-					messages: [],
-					tasks: [{ type: 'npm', script: 'build', path: 'client', label: 'npm: build' }]
-				});
-			} finally {
-				taskDefinitions.acceptUsers([]);
-			}
-		});
-	}
-
-	for (const [scope, state] of [['globally', EnablementState.DisabledGlobally], ['for workspace', EnablementState.DisabledWorkspace]] as const) {
-		test(`test built-in npm can be disabled ${scope} in sessions window`, async () => {
-			instantiationService.stub(IWorkbenchEnvironmentService, { isSessionsWindow: true });
-			testObject = disposableStore.add(new TestExtensionEnablementService(instantiationService));
-			const npm = aLocalExtension2('vscode.npm', {
-				main: './out/npmMain',
-				enabledApiProposals: ['agentsWindowActivation'],
-				capabilities: { agentsWindow: { supported: true } },
-				contributes: aContributes('views')
-			}, { type: ExtensionType.System });
-
-			await testObject.setEnablement([npm], state);
-
-			assert.strictEqual(testObject.getEnablementState(npm), state);
-		});
-	}
-
-	for (const capabilityEnabled of [false, true]) {
-		test(`test built-in agents window declarations with experimental feature ${capabilityEnabled ? 'enabled' : 'disabled'}`, async () => {
-			await (instantiationService.get(IConfigurationService) as TestConfigurationService).setUserConfiguration(EXTENSIONS_ENABLE_AGENTS_WINDOW_CAPABILITY, capabilityEnabled);
-			instantiationService.stub(IWorkbenchEnvironmentService, { isSessionsWindow: true });
-			testObject = disposableStore.add(new TestExtensionEnablementService(instantiationService));
-
-			const supported = aLocalExtension2('pub.supportedBuiltin', {
-				main: 'main.js',
-				enabledApiProposals: ['agentsWindowActivation'],
-				capabilities: { agentsWindow: { supported: true } },
-				contributes: aContributes('views')
-			}, { type: ExtensionType.System });
-			const unsupported = aLocalExtension2('pub.unsupportedBuiltin', {
-				enabledApiProposals: ['agentsWindowActivation'],
-				capabilities: { agentsWindow: { supported: false } },
-				contributes: aContributes('themes')
-			}, { type: ExtensionType.System });
-			const withoutProposal = aLocalExtension2('pub.builtinWithoutProposal', {
-				main: 'main.js',
-				capabilities: { agentsWindow: { supported: true } },
-				contributes: aContributes('views')
-			}, { type: ExtensionType.System });
-			const npmWithoutCapability = aLocalExtension('vscode.npm', aContributes('views'), ExtensionType.System);
-
-			assert.deepStrictEqual([supported, unsupported, withoutProposal, npmWithoutCapability].map(ext => testObject.getEnablementState(ext)), [
-				EnablementState.EnabledGlobally,
-				EnablementState.DisabledByEnvironment,
-				EnablementState.DisabledByEnvironment,
-				EnablementState.DisabledByEnvironment,
-			]);
-		});
-	}
 
 	test('test configured extensions are enabled in sessions window', async () => {
 		await (instantiationService.get(IConfigurationService) as TestConfigurationService).setUserConfiguration(EXTENSIONS_SUPPORT_AGENTS_WINDOW, { 'pub.withMain': true, 'pub.nonThemeContrib': true });

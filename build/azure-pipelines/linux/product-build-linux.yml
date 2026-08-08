@@ -14,8 +14,7 @@ parameters:
     type: boolean
     default: false
   # Whether to include the steps and jobs that need a privileged service
-  # connection (signing, CDN uploads, Copilot test setup). Only
-  # sdk-validation-build.yml sets this to false.
+  # connection (signing, CDN uploads).
   - name: VSCODE_PRIVILEGED_CONNECTIONS
     type: boolean
     default: true
@@ -90,8 +89,7 @@ jobs:
               out-build
           displayName: Archive out-build
 
-  # Signing needs the ESRP connection, which the SDK validation pipeline
-  # (sdk-validation-build.yml) must not reference.
+  # Signing needs the ESRP connection, so only privileged builds include it.
   - ${{ if eq(parameters.VSCODE_PRIVILEGED_CONNECTIONS, true) }}:
     - job: Linux_${{ parameters.VSCODE_ARCH }}_Sign
       displayName: Linux (${{ upper(parameters.VSCODE_ARCH) }}) - Sign

@@ -14,7 +14,7 @@ import { collectSnapshot, computeChangedPaths, createBuildFastPrerequisites, cre
 import { applyIncrementalClientChanges, getOutputRelativePath } from '../transpile.ts';
 
 const environment = 'test-environment';
-const outputsPresent: OutputStatus = { client: true, extensions: true, copilot: true };
+const outputsPresent: OutputStatus = { client: true, extensions: true };
 
 suite('build-fast planning', () => {
 	test('parses NUL-separated Git paths', () => {
@@ -71,30 +71,28 @@ suite('build-fast planning', () => {
 				changedPaths: [],
 				client: 'skip',
 				extensions: 'skip',
-				copilot: 'skip',
 			}
 		);
 	});
 
-	test('routes client, extension, and Copilot changes independently', () => {
-		assert.deepStrictEqual(
-			createBuildPlan(savedState(), environment, changes([
-				'extensions/configuration-editing/src/configurationEditingMain.ts',
-				'extensions/copilot/src/extension.ts',
-				'src/main.ts',
-			]), outputsPresent, false),
+	test('routes client and extension changes independently', () => {
+		assert.deepStrictEqual([
+			createBuildPlan(savedState(), environment, changes(['src/main.ts']), outputsPresent, false),
+			createBuildPlan(savedState(), environment, changes(['extensions/configuration-editing/src/configurationEditingMain.ts']), outputsPresent, false),
+		], [
 			{
-				reason: '3 input path(s) changed',
-				changedPaths: [
-					'extensions/configuration-editing/src/configurationEditingMain.ts',
-					'extensions/copilot/src/extension.ts',
-					'src/main.ts',
-				],
+				reason: '1 input path(s) changed',
+				changedPaths: ['src/main.ts'],
 				client: 'incremental',
+				extensions: 'skip',
+			},
+			{
+				reason: '1 input path(s) changed',
+				changedPaths: ['extensions/configuration-editing/src/configurationEditingMain.ts'],
+				client: 'skip',
 				extensions: 'full',
-				copilot: 'full',
-			}
-		);
+			},
+		]);
 	});
 
 	test('falls back fully for missing state and build inputs', () => {
@@ -108,34 +106,30 @@ suite('build-fast planning', () => {
 				changedPaths: [],
 				client: 'full',
 				extensions: 'full',
-				copilot: 'full',
 			},
 			{
 				reason: 'build configuration or dependencies changed',
 				changedPaths: ['build/next/index.ts'],
 				client: 'full',
 				extensions: 'full',
-				copilot: 'full',
 			},
 			{
 				reason: 'build configuration or dependencies changed',
 				changedPaths: ['gulpfile.mjs'],
 				client: 'full',
 				extensions: 'full',
-				copilot: 'full',
 			}
 		]);
 	});
 
 	test('rebuilds only the lane with a missing output', () => {
 		assert.deepStrictEqual(
-			createBuildPlan(savedState(), environment, changes(), { client: false, extensions: true, copilot: true }, false),
+			createBuildPlan(savedState(), environment, changes(), { client: false, extensions: true }, false),
 			{
 				reason: 'client output is missing',
 				changedPaths: [],
 				client: 'full',
 				extensions: 'skip',
-				copilot: 'skip',
 			}
 		);
 	});
@@ -145,10 +139,10 @@ suite('build-fast planning', () => {
 			createBuildPlan({ state: undefined, reason: 'incremental state is missing' }, environment, changes(), outputsPresent, false, true),
 			createBuildPlan(savedState(), environment, changes(['build/next/index.ts']), outputsPresent, false, true),
 			createBuildPlan(savedState(), environment, changes(), outputsPresent, true, true),
-		].map(plan => [plan.client, plan.extensions, plan.copilot]), [
-			['full', 'skip', 'skip'],
-			['full', 'skip', 'skip'],
-			['full', 'skip', 'skip'],
+		].map(plan => [plan.client, plan.extensions]), [
+			['full', 'skip'],
+			['full', 'skip'],
+			['full', 'skip'],
 		]);
 	});
 
@@ -160,14 +154,13 @@ suite('build-fast planning', () => {
 		const plan = createBuildPlan({ state: updated, reason: undefined }, environment, {
 			client: [],
 			extensions: pendingChanges,
-			copilot: ['package-lock.json'],
 		}, outputsPresent, false);
 		assert.deepStrictEqual({
-			snapshots: [updated.client, updated.extensions, updated.copilot],
-			modes: [plan.client, plan.extensions, plan.copilot],
+			snapshots: [updated.client, updated.extensions],
+			modes: [plan.client, plan.extensions],
 		}, {
-			snapshots: [snapshot, previous.extensions, previous.copilot],
-			modes: ['skip', 'full', 'full'],
+			snapshots: [snapshot, previous.extensions],
+			modes: ['skip', 'full'],
 		});
 	});
 
@@ -175,7 +168,7 @@ suite('build-fast planning', () => {
 		const snapshot: BuildFastSnapshot = { head: 'saved', dirty: {} };
 		const updated = createBuildFastState(undefined, environment, snapshot, true);
 		const plan = createBuildPlan({ state: updated, reason: undefined }, environment, changes(), outputsPresent, false);
-		assert.deepStrictEqual([plan.client, plan.extensions, plan.copilot], ['skip', 'full', 'full']);
+		assert.deepStrictEqual([plan.client, plan.extensions], ['skip', 'full']);
 	});
 
 	test('incompatible state is not retained for unselected lanes', () => {
@@ -185,18 +178,17 @@ suite('build-fast planning', () => {
 			createBuildFastState({ ...state(), recipe: 1 }, environment, snapshot, true),
 			createBuildFastState({ ...state(), schema: 1 }, environment, snapshot, true),
 		], Array.from({ length: 3 }, () => ({
-			schema: 2, recipe: 4, environment, client: snapshot, extensions: undefined, copilot: undefined,
+			schema: 2, recipe: 4, environment, client: snapshot, extensions: undefined,
 		})));
 	});
 
 	test('client-only no-op ignores missing extension outputs and extension edits', () => {
-		const plan = createBuildPlan(savedState(), environment, changes(['extensions/git/src/git.ts']), { client: true, extensions: false, copilot: false }, false, true);
+		const plan = createBuildPlan(savedState(), environment, changes(['extensions/git/src/git.ts']), { client: true, extensions: false }, false, true);
 		assert.deepStrictEqual(plan, {
 			reason: 'inputs and outputs are up to date',
 			changedPaths: [],
 			client: 'skip',
 			extensions: 'skip',
-			copilot: 'skip',
 		});
 	});
 
@@ -235,7 +227,6 @@ suite('build-fast orchestration', () => {
 			runGit(repoRoot, ['config', 'user.name', 'Build Fast Test']);
 			await write(repoRoot, '.gitignore', '.build/\nout/\n**/out/\n**/dist/\n');
 			await write(repoRoot, 'package.json', JSON.stringify({ type: 'module', scripts: { gulp: 'node build-task.ts' } }));
-			await write(repoRoot, 'extensions/copilot/package.json', JSON.stringify({ scripts: { compile: 'node ../../build-task.ts copilot' } }));
 			await write(repoRoot, 'src/main.ts', 'export const value: number = 1;\n');
 			await write(repoRoot, 'src/data.json', '{"value":1}');
 			await write(repoRoot, 'extensions/git/src/git.ts', 'export const version = 1;');
@@ -252,7 +243,7 @@ suite('build-fast orchestration', () => {
 					if (args.includes('compile-extensions')) { throw new Error('unexpected type check'); }
 					const output = args.includes('transpile-extensions')
 						? '/extensions/configuration-editing/out/configurationEditingMain.js'
-						: args.includes('copilot') ? '/extensions/copilot/dist/extension.js' : undefined;
+						: undefined;
 					if (output) {
 						mkdirSync(dirname(root + output), { recursive: true });
 						writeFileSync(root + output, 'built');
@@ -281,7 +272,7 @@ suite('build-fast orchestration', () => {
 				const saved: BuildFastState = JSON.parse(await fs.promises.readFile(stateFile, 'utf8'));
 				results.push({
 					tasks: (await fs.promises.readFile(tasksFile, 'utf8')).trim().split('\n').sort(),
-					lanes: [!!saved.client, !!saved.extensions, !!saved.copilot],
+					lanes: [!!saved.client, !!saved.extensions],
 				});
 				await fs.promises.writeFile(tasksFile, '');
 			};
@@ -344,20 +335,20 @@ suite('build-fast orchestration', () => {
 
 			const clientTasks = ['client', 'copy-codicons compile-api-proposal-names compile-extension-point-names'];
 			assert.deepStrictEqual(results, [
-				{ tasks: clientTasks, lanes: [true, false, false] },
-				{ tasks: [''], lanes: [true, false, false] },
-				{ tasks: [''], lanes: [true, false, false] },
-				{ tasks: ['copilot', 'transpile-extensions compile-extension-media'], lanes: [true, true, true] },
-				{ tasks: [''], lanes: [true, true, true] },
-				{ tasks: ['transpile-extensions compile-extension-media'], lanes: [true, true, true] },
-				{ tasks: [''], lanes: [true, true, true] },
-				{ tasks: clientTasks, lanes: [true, true, true] },
-				{ tasks: clientTasks, lanes: [true, true, true] },
-				{ tasks: clientTasks, lanes: [true, false, false] },
-				{ tasks: clientTasks, lanes: [true, false, false] },
-				{ tasks: [''], lanes: [true, false, false] },
-				{ tasks: ['compile-api-proposal-names'], lanes: [true, false, false] },
-				{ tasks: [''], lanes: [true, false, false] },
+				{ tasks: clientTasks, lanes: [true, false] },
+				{ tasks: [''], lanes: [true, false] },
+				{ tasks: [''], lanes: [true, false] },
+				{ tasks: ['transpile-extensions compile-extension-media'], lanes: [true, true] },
+				{ tasks: [''], lanes: [true, true] },
+				{ tasks: ['transpile-extensions compile-extension-media'], lanes: [true, true] },
+				{ tasks: [''], lanes: [true, true] },
+				{ tasks: clientTasks, lanes: [true, true] },
+				{ tasks: clientTasks, lanes: [true, true] },
+				{ tasks: clientTasks, lanes: [true, false] },
+				{ tasks: clientTasks, lanes: [true, false] },
+				{ tasks: [''], lanes: [true, false] },
+				{ tasks: ['compile-api-proposal-names'], lanes: [true, false] },
+				{ tasks: [''], lanes: [true, false] },
 			]);
 		} finally {
 			await fs.promises.rm(repoRoot, { recursive: true, force: true });
@@ -489,12 +480,11 @@ function state(dirty: Readonly<Record<string, string | null>> = {}): BuildFastSt
 		environment,
 		client: snapshot,
 		extensions: snapshot,
-		copilot: snapshot,
 	};
 }
 
 function changes(paths: readonly string[] = []): BuildFastChanges {
-	return { client: paths, extensions: paths, copilot: paths };
+	return { client: paths, extensions: paths };
 }
 
 function savedState(): StateReadResult {

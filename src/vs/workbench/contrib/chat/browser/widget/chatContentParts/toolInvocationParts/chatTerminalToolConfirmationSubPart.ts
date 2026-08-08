@@ -26,7 +26,6 @@ import { IMarkdownRenderer } from '../../../../../../../platform/markdown/browse
 import { IStorageService, StorageScope, StorageTarget } from '../../../../../../../platform/storage/common/storage.js';
 import { IPreferencesService } from '../../../../../../services/preferences/common/preferences.js';
 import { ITerminalChatService } from '../../../../../terminal/browser/terminal.js';
-import { TerminalContribCommandId, TerminalContribSettingId } from '../../../../../terminal/terminalContribExports.js';
 import { ChatContextKeys } from '../../../../common/actions/chatContextKeys.js';
 import { migrateLegacyTerminalToolSpecificData } from '../../../../common/chat.js';
 import { SessionType } from '../../../../common/chatSessionsService.js';
@@ -110,7 +109,7 @@ export class ChatTerminalToolConfirmationSubPart extends BaseChatToolInvocationS
 		// differs from the actual command (e.g., extracted Python code vs full python -c command)
 		const isReadOnly = !!terminalData.presentationOverrides;
 
-		const autoApproveEnabled = this.configurationService.getValue(TerminalContribSettingId.EnableAutoApprove) === true;
+		const autoApproveEnabled = this.configurationService.getValue('chat.tools.terminal.enableAutoApprove') === true;
 		// Custom actions typically come pre-computed from the run in terminal tool, but they can
 		// also be generated asynchronously for confirmations that arrive without them (eg. agent
 		// host sessions), so track them in a mutable local shared by the builder below and the
@@ -388,19 +387,19 @@ export class ChatTerminalToolConfirmationSubPart extends BaseChatToolInvocationS
 
 						// Handle workspace-scoped rules
 						if (workspaceRules.length > 0) {
-							const inspect = this.configurationService.inspect(TerminalContribSettingId.AutoApprove);
+							const inspect = this.configurationService.inspect('chat.tools.terminal.autoApprove');
 							const oldValue = (inspect.workspaceValue as Record<string, unknown> | undefined) ?? {};
 							if (isObject(oldValue)) {
 								const newValue: Record<string, unknown> = { ...oldValue };
 								for (const rule of workspaceRules) {
 									newValue[rule.key] = rule.value;
 								}
-								await this.configurationService.updateValue(TerminalContribSettingId.AutoApprove, newValue, ConfigurationTarget.WORKSPACE);
+								await this.configurationService.updateValue('chat.tools.terminal.autoApprove', newValue, ConfigurationTarget.WORKSPACE);
 							} else {
 								this.preferencesService.openSettings({
 									jsonEditor: true,
 									target: ConfigurationTarget.WORKSPACE,
-									revealSetting: { key: TerminalContribSettingId.AutoApprove },
+									revealSetting: { key: 'chat.tools.terminal.autoApprove' },
 								});
 								throw new ErrorNoTelemetry(`Cannot add new rule, existing workspace setting is unexpected format`);
 							}
@@ -408,19 +407,19 @@ export class ChatTerminalToolConfirmationSubPart extends BaseChatToolInvocationS
 
 						// Handle user-scoped rules
 						if (userRules.length > 0) {
-							const inspect = this.configurationService.inspect(TerminalContribSettingId.AutoApprove);
+							const inspect = this.configurationService.inspect('chat.tools.terminal.autoApprove');
 							const oldValue = (inspect.userValue as Record<string, unknown> | undefined) ?? {};
 							if (isObject(oldValue)) {
 								const newValue: Record<string, unknown> = { ...oldValue };
 								for (const rule of userRules) {
 									newValue[rule.key] = rule.value;
 								}
-								await this.configurationService.updateValue(TerminalContribSettingId.AutoApprove, newValue, ConfigurationTarget.USER);
+								await this.configurationService.updateValue('chat.tools.terminal.autoApprove', newValue, ConfigurationTarget.USER);
 							} else {
 								this.preferencesService.openSettings({
 									jsonEditor: true,
 									target: ConfigurationTarget.USER,
-									revealSetting: { key: TerminalContribSettingId.AutoApprove },
+									revealSetting: { key: 'chat.tools.terminal.autoApprove' },
 								});
 								throw new ErrorNoTelemetry(`Cannot add new rule, existing setting is unexpected format`);
 							}
@@ -432,13 +431,13 @@ export class ChatTerminalToolConfirmationSubPart extends BaseChatToolInvocationS
 									return `\`${e.key}\``;
 								}
 								const target = scope === 'workspace' ? ConfigurationTarget.WORKSPACE : ConfigurationTarget.USER;
-								const settingsUri = createCommandUri(TerminalContribCommandId.OpenTerminalSettingsLink, target);
+								const settingsUri = createCommandUri('workbench.action.terminal.chat.openTerminalSettingsLink', target);
 								return `[\`${e.key}\`](${settingsUri.toString()} "${localize('ruleTooltip', 'View rule in settings')}")`;
 							}).join(', ');
 						}
 						const mdTrustSettings = {
 							isTrusted: {
-								enabledCommands: [TerminalContribCommandId.OpenTerminalSettingsLink]
+								enabledCommands: ['workbench.action.terminal.chat.openTerminalSettingsLink']
 							}
 						};
 						const parts: string[] = [];
@@ -466,7 +465,7 @@ export class ChatTerminalToolConfirmationSubPart extends BaseChatToolInvocationS
 					case 'configure': {
 						this.preferencesService.openSettings({
 							target: ConfigurationTarget.USER,
-							query: `@id:${TerminalContribSettingId.AutoApprove}`,
+							query: `@id:${'chat.tools.terminal.autoApprove'}`,
 						});
 						doComplete = false;
 						break;
@@ -474,10 +473,10 @@ export class ChatTerminalToolConfirmationSubPart extends BaseChatToolInvocationS
 					case 'sessionApproval': {
 						const sessionResource = this.context.element.sessionResource;
 						this.terminalChatService.setChatSessionAutoApproval(sessionResource, true);
-						const disableUri = createCommandUri(TerminalContribCommandId.DisableSessionAutoApproval, sessionResource);
+						const disableUri = createCommandUri('workbench.action.terminal.chat.disableSessionAutoApproval', sessionResource);
 						const mdTrustSettings = {
 							isTrusted: {
-								enabledCommands: [TerminalContribCommandId.DisableSessionAutoApproval]
+								enabledCommands: ['workbench.action.terminal.chat.disableSessionAutoApproval']
 							}
 						};
 						terminalData.autoApproveInfo = new MarkdownString(`${localize('sessionApproval', 'All commands will be auto approved for this session')} ([${localize('sessionApproval.disable', 'Disable')}](${disableUri.toString()}))`, mdTrustSettings);

@@ -19,7 +19,7 @@ import { ILogService } from '../../../../../platform/log/common/log.js';
 import { IThemeService, Themable } from '../../../../../platform/theme/common/themeService.js';
 import { ISharedWebContentExtractorService } from '../../../../../platform/webContentExtractor/common/webContentExtractor.js';
 import { IExtensionService, isProposedApiEnabled } from '../../../../services/extensions/common/extensions.js';
-import { extractSCMHistoryItemDropData } from '../../../scm/browser/scmHistoryChatContext.js';
+import { extractSCMHistoryItemDropData } from '../../../scm/browser/scmHistoryViewPane.js';
 import { IChatRequestVariableEntry } from '../../common/attachments/chatVariableEntries.js';
 import { isAgentHostTarget } from '../../common/chatSessionsService.js';
 import { getChatSessionType } from '../../common/model/chatUri.js';

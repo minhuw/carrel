@@ -48,7 +48,6 @@ import { IWorkbenchLayoutService, Parts } from '../../../../services/layout/brow
 import { IPreferencesService } from '../../../../services/preferences/common/preferences.js';
 import { IViewsService } from '../../../../services/views/common/viewsService.js';
 import { EXTENSIONS_CATEGORY, IExtensionsWorkbenchService } from '../../../extensions/common/extensions.js';
-import { SCMHistoryItemChangeRangeContentProvider, ScmHistoryItemChangeRangeUriFields } from '../../../scm/browser/scmHistoryChatContext.js';
 import { ISCMService } from '../../../scm/common/scm.js';
 import { IChatAgentResult, IChatAgentService } from '../../common/participants/chatAgents.js';
 import { ChatContextKeys } from '../../common/actions/chatContextKeys.js';
@@ -354,12 +353,12 @@ abstract class OpenChatGlobalAction extends Action2 {
 				}
 
 				const uri = historyItemChangeRange.end.uri.with({
-					scheme: SCMHistoryItemChangeRangeContentProvider.scheme,
+					scheme: 'scm-history-item-change-range',
 					query: JSON.stringify({
 						repositoryId: repository.id,
 						start: historyItemStart.id,
 						end: historyItemChangeRange.end.historyItemId
-					} satisfies ScmHistoryItemChangeRangeUriFields)
+					})
 				});
 
 				chatWidget.attachmentModel.addContext({

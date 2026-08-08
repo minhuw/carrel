@@ -27,8 +27,6 @@ import { ChangeLanguageAction } from '../../../../browser/parts/editor/editorSta
 import { LOG_MODE_ID, OUTPUT_MODE_ID } from '../../../../services/output/common/output.js';
 import { SEARCH_RESULT_LANGUAGE_ID } from '../../../../services/search/common/search.js';
 import { AccessibilityVerbositySettingId } from '../../../accessibility/browser/accessibilityConfiguration.js';
-import { IChatAgentService } from '../../../chat/common/participants/chatAgents.js';
-import { ChatAgentLocation } from '../../../chat/common/constants.js';
 import { EmptyTextEditorHintContributionId, IEmptyTextEditorHintContribution } from './emptyTextEditorHintTypes.js';
 import './emptyTextEditorHint.css';
 
@@ -42,7 +40,6 @@ export class EmptyTextEditorHintContribution extends Disposable implements IEmpt
 	constructor(
 		protected readonly editor: ICodeEditor,
 		@IConfigurationService private readonly configurationService: IConfigurationService,
-		@IChatAgentService private readonly chatAgentService: IChatAgentService,
 		@IInstantiationService private readonly instantiationService: IInstantiationService
 	) {
 		super();
@@ -50,7 +47,6 @@ export class EmptyTextEditorHintContribution extends Disposable implements IEmpt
 		this._register(this.editor.onDidChangeModel(() => this.update()));
 		this._register(this.editor.onDidChangeModelLanguage(() => this.update()));
 		this._register(this.editor.onDidChangeModelContent(() => this.update()));
-		this._register(this.chatAgentService.onDidChangeAgents(() => this.update()));
 		this._register(this.editor.onDidChangeModelDecorations(() => this.update()));
 		this._register(this.editor.onDidChangeConfiguration((e: ConfigurationChangedEvent) => {
 			if (e.hasChanged(EditorOption.readOnly)) {
@@ -94,9 +90,8 @@ export class EmptyTextEditorHintContribution extends Disposable implements IEmpt
 			return false;
 		}
 
-		const hasEditorAgents = Boolean(this.chatAgentService.getDefaultAgent(ChatAgentLocation.EditorInline));
 		const shouldRenderDefaultHint = model?.uri.scheme === Schemas.untitled && languageId === PLAINTEXT_LANGUAGE_ID;
-		return hasEditorAgents || shouldRenderDefaultHint;
+		return shouldRenderDefaultHint;
 	}
 
 	protected update(): void {

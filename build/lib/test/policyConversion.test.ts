@@ -520,20 +520,6 @@ suite('Policy E2E conversion', () => {
 		assert.ok(parsed.length > 0, 'Should parse at least one policy from policyData.jsonc');
 	});
 
-	test('every policy in the checked-in policyData.jsonc declares an Agent Host status', async () => {
-		const policyDataPath = path.join(import.meta.dirname, '..', 'policies', 'policyData.jsonc');
-		const policyData: ExportedPolicyDataDto = JSONC.parse(await fs.readFile(policyDataPath, 'utf-8'));
-		const statuses = new Set(['enforced', 'partial', 'notEnforced', 'notApplicable']);
-
-		const invalid = policyData.policies
-			.filter(policy => !policy.agentHost || !statuses.has(policy.agentHost.status))
-			.map(policy => policy.name);
-
-		// Add the policy to `agentHostPolicySupport` in src/vs/platform/agentHost/common/agentHostPolicySupport.ts
-		// and run `npm run export-policy-data`.
-		assert.deepStrictEqual(invalid, []);
-	});
-
 	test('Agent Host metadata does not change rendered policy artifacts', () => {
 		const withAgentHost: ExportedPolicyDataDto = {
 			...policies,

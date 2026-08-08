@@ -1,8 +1,8 @@
 # VS Code Configuration Policy
 
-Use only for editor/workbench-owned behavior (editor UI, updates, extension management, etc.).
+Use only for editor/workbench-owned behavior (editor UI, extension management, etc.).
 
-Policy values reach configuration through `MultiplexPolicyService` from OS policy (`NativePolicyService` on Windows/macOS, `FilePolicyService` on Linux), legacy GitHub account data (`AccountPolicyService`, closed to new fields), and projected Copilot managed settings ([github-managed-settings.md](./github-managed-settings.md)).
+Policy values reach configuration through `MultiplexPolicyService` from OS policy (`NativePolicyService` on Windows/macOS, `FilePolicyService` on Linux).
 
 ## Declaration
 
@@ -11,7 +11,7 @@ Add to the setting's registration (usually a `*.contribution.ts`):
 ```typescript
 policy: {
 	name: 'MyPolicyName',
-	category: PolicyCategory.InteractiveSession,
+	category: PolicyCategory.Extensions,
 	minimumVersion: '1.NNN', // root package.json major.minor
 	localization: {
 		description: {
@@ -24,7 +24,7 @@ policy: {
 
 - Unique PascalCase `name`; an existing `PolicyCategory` from `vs/base/common/policy` unless a new one (with localization) is truly needed.
 - Localize everything; string enums need one `enumDescriptions` entry per value.
-- `value(policyData)` returns the restrictive value to lock, `undefined` to fall through. Preserve existing callbacks, including historical `chat_preview_features_enabled === false` checks (compare with `=== false`), but do not add that check to new controls.
+- `value(policyData)` returns the restrictive value to lock, `undefined` to fall through.
 
 ### One policy, several settings (`policyReference`)
 
@@ -37,7 +37,6 @@ One setting owns `policy`; others declare `policyReference: { name }`.
 ## Procedure
 
 1. Add the policy and focused value/projection tests.
-2. Add its status to `agentHostPolicySupport` (`src/vs/platform/agentHost/common/agentHostPolicySupport.ts`); export fails without it.
-3. Run `npm run export-policy-data` from the worktree with the change and commit `build/lib/policies/policyData.jsonc`. It exports both Workbench and the Agents window and detects conflicts; never run one entrypoint's `--export-policy-data` directly. `policyExport.integrationTest.ts` checks the result.
+2. Run `npm run export-policy-data` from the worktree with the change and commit `build/lib/policies/policyData.jsonc`. It exports both Workbench and the Agents window and detects conflicts; never run one entrypoint's `--export-policy-data` directly. `policyExport.integrationTest.ts` checks the result.
 
-Key sources: `src/vs/base/common/policy.ts`, `src/vs/platform/policy/common/policy.ts`, `src/vs/platform/configuration/common/configurationRegistry.ts`, `src/vs/platform/configuration/common/configurations.ts`, `src/vs/workbench/services/policies/common/accountPolicyService.ts`, `build/lib/policies/policyGenerator.ts`.
+Key sources: `src/vs/base/common/policy.ts`, `src/vs/platform/policy/common/policy.ts`, `src/vs/platform/configuration/common/configurationRegistry.ts`, `src/vs/platform/configuration/common/configurations.ts`, `build/lib/policies/policyGenerator.ts`.

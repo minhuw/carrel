@@ -17,7 +17,6 @@ export const workspaceMembers = [
 	'.vscode/extensions/vscode-selfhost-test-provider',
 	'.vscode/extensions/vscode-pr-pinger',
 	'scripts',
-	'src/vs/sessions/test/e2e',
 	'test/automation',
 	'test/componentFixtures/playwright',
 	'test/integration/browser',
@@ -33,25 +32,20 @@ export const workspaceMembers = [
  * native modules for a different runtime than the workspace (see the `nativeBuild` field of their
  * `package.json`, and their `.pnpmfile.mjs`). `extensions` holds the built-in extensions, which the
  * product build bundles, so the layout of their `node_modules` doesn't ship; its `.pnpmfile.mjs`
- * builds native modules for Electron like the workspace. `extensions/copilot` keeps its own
- * `node_modules` because its build scripts and runtime code use paths inside it; it builds native
- * modules for Electron like the workspace.
+ * builds native modules for Electron like the workspace.
  */
 export const separateRoots = [
 	'build',
 	'remote',
 	'extensions',
-	'extensions/copilot',
 ];
 
 /**
  * Members of the workspaces of separate roots, by root: they share the root's `pnpm-lock.yaml` and
  * are installed by its `pnpm install`. pnpm uses the nearest `pnpm-workspace.yaml` above a folder,
- * so folders inside a separate root can't be members of the main workspace. `chat-lib` is extracted
- * from the Copilot extension's sources and published as an npm package; its dependencies are
- * Copilot's (see `extract-chat-lib`). `remote/web` holds the dependencies of the web build: the
- * hoisted layout installs them in `remote/node_modules`, and the web build packages them flat (see
- * `getFlatProductionDependencies`).
+ * so folders inside a separate root can't be members of the main workspace. `remote/web` holds the
+ * dependencies of the web build: the hoisted layout installs them in `remote/node_modules`, and the
+ * web build packages them flat (see `getFlatProductionDependencies`).
  */
 export const separateRootMembers: Readonly<Record<string, readonly string[]>> = {
 	'build': ['build/rspack', 'build/vite'],
@@ -96,7 +90,6 @@ export const separateRootMembers: Readonly<Record<string, readonly string[]>> = 
 		'extensions/vscode-colorize-perf-tests',
 		'extensions/vscode-test-resolver',
 	],
-	'extensions/copilot': ['extensions/copilot/chat-lib'],
 };
 
 /**

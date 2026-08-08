@@ -5,7 +5,6 @@
 import path from 'path';
 import * as fs from 'fs';
 import * as os from 'os';
-import { isCloudSandbox } from './cloudSandbox.ts';
 import { checkPackageManager, getPinnedPnpmVersion } from '../lib/pnpm.ts';
 import { getNodeGypHeadersDirectory, installNodeGypHeaders } from './nodeGypHeaders.ts';
 import { readNativeBuildConfig } from './pnpm/nativeBuildEnv.ts';
@@ -166,8 +165,5 @@ function getHeaderInfo(rootDir: string): { disturl: string; target: string } | u
 	if (config?.target === undefined) {
 		return undefined;
 	}
-	const disturl = isCloudSandbox() && config.disturl === 'https://electronjs.org/headers'
-		? 'https://artifacts.electronjs.org/headers/dist'
-		: config.disturl;
-	return { disturl, target: config.target };
+	return { disturl: config.disturl, target: config.target };
 }

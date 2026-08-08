@@ -88,7 +88,7 @@ export function computeNodeModulesBaseCacheKey(args: readonly string[], readFile
 	const shasum = crypto.createHash('sha256');
 
 	shasum.update(readFile('build/.cachesalt'));
-	for (const file of [...nativeBuildConfigFiles, '.nvmrc', 'extensions/copilot/.nvmrc']) {
+	for (const file of [...nativeBuildConfigFiles, '.nvmrc']) {
 		shasum.update(readFile(file));
 	}
 	shasum.update(getNativeBuildTargets(readFile));

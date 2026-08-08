@@ -58,12 +58,10 @@ export const NATIVE_BUILD_INPUTS: { readonly files: readonly string[]; readonly 
 		'extensions/.pnpmfile.mjs',
 		'build/npm/pnpm/nativeBuildEnv.ts',
 		'.nvmrc',
-		'extensions/copilot/.nvmrc',
 		'pnpm-workspace.yaml',
 		'build/pnpm-workspace.yaml',
 		'remote/pnpm-workspace.yaml',
 		'extensions/pnpm-workspace.yaml',
-		'extensions/copilot/pnpm-workspace.yaml',
 	],
 	packageJsonFields: {
 		'package.json': ['nativeBuild', 'packageManager'],

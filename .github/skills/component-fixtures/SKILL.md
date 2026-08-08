@@ -368,8 +368,6 @@ Fixtures cannot trigger CSS `:hover`, and DOM focus is only deterministic throug
 - Drive focus and selection through the component (list rows get `.focused` and `.selected` from the list traits), from a test-only subclass when production has no such API (see [Keep test-only operations out of the production API](#keep-test-only-operations-out-of-the-production-api)). Then call `ctx.focus()` when the state needs DOM focus.
 - When JavaScript also reacts to hover (for example `mouseover` listeners), dispatch a `mouseover` on the element as well as adding `.hovered`.
 
-`src/vs/sessions/contrib/sessions/test/browser/sessionsListFixtureUtils.ts` renders `interaction: { hovered, focused, selected }` this way.
-
 ## Multiple Fixture Variants
 
 Create variants to show different states of the same component:

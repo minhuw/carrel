@@ -9,8 +9,7 @@ import path from 'path';
 /**
  * The registry itself is set in the user `.npmrc` (`npm config set registry`), which both npm and
  * pnpm read. This script only rewrites registry URLs recorded in lockfiles: npm records a
- * `resolved` URL for every package in `package-lock.json` (still used by the folders that install
- * with npm, such as `build/agent-sdk/agents/*`). pnpm records no URL for registry packages in
+ * `resolved` URL for every package in `package-lock.json`. pnpm records no URL for registry packages in
  * `pnpm-lock.yaml`, only for a `tarball:` that doesn't follow the registry's URL layout.
  */
 const lockfileNames = new Set(['package-lock.json', 'pnpm-lock.yaml']);

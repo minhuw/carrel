@@ -49,7 +49,7 @@ suite('changedFiles', () => {
 				...modified(
 					'src/vs/base/common/strings.ts',
 					'src/vs/base/common/arrays.ts',
-					'.github/actions/detect-changes/detect.ts',
+					'.github/actions/detect-missing-caches/detect.ts',
 					'README.md',
 					'src/vs/base/browser/ui/button/button.css',
 					// Excluded by .eslint-ignore.
@@ -59,7 +59,7 @@ suite('changedFiles', () => {
 			], noFiles), {
 				kind: 'files',
 				files: [
-					'.github/actions/detect-changes/detect.ts',
+					'.github/actions/detect-missing-caches/detect.ts',
 					'src/vs/base/common/arrays.ts',
 					'src/vs/base/common/strings.ts',
 				],
@@ -74,11 +74,8 @@ suite('changedFiles', () => {
 				modified('.eslint-ignore'),
 				modified('.eslint-allowed-bracket-notation-files'),
 				modified('.eslint-plugin-local/code-no-any-casts.ts'),
-				modified('extensions/copilot/.eslintplugin/index.ts'),
 				modified('package.json'),
 				deleted('pnpm-lock.yaml'),
-				modified('extensions/copilot/package.json'),
-				modified('extensions/copilot/pnpm-lock.yaml'),
 				modified('build/lib/i18n.resources.json'),
 				modified('src/vs/base/common/arrays.ts', 'build/filters.ts'),
 			].map(changes => getEslintScope(changes, noFiles)), [
@@ -87,11 +84,8 @@ suite('changedFiles', () => {
 				{ kind: 'full', reason: '.eslint-ignore changed' },
 				{ kind: 'full', reason: '.eslint-allowed-bracket-notation-files changed' },
 				{ kind: 'full', reason: '.eslint-plugin-local/code-no-any-casts.ts changed' },
-				{ kind: 'full', reason: 'extensions/copilot/.eslintplugin/index.ts changed' },
 				{ kind: 'full', reason: 'package.json changed' },
 				{ kind: 'full', reason: 'pnpm-lock.yaml changed' },
-				{ kind: 'full', reason: 'extensions/copilot/package.json changed' },
-				{ kind: 'full', reason: 'extensions/copilot/pnpm-lock.yaml changed' },
 				{ kind: 'full', reason: 'build/lib/i18n.resources.json changed' },
 				{ kind: 'full', reason: 'build/filters.ts changed' },
 			]);
@@ -158,13 +152,13 @@ suite('changedFiles', () => {
 				modified('build/hygiene.ts'),
 				modified('build/lib/stylelint/vscode-known-variables.json'),
 				modified('tsfmt.json'),
-				modified('extensions/copilot/tsfmt.json'),
+				modified('extensions/git/tsfmt.json'),
 				deleted('pnpm-lock.yaml'),
 			].map(changes => getHygieneScope(changes)), [
 				{ kind: 'full', reason: 'build/hygiene.ts changed' },
 				{ kind: 'full', reason: 'build/lib/stylelint/vscode-known-variables.json changed' },
 				{ kind: 'full', reason: 'tsfmt.json changed' },
-				{ kind: 'full', reason: 'extensions/copilot/tsfmt.json changed' },
+				{ kind: 'full', reason: 'extensions/git/tsfmt.json changed' },
 				{ kind: 'full', reason: 'pnpm-lock.yaml changed' },
 			]);
 		});

@@ -32,8 +32,6 @@ jobs:
         condition: and(succeeded(), ne(variables['NPM_REGISTRY'], 'none'))
         displayName: Setup NPM Registry
 
-      - template: ../common/apply-sdk-canary.yml@self
-
       - script: mkdir -p .build && node build/azure-pipelines/common/computeNodeModulesCacheKey.ts alpine $VSCODE_ARCH $(node -p process.arch) alpine-3.22 > .build/packagelockhash
         displayName: Prepare node_modules cache key
 
@@ -129,8 +127,6 @@ jobs:
           ELECTRON_SKIP_BINARY_DOWNLOAD: 1
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
           GITHUB_TOKEN: "$(github-token-code-oss)"
-          FOUNDRY_LOCAL_NUGET_MODE: dotnet
-          FOUNDRY_LOCAL_NUGET_FEEDS: "https://pkgs.dev.azure.com/monacotools/Monaco/_packaging/vscode/nuget/v3/index.json"
           VSCODE_REMOTE_DEPENDENCIES_CONTAINER_NAME: vscodehub.azurecr.io/vscode-linux-build-agent:alpine-$(VSCODE_ARCH)
           VSCODE_HOST_MOUNT: "/mnt/vss/_work/1/s"
           VSCODE_NPMRC_PATH: $(NPMRC_PATH)
@@ -144,9 +140,6 @@ jobs:
         displayName: Clear package feed credentials
         condition: always()
 
-      - script: node build/azure-pipelines/common/checkNativeOptionalDeps.ts
-        condition: and(succeeded(), ne(variables.NODE_MODULES_RESTORED, 'true'))
-        displayName: Verify native optional dependency binaries
 
       - script: node build/azure-pipelines/distro/mixin-npm.ts
         displayName: Mixin distro node modules

@@ -28,7 +28,6 @@ on:
       - package.json
       - remote/package.json
       - .nvmrc
-      - extensions/copilot/.nvmrc
       - build/npm/**
       - build/checksums/electron.txt
       - build/lib/electron.ts
@@ -170,12 +169,6 @@ jobs:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # pnpm doesn't fail when it skips an optional dependency, such as a native binary, which the
-      # jobs would then keep using
-      - &check-native-optional-deps
-        name: Verify native optional dependency binaries
-        run: node build/azure-pipelines/common/checkNativeOptionalDeps.ts
-
       - &setup-electron
         name: Setup Electron
         uses: ./.github/actions/setup-electron
@@ -287,8 +280,6 @@ jobs:
   #         # Same as in pr-darwin-test.yml
   #         GYP_DEFINES: "kerberos_use_rtld=false"
   #
-  #     - *check-native-optional-deps
-  #
   #     - *setup-electron
   #
   #     - name: Install Playwright Chromium and WebKit
@@ -377,8 +368,6 @@ jobs:
           ELECTRON_SKIP_BINARY_DOWNLOAD: 1
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - *check-native-optional-deps
 
       - *setup-electron
 

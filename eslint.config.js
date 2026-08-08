@@ -1619,7 +1619,6 @@ export default defineConfig(
 					// - electron-main
 					'when': 'hasNode',
 					'allow': [
-						'@github/copilot-sdk',
 						'zod',
 						'@microsoft/dev-tunnels-contracts',
 						'@microsoft/dev-tunnels-management',
@@ -1768,14 +1767,7 @@ export default defineConfig(
 						'@xterm/headless', // node module allowed even in /common/
 						'@vscode/fs-copyfile', // used by agentHost for file copying after worktree creation
 						'@vscode/tree-sitter-wasm', // used by agentHost for command auto-approval
-						'@vscode/copilot-api', // used by agentHost for Copilot API requests
-						'@anthropic-ai/sdk', // used by agentHost for Anthropic API requests
-						'@anthropic-ai/claude-agent-sdk', // used by agentHost for Claude Agent SDK session enumeration / queries
-						'@modelcontextprotocol/sdk/**/*', // used by agentHost for Claude client-tool MCP result types (Phase 10)
-						'@github/copilot-sdk',
 						'zod', // used by agentHost for Claude client-tool MCP input schemas
-						{ 'when': 'hasNode', 'pattern': 'libsodium-wrappers' },
-						{ 'when': 'hasNode', 'pattern': '@hpke/core' },
 					]
 				},
 				{

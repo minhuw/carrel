@@ -82,9 +82,9 @@ suite('Product test checkpoints', () => {
 					task(attempt1.recordId, '🧪 Run unit tests (Electron)', 'succeeded'),
 					task(attempt1.recordId, 'Record unit-electron checkpoint', 'succeeded'),
 					task(attempt1.recordId, 'Record unit-browser-chromium checkpoint', 'succeeded'),
-					task(attempt1.recordId, 'Record copilot-extension checkpoint', 'skipped'),
-					task(attempt1.recordId, 'Record copilot-sanity checkpoint', 'failed'),
-					task(attempt1.recordId, 'Record copilot-completions-core checkpoint', 'canceled'),
+					task(attempt1.recordId, 'Record unknown-extension checkpoint', 'skipped'),
+					task(attempt1.recordId, 'Record unknown-sanity checkpoint', 'failed'),
+					task(attempt1.recordId, 'Record unknown-completions-core checkpoint', 'canceled'),
 					task(attempt1.recordId, 'Record smoke-remote checkpoint', null),
 					task(attempt1.recordId, 'Record unknown-test checkpoint', 'succeeded'),
 					// Another job of the same attempt

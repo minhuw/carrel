@@ -71,9 +71,6 @@
 			"build/lib/compilation.ts",
 			"build/lib/gulp/**",
 			"build/next/**",
-			// Inputs of the Dev Tunnels web bundle, which packaging builds, not the transpile step.
-			"!build/next/devTunnelsWebEntry.js",
-			"!build/next/devTunnelsShims/**",
 			"build/package.json",
 			"build/pnpm-lock.yaml",
 			"build/pnpm-workspace.yaml"
@@ -127,13 +124,10 @@
 	// the npm packages they load. Modules that integration tests load by a path that ripple cannot
 	// resolve can be listed too.
 	"runEveryIntegrationTest": {
-		// The scripts that run the node.js integration tests and the Agent Host E2E suites.
+		// The scripts that run the node.js integration tests.
 		"integration test launcher": [
 			"scripts/test-integration.sh",
-			"scripts/test-integration.bat",
-			"scripts/test-agent-host-e2e.sh",
-			"scripts/test-agent-host-e2e.bat",
-			"test/integration/agentHost/**"
+			"scripts/test-integration.bat"
 		],
 		// Modules, unlike the files above: integration tests fork src/bootstrap-fork.ts through
 		// `FileAccess.asFileUri('bootstrap-fork')`, which ripple cannot resolve (see README.md), so a

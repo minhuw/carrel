@@ -198,21 +198,39 @@ fn apply_win32_version_resources() {
 
 	let base_version = package_json.version.split('-').next().unwrap_or("0.0.0");
 	let version_parts: Vec<&str> = base_version.split('.').collect();
-	let major: u64 = version_parts.first().and_then(|v| v.parse().ok()).unwrap_or(0);
-	let minor: u64 = version_parts.get(1).and_then(|v| v.parse().ok()).unwrap_or(0);
-	let patch: u64 = version_parts.get(2).and_then(|v| v.parse().ok()).unwrap_or(0);
+	let major: u64 = version_parts
+		.first()
+		.and_then(|v| v.parse().ok())
+		.unwrap_or(0);
+	let minor: u64 = version_parts
+		.get(1)
+		.and_then(|v| v.parse().ok())
+		.unwrap_or(0);
+	let patch: u64 = version_parts
+		.get(2)
+		.and_then(|v| v.parse().ok())
+		.unwrap_or(0);
 
 	let mut res = winresource::WindowsResource::new();
 	res.set("ProductName", name_long);
 	res.set("FileDescription", name_long);
 	res.set("CompanyName", "Microsoft Corporation");
-	res.set("LegalCopyright", "Copyright (C) 2026 Microsoft. All rights reserved");
+	res.set(
+		"LegalCopyright",
+		"Copyright (C) 2026 Microsoft. All rights reserved",
+	);
 	res.set("FileVersion", &package_json.version);
 	res.set("ProductVersion", &package_json.version);
 	res.set("InternalName", &exe_name);
 	res.set("OriginalFilename", &exe_name);
-	res.set_version_info(winresource::VersionInfo::FILEVERSION, (major << 48) | (minor << 16) | patch);
-	res.set_version_info(winresource::VersionInfo::PRODUCTVERSION, (major << 48) | (minor << 16) | patch);
+	res.set_version_info(
+		winresource::VersionInfo::FILEVERSION,
+		(major << 48) | (minor << 16) | patch,
+	);
+	res.set_version_info(
+		winresource::VersionInfo::PRODUCTVERSION,
+		(major << 48) | (minor << 16) | patch,
+	);
 	res.compile().expect("failed to compile Windows resources");
 }
 

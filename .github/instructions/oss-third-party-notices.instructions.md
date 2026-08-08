@@ -360,7 +360,7 @@ What it checks:
 1. **NOTICE stats** — total entries, duplicate detection (same name@version = bug), multi-version packages (expected), license type breakdown.
 2. **Repo manifest cross-reference** — walks all `package.json` (direct deps), every `pnpm-lock.yaml` (the full transitive tree of each importer, dev filtered out), the `package-lock.json` files that remain for folders still installed with npm (`build/agent-sdk/agents/*`), `Cargo.lock`, and `cgmanifest.json`. Reports overlap, NOTICE-only entries (CG transitive deps), and manifest-only gaps (packages missing from the NOTICE).
 3. **Summary** — coverage percentage and actionable gap list.
-4. **Package source breakdown** — package counts per lockfile project (pnpm importer or npm lockfile folder), sorted by size. Shows which extensions/directories contribute the most dependencies (e.g., `extensions/copilot: 329 packages`).
+4. **Package source breakdown** — package counts per lockfile project (pnpm importer or npm lockfile folder), sorted by size. Shows which extensions/directories contribute the most dependencies.
 
 Key behavior:
 

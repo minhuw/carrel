@@ -99,7 +99,7 @@ suite('ProtocolMainService', () => {
 		});
 	});
 
-	test('opts trusted editor and Agents shell documents into JavaScript stack sampling', async () => {
+	test('opts trusted editor documents into JavaScript stack sampling', async () => {
 		const roots = {
 			appRoot: URI.file('/stack-policy-test/app').fsPath,
 			extensionsPath: URI.file('/stack-policy-test/extensions').fsPath,
@@ -109,12 +109,7 @@ suite('ProtocolMainService', () => {
 		const cases = [
 			{ path: join(roots.appRoot, 'out/vs/code/electron-browser/workbench/workbench.html'), expected: true },
 			{ path: join(roots.appRoot, 'out/vs/code/electron-browser/workbench/workbench-dev.html'), expected: true },
-			{ path: join(roots.appRoot, 'out/vs/sessions/electron-browser/sessions.html'), expected: true },
-			{ path: join(roots.appRoot, 'out/vs/sessions/electron-browser/sessions-dev.html'), expected: true },
-			{ path: join(roots.appRoot, 'out/vs/sessions/electron-browser/other.html'), expected: false },
-			{ path: join(roots.extensionsPath, 'extension/sessions.html'), expected: false },
-			{ path: join(roots.globalStorageHome, 'sessions-dev.html'), expected: false },
-			{ path: join(roots.appRoot, 'extensions/example/sessions.html'), expected: false },
+			{ path: join(roots.appRoot, 'out/vs/code/electron-browser/workbench/other.html'), expected: false },
 		];
 		const results = await Promise.all(cases.map(async testCase => {
 			const response: { status: number; headers?: Record<string, string>; errors: string[] } = await ipcRenderer.invoke(
@@ -126,16 +121,4 @@ suite('ProtocolMainService', () => {
 		})));
 	});
 
-	test('collects a JavaScript stack from an Agents shell document', async function () {
-		this.timeout(15_000);
-		const roots = {
-			appRoot: URI.file('/stack-sampling-test/app').fsPath,
-			extensionsPath: URI.file('/stack-sampling-test/extensions').fsPath,
-			globalStorageHome: URI.file('/stack-sampling-test/storage').fsPath,
-			workspaceStorageHome: URI.file('/stack-sampling-test/workspaces').fsPath,
-		};
-		const resource = URI.file(join(roots.appRoot, 'out/vs/sessions/electron-browser/sessions-dev.html'));
-		const response: { stack: string } = await ipcRenderer.invoke('vscode:test-file-resource', FileAccess.uriToBrowserUri(resource).toString(true), roots, { sampleStack: true });
-		assert.ok(response.stack.includes('stackSamplingProbe'), `Expected the sampled JavaScript frame, got ${response.stack}`);
-	});
 });

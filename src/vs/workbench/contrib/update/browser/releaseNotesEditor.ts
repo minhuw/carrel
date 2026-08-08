@@ -4,9 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { CancellationToken } from '../../../../base/common/cancellation.js';
-import { $, addDisposableListener, getWindow } from '../../../../base/browser/dom.js';
-import { safeSetInnerHtml, sanitizeHtml } from '../../../../base/browser/domSanitize.js';
-import { allowedMarkdownHtmlAttributes, allowedMarkdownHtmlTags } from '../../../../base/browser/markdownRenderer.js';
 import { status } from '../../../../base/browser/ui/aria/aria.js';
 import { RunOnceScheduler } from '../../../../base/common/async.js';
 import { Codicon } from '../../../../base/common/codicons.js';
@@ -47,13 +44,6 @@ import { asWebviewUri } from '../../webview/common/webview.js';
 import { IAccessibilityService } from '../../../../platform/accessibility/common/accessibility.js';
 import { AccessibilityVerbositySettingId } from '../../accessibility/browser/accessibilityConfiguration.js';
 import { AccessibilityCommandId } from '../../accessibility/common/accessibilityCommands.js';
-import { RUN_ONBOARDING_TRYOUT_COMMAND_ID } from '../../onboarding/common/onboardingTryout.js';
-import { ReleaseNotesTryouts } from './releaseNotesTryouts.js';
-import { indexReleaseNotesContent, initializeReleaseNotesTelemetry, ReleaseNotesSource, ReleaseNotesTelemetry } from './releaseNotesTelemetry.js';
-import { IHostService } from '../../../services/host/browser/host.js';
-import { ILifecycleService } from '../../../services/lifecycle/common/lifecycle.js';
-import { ILogService } from '../../../../platform/log/common/log.js';
-import { encodeHex, VSBuffer } from '../../../../base/common/buffer.js';
 
 interface IReleaseNotesCodeBlock {
 	readonly id: string;
@@ -76,8 +66,6 @@ export class ReleaseNotesManager extends Disposable {
 	private readonly _releaseNotesCache = new Map<string, Promise<{ text: string; revision: string }>>();
 
 	private _currentReleaseNotes: WebviewInput | undefined = undefined;
-	private readonly _currentDocument = this._register(new MutableDisposable<ReleaseNotesTryouts>());
-	private readonly _pendingDocument = this._register(new MutableDisposable<ReleaseNotesTryouts>());
 	private readonly _webviewDisposables = this._register(new MutableDisposable<DisposableStore>());
 	private _showRequest = 0;
 	private _tokenizationRequest = 0;
@@ -116,8 +104,7 @@ export class ReleaseNotesManager extends Disposable {
 
 	private async updateTokenization(): Promise<void> {
 		const input = this._currentReleaseNotes;
-		const document = this._currentDocument.value;
-		if (!input || !document) {
+		if (!input) {
 			return;
 		}
 		const request = ++this._tokenizationRequest;
@@ -128,13 +115,12 @@ export class ReleaseNotesManager extends Disposable {
 			const html = block.language === undefined ? escape(block.text) : await tokenizeToString(this._languageService, block.text, languageId);
 			return { id: block.id, html: html.replace(/\n$/, '') + '\n' };
 		}));
-		if (request !== this._tokenizationRequest || this._currentDocument.value !== document || this._store.isDisposed) {
+		if (request !== this._tokenizationRequest || this._store.isDisposed) {
 			return;
 		}
 		const colorMap = TokenizationRegistry.getColorMap();
 		await input.webview.postMessage({
 			type: 'releaseNotesTokenization',
-			documentId: document.documentId,
 			value: colorMap ? generateTokensCSSForColorMap(colorMap) : '',
 			codeBlocks,
 		});
@@ -172,33 +158,14 @@ export class ReleaseNotesManager extends Disposable {
 
 	private async showContent(version: string, useCurrentFile: boolean, telemetry: ReleaseNotesTelemetry | undefined, context: { tryouts?: ReleaseNotesTryouts }): Promise<boolean> {
 		const request = ++this._showRequest;
-		this._pendingDocument.clear();
-		const releaseNotes = await this.loadReleaseNotes(version, useCurrentFile);
-		if (telemetry) {
-			telemetry.metadata.notesRevision = releaseNotes.revision;
-			telemetry.failureStage = 'render';
-		}
+		const releaseNoteText = await this.loadReleaseNotes(version, useCurrentFile);
 		const base = await this.getBase(useCurrentFile);
 		if (request !== this._showRequest || this._store.isDisposed) {
 			return false;
 		}
-		const tryouts = this._instantiationService.createInstance(ReleaseNotesTryouts);
-		context.tryouts = tryouts;
-		this._pendingDocument.value = tryouts;
 		const codeBlocks: IReleaseNotesCodeBlock[] = [];
-		let html: string;
-		try {
-			html = await this.renderBody({ text: releaseNotes.text, base, mediaBaseUrl: useCurrentFile ? undefined : 'https://code.visualstudio.com/assets/updates/' }, tryouts, codeBlocks, telemetry);
-		} catch (error) {
-			if (this._pendingDocument.value === tryouts) {
-				this._pendingDocument.clear();
-			}
-			throw error;
-		}
-		if (request !== this._showRequest || this._pendingDocument.value !== tryouts) {
-			if (this._pendingDocument.value === tryouts) {
-				this._pendingDocument.clear();
-			}
+		const html = await this.renderBody({ text: releaseNoteText, base }, codeBlocks);
+		if (request !== this._showRequest) {
 			return false;
 		}
 		const title = nls.localize('releaseNotesInputName', "Release Notes: {0}", version);
@@ -238,8 +205,6 @@ export class ReleaseNotesManager extends Disposable {
 					this._showRequest++;
 					this._currentReleaseNotes = undefined;
 					this._codeBlocks = [];
-					this._currentDocument.clear();
-					this._pendingDocument.clear();
 					this._webviewDisposables.clear();
 				}
 			};
@@ -249,7 +214,7 @@ export class ReleaseNotesManager extends Disposable {
 			disposables.add(input.webview.onDidClickLink(uri => this.onDidClickLink(URI.parse(uri)).catch(onUnexpectedError)));
 
 			disposables.add(input.webview.onMessage(e => {
-				if (this._currentReleaseNotes !== input || e.message?.documentId !== this._currentDocument.value?.documentId) {
+				if (this._currentReleaseNotes !== input) {
 					return;
 				}
 				if (e.message.type === 'releaseNotesReady') {
@@ -296,16 +261,7 @@ export class ReleaseNotesManager extends Disposable {
 		}
 
 		const input = this._currentReleaseNotes;
-		this._telemetryDocument.value?.tracker.finish('replaced');
-		this._telemetryDocument.clear();
-		this._currentDocument.value = this._pendingDocument.clearAndLeak();
 		this._codeBlocks = codeBlocks;
-		if (telemetry) {
-			this.attachTelemetry(input, telemetry);
-			tryouts.onInteraction = (index, action, runId) => telemetry.tryout(index, action, runId);
-		}
-		tryouts.attach(input.webview, () => this._currentReleaseNotes === input
-			&& this._editorService.activeEditor === input && getWindow(input.webview.container).document.hasFocus());
 		input.webview.setHtml(html);
 		if (reuseWebview) {
 			this._webviewWorkbenchService.revealWebview(input, activeEditorPane ? activeEditorPane.group : this._editorGroupService.activeGroup, false);
@@ -463,11 +419,9 @@ export class ReleaseNotesManager extends Disposable {
 	private async onDidClickLink(uri: URI) {
 		if (uri.scheme === Schemas.codeSetting) {
 			// handled in receive message
-		} else if (uri.scheme === Schemas.command && uri.path === RUN_ONBOARDING_TRYOUT_COMMAND_ID) {
-			await this._currentDocument.value?.openLink(uri);
 		} else {
 			const updated = await this.addGAParameters(uri, 'ReleaseNotes');
-			await this._openerService.open(updated, { allowCommands: ['workbench.action.openSettings', 'summarize.release.notes', RUN_ONBOARDING_TRYOUT_COMMAND_ID] });
+			await this._openerService.open(updated, { allowCommands: ['workbench.action.openSettings', 'summarize.release.notes'] });
 		}
 	}
 
@@ -480,10 +434,10 @@ export class ReleaseNotesManager extends Disposable {
 		return uri;
 	}
 
-	private async renderBody(fileContent: { text: string; base: URI; mediaBaseUrl?: string }, tryouts: ReleaseNotesTryouts, codeBlocks: IReleaseNotesCodeBlock[], telemetry?: ReleaseNotesTelemetry) {
+	private async renderBody(fileContent: { text: string; base: URI }, codeBlocks: IReleaseNotesCodeBlock[]) {
 		const nonce = generateUuid();
 
-		const processedContent = await renderReleaseNotesMarkdown(fileContent.text, this._extensionService, this._languageService, this._simpleSettingRenderer, this._productService.quality, tryouts, codeBlocks, telemetry, fileContent.mediaBaseUrl);
+		const processedContent = await renderReleaseNotesMarkdown(fileContent.text, this._extensionService, this._languageService, this._simpleSettingRenderer, this._productService.quality, codeBlocks);
 
 		const colorMap = TokenizationRegistry.getColorMap();
 		const css = colorMap ? generateTokensCSSForColorMap(colorMap) : '';
@@ -499,37 +453,7 @@ export class ReleaseNotesManager extends Disposable {
 				<style nonce="${nonce}">
 					${DEFAULT_MARKDOWN_STYLES}
 
-					.release-notes-tryout-link:focus-visible,
-					.release-notes-tryout-setup:focus-visible {
-						outline: var(--vscode-strokeThickness) solid var(--vscode-focusBorder);
-						outline-offset: calc(-1 * var(--vscode-strokeThickness));
-					}
-
-					.release-notes-tryout-link[aria-disabled="true"],
-					.release-notes-tryout-message {
-						color: var(--vscode-descriptionForeground);
-					}
-
-					.release-notes-tryout-message,
-					.release-notes-tryout-setup {
-						margin-inline-start: var(--vscode-spacing-size40);
-					}
-
-					.release-notes-tryout-setup {
-						border: 0;
-						padding: 0;
-						background: none;
-						color: var(--vscode-textLink-foreground);
-						font: inherit;
-						text-decoration: underline;
-						cursor: pointer;
-					}
-
-					.release-notes-tryout-setup:hover {
-						color: var(--vscode-textLink-activeForeground);
-					}
-
-					/* codesetting */
+						/* codesetting */
 
 					code:has(.codesetting) {
 						background-color: var(--vscode-textPreformat-background);
@@ -841,7 +765,6 @@ export class ReleaseNotesManager extends Disposable {
 				${processedContent}
 				<script nonce="${nonce}">
 					const vscode = acquireVsCodeApi();
-					const documentId = ${JSON.stringify(tryouts.documentId)};
 					const container = document.createElement('p');
 					container.style.display = 'flex';
 					container.style.alignItems = 'center';
@@ -865,9 +788,6 @@ export class ReleaseNotesManager extends Disposable {
 					}
 
 					window.addEventListener('message', event => {
-						if (event.data.documentId !== documentId) {
-							return;
-						}
 						if (event.data.type === 'showReleaseNotes') {
 							input.checked = event.data.value;
 						} else if (event.data.type === 'releaseNotesTokenization') {
@@ -879,8 +799,7 @@ export class ReleaseNotesManager extends Disposable {
 						const link = event.target instanceof Element ? event.target.closest('a[href]') : null;
 						const href = link?.href;
 						if (href && (href.startsWith('${Schemas.codeSetting}'))) {
-							const occurrence = link.closest('[data-release-notes-link-index]');
-							vscode.postMessage({ type: 'clickSetting', documentId, value: { uri: href, index: occurrence ? Number(occurrence.dataset.releaseNotesLinkIndex) : undefined, x: event.clientX, y: event.clientY }});
+							vscode.postMessage({ type: 'clickSetting', value: { uri: href, x: event.clientX, y: event.clientY }});
 						}
 					});
 
@@ -888,21 +807,16 @@ export class ReleaseNotesManager extends Disposable {
 						if (event.keyCode === 13) {
 							if (event.target.children.length > 0 && event.target.children[0].href) {
 								const clientRect = event.target.getBoundingClientRect();
-								const occurrence = event.target.closest('[data-release-notes-link-index]');
-								vscode.postMessage({ type: 'clickSetting', documentId, value: { uri: event.target.children[0].href, index: occurrence ? Number(occurrence.dataset.releaseNotesLinkIndex) : undefined, x: clientRect.right , y: clientRect.bottom }});
+								vscode.postMessage({ type: 'clickSetting', value: { uri: event.target.children[0].href, x: clientRect.right , y: clientRect.bottom }});
 							}
 						}
 					});
 
 					input.addEventListener('change', event => {
-						vscode.postMessage({ type: 'showReleaseNotes', documentId, value: input.checked }, '*');
+						vscode.postMessage({ type: 'showReleaseNotes', value: input.checked }, '*');
 					});
-					${telemetry ? `(${initializeReleaseNotesTelemetry.toString()})(document, window, documentId, ${JSON.stringify(telemetry.manifest.regions)}, vscode, ${JSON.stringify(telemetry.manifest.tryouts.map(tryout => tryout.index))});` : ''}
-					vscode.postMessage({ type: 'releaseNotesReady', documentId });
+					vscode.postMessage({ type: 'releaseNotesReady' });
 					(${initializeReleaseNotesNavigation.toString()})(document, window);
-				</script>
-				<script nonce="${nonce}">
-					${tryouts.getScript()}
 				</script>
 			</body>
 		</html>`;
@@ -924,7 +838,6 @@ export class ReleaseNotesManager extends Disposable {
 		if (this._currentReleaseNotes) {
 			this._currentReleaseNotes.webview.postMessage({
 				type: 'showReleaseNotes',
-				documentId: this._currentDocument.value?.documentId,
 				value: this._configurationService.getValue<boolean>('update.showReleaseNotes')
 			});
 		}
@@ -973,7 +886,6 @@ export async function renderReleaseNotesMarkdown(
 	languageService: ILanguageService,
 	simpleSettingRenderer: SimpleSettingRenderer,
 	quality?: string,
-	tryouts?: ReleaseNotesTryouts,
 	codeBlocks?: IReleaseNotesCodeBlock[],
 	telemetry?: ReleaseNotesTelemetry,
 	mediaBaseUrl?: string,
@@ -991,9 +903,6 @@ export async function renderReleaseNotesMarkdown(
 	} else if (quality === 'insider') {
 		activeConditions.add('INSIDERS');
 	}
-	if (tryouts) {
-		activeConditions.add('TRYOUTS');
-	}
 	text = processConditionalBlocks(text, activeConditions);
 	text = text.replace(
 		/<!--\s*RELEASE_HIGHLIGHTS_START\s*-->([\s\S]*?)<!--\s*RELEASE_HIGHLIGHTS_END\s*-->/g,
@@ -1009,21 +918,11 @@ export async function renderReleaseNotesMarkdown(
 		allowedAttributes: { augment: ['aria-role', 'viewBox', 'fill', 'xmlns', 'd'] }
 	};
 	const codeBlockIds = new WeakMap<marked.Token, string>();
-	const tryoutCodeSpans = new WeakSet<marked.Tokens.Codespan>();
 	const renderCodeSpan = simpleSettingRenderer.getCodeSpanRenderer();
 	const renderer = new marked.Renderer();
 	const content = await renderMarkdownDocument(text, extensionService, languageService, {
 		sanitizerConfig,
 		markedExtensions: [{
-			tokenizer: {
-				codespan(source) {
-					const token = marked.Tokenizer.prototype.codespan.call(this, source);
-					if (token && !this.lexer.state.inLink && !this.lexer.state.inRawBlock) {
-						tryoutCodeSpans.add(token);
-					}
-					return token;
-				},
-			},
 			walkTokens: token => {
 				if (codeBlocks && token.type === 'code') {
 					const id = `release-notes-code-${generateUuid()}`;
@@ -1033,40 +932,12 @@ export async function renderReleaseNotesMarkdown(
 			},
 			renderer: {
 				html: simpleSettingRenderer.getHtmlRenderer(),
-				codespan: token => (tryoutCodeSpans.has(token) ? tryouts?.renderCodeSpan(token.text) : undefined) ?? renderCodeSpan(token),
+				codespan: token => renderCodeSpan(token),
 				code: token => codeBlocks ? renderer.code(token).replace('<code', `<code id="${codeBlockIds.get(token)}"`) : false,
 			}
 		}]
 	});
-	if (!mediaBaseUrl && !telemetry && (!tryouts || !tryouts.needsRender(content))) {
-		return content;
-	}
-	const tryoutSanitizerConfig = {
-		...sanitizerConfig,
-		allowedTags: { override: allowedMarkdownHtmlTags, augment: [...sanitizerConfig.allowedTags.augment, 'button'] },
-		allowedAttributes: {
-			override: [...allowedMarkdownHtmlAttributes, 'name', 'id', 'class', 'role', 'tabindex', 'placeholder'],
-			augment: [...sanitizerConfig.allowedAttributes.augment, 'type', 'hidden', 'aria-label', 'aria-disabled', 'data-release-notes-tryout-id', 'data-release-notes-tryout-index', 'data-release-notes-content-index', 'data-release-notes-link-index'],
-		},
-	};
-	const container = $('div');
-	safeSetInnerHtml(container, content.toString(), tryoutSanitizerConfig);
-	if (mediaBaseUrl) {
-		// eslint-disable-next-line no-restricted-syntax -- These media elements are authored in the release note Markdown.
-		for (const element of container.querySelectorAll('img, video, source')) {
-			for (const attribute of ['src', 'poster']) {
-				const value = element.getAttribute(attribute);
-				if (value) {
-					element.setAttribute(attribute, value.replace(/^(?:\.\/)?images\//, mediaBaseUrl));
-				}
-			}
-		}
-	}
-	tryouts?.render(container);
-	if (telemetry) {
-		telemetry.manifest = indexReleaseNotesContent(container);
-	}
-	return sanitizeHtml(container.innerHTML, tryoutSanitizerConfig);
+	return content;
 }
 
 /* eslint-disable no-restricted-syntax -- These serialized functions access IDs owned by the isolated release notes webview. */

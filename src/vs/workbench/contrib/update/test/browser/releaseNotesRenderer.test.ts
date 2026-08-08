@@ -18,7 +18,6 @@ import { processConditionalBlocks, renderReleaseNotesMarkdown } from '../../brow
 import { URI } from '../../../../../base/common/uri.js';
 import { Emitter } from '../../../../../base/common/event.js';
 
-
 suite('Release notes renderer', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
@@ -64,12 +63,6 @@ Navigation End -->
 
 		const result = await renderReleaseNotesMarkdown(content, extensionService, languageService, instantiationService.createInstance(SimpleSettingRenderer));
 		await assertSnapshot(result.toString());
-	});
-
-	test('keeps shorthand as inline code without the tryout renderer', async () => {
-		const content = '`try(editor.smart-diff,Try Smart Diff Layout)`\n\n<!-- %IF TRYOUTS %\n`try(editor.smart-diff,Conditional Example)`\n%ENDIF % -->';
-		const result = await renderReleaseNotesMarkdown(content, extensionService, languageService, instantiationService.createInstance(SimpleSettingRenderer));
-		assert.strictEqual(result.toString().trim(), '<p><code>try(editor.smart-diff,Try Smart Diff Layout)</code></p>');
 	});
 
 	test('preserves the highlights table and renders fenced blocks separately from inline code', async () => {

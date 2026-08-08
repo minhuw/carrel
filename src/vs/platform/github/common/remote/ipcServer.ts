@@ -16,7 +16,6 @@ import { ApiRequestProviders, IGitHubRequestProviderScope, IGitHubService } from
 import { GitHubAuthorizationContext, GitHubClientOptions, GitHubCredentialChange, GitHubRequestError, IGitHubCredentialProvider } from '../githubTypes.js';
 import { AcquireClientRequest, ApiRequestMessage, ApiResponseMessage, ClientRequest, ClientResponse, GITHUB_CHANNEL_NAME, GITHUB_CREDENTIALS_CHANNEL_NAME, parseAuthorization, parseBodyText, parseRequestEnvelope } from './ipc.js';
 import { parseClientResponse, serializeGitHubError } from './serialization.js';
-import { parseMissionControlOptions, MissionControlClient } from '../missionControl/missionControlClient.js';
 
 /** Registers a separate lease owner for each physical connection, even when connection contexts repeat. */
 export function registerGitHubChannel(server: IPCServer<string>, service: IGitHubService): IDisposable {
@@ -210,7 +209,7 @@ class RemoteGitHubCredentialProvider extends Disposable implements IGitHubCreden
 		if (new URL(apiBaseUri).origin !== new URL(graphQlUri).origin) {
 			throw new GitHubRequestError('GitHub credential callback returned mismatched endpoints', 'validation');
 		}
-		return { authorization: resolved, apiBaseUri, graphQlUri, missionControl: MissionControlClient.normalizeOptions(options.missionControl) };
+		return { authorization: resolved, apiBaseUri, graphQlUri };
 	}
 
 	async getToken(authorization: GitHubAuthorizationContext, signal: AbortSignal): Promise<string | undefined> {
@@ -249,7 +248,6 @@ const parseClientOptions = parse.object<GitHubClientOptions>({
 	authorization: parseAuthorization,
 	apiBaseUri: parse.nonEmptyString,
 	graphQlUri: parse.nonEmptyString,
-	missionControl: parse.optional(parseMissionControlOptions),
 });
 
 const parseCredentialChange = parse.object<GitHubCredentialChange>({

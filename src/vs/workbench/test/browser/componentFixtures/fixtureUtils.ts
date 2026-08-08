@@ -16,10 +16,9 @@ import { disableScrollbarRevealOnScroll } from '../../../../base/browser/ui/scro
 // eslint-disable-next-line local/code-import-patterns
 import '../../../../../../build/vite/style.css';
 import '../../../browser/media/style.css';
-// Import auxiliaryBarPart.css here (before any contrib/chat CSS) so the cascade
-// matches the product: chat.css loads later and overrides the auxiliarybar
-// rules where applicable. Fixtures that wrap content in `.part.auxiliarybar`
-// rely on these rules to recolor inline editors with `--vscode-sideBar-background`.
+// Import auxiliaryBarPart.css here so the cascade matches the product.
+// Fixtures that wrap content in `.part.auxiliarybar` rely on these rules
+// to recolor inline editors with `--vscode-sideBar-background`.
 import '../../../browser/parts/auxiliarybar/media/auxiliaryBarPart.css';
 
 // Theme
@@ -64,10 +63,6 @@ import { TestTreeSitterLibraryService } from '../../../../editor/test/common/ser
 import { IAccessibilityService } from '../../../../platform/accessibility/common/accessibility.js';
 import { TestAccessibilityService } from '../../../../platform/accessibility/test/common/testAccessibilityService.js';
 import { IActionViewItemService, NullActionViewItemService } from '../../../../platform/actions/browser/actionViewItemService.js';
-import { IChatPhoneInputPresenter } from '../../../contrib/chat/browser/widget/input/chatPhoneInputPresenter.js';
-import { IChatPasteTargetService } from '../../../contrib/chat/browser/chat.js';
-import { IChatWindowService } from '../../../contrib/chatWindow/browser/chatWindow.js';
-import { ChatPasteTargetService } from '../../../contrib/chat/browser/attachments/chatPasteTargetService.js';
 import { IMenuService } from '../../../../platform/actions/common/actions.js';
 import { IClipboardService } from '../../../../platform/clipboard/common/clipboardService.js';
 import { TestClipboardService } from '../../../../platform/clipboard/test/common/testClipboardService.js';
@@ -78,7 +73,6 @@ import { IContextKeyService } from '../../../../platform/contextkey/common/conte
 import { IContextMenuService, IContextViewService } from '../../../../platform/contextview/browser/contextView.js';
 import { IWorkspaceTrustManagementService, IWorkspaceTrustRequestService } from '../../../../platform/workspace/common/workspaceTrust.js';
 import { IDataChannelService, NullDataChannelService } from '../../../../platform/dataChannel/common/dataChannel.js';
-import { IDefaultAccountService, MANAGED_SETTINGS_FRESHNESS_NOT_REQUIRED } from '../../../../platform/defaultAccount/common/defaultAccount.js';
 import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { TestDialogService } from '../../../../platform/dialogs/test/common/testDialogService.js';
 import { IHoverService } from '../../../../platform/hover/browser/hover.js';
@@ -90,8 +84,6 @@ import { INotificationService } from '../../../../platform/notification/common/n
 import { TestNotificationService } from '../../../../platform/notification/test/common/testNotificationService.js';
 import { IOpenerService } from '../../../../platform/opener/common/opener.js';
 import { NullOpenerService } from '../../../../platform/opener/test/common/nullOpenerService.js';
-import { IManagedSettingsService, NullManagedSettingsService } from '../../../../platform/policy/common/copilotManagedSettings.js';
-import { AccountPolicyGateState, IAccountPolicyGateService } from '../../../services/policies/common/accountPolicyService.js';
 import { IApplicationSharedStorageValueChangeEvent, IApplicationStorageValueChangeEvent, IProfileStorageValueChangeEvent, IStorageEntry, IStorageService, IStorageTargetChangeEvent, IStorageValueChangeEvent, IWillSaveStateEvent, IWorkspaceStorageValueChangeEvent, StorageScope, StorageTarget, WillSaveStateReason } from '../../../../platform/storage/common/storage.js';
 import { ITelemetryService } from '../../../../platform/telemetry/common/telemetry.js';
 import { NullTelemetryServiceShape } from '../../../../platform/telemetry/common/telemetryUtils.js';
@@ -107,16 +99,6 @@ import { TestMenuService } from '../workbenchTestServices.js';
 import { IAccessibilitySignalService } from '../../../../platform/accessibilitySignal/browser/accessibilitySignalService.js';
 import { IResolvedTextEditorModel, ITextModelService } from '../../../../editor/common/services/resolverService.js';
 import { InMemoryTextModelService } from '../../../../editor/common/services/inMemoryTextModelService.js';
-import { AGENT_FEEDBACK_NEW_SESSION_RESOURCE, IAgentFeedbackService } from '../../../contrib/sessions/browser/agentFeedback.js';
-import { IChatEditingService } from '../../../contrib/chat/common/editing/chatEditingService.js';
-import { ISessionsManagementService } from '../../../contrib/sessions/common/sessionsManagement.js';
-import { ISessionsService } from '../../../contrib/sessions/browser/sessionsService.js';
-import { ISessionsHostLayoutService } from '../../../services/sessions/browser/sessionsHostLayoutService.js';
-import { IWorkbenchLayoutService } from '../../../services/layout/browser/layoutService.js';
-import { SessionHost, SessionHostKind } from '../../../services/sessions/browser/sessionHost.js';
-import { ISessionChangesStatsCache, SessionChangesStatsCache } from '../../../services/sessions/common/sessionChangesStatsCache.js';
-import { ICodeReviewService, PRReviewStateKind } from '../../../contrib/sessions/browser/codeReviewService.js';
-import { constObservable } from '../../../../base/common/observable.js';
 import { IPreferencesService } from '../../../services/preferences/common/preferences.js';
 
 // Editor
@@ -287,7 +269,6 @@ import monokai from '../../../../../../extensions/theme-monokai/themes/monokai-c
 import quietlight from '../../../../../../extensions/theme-quietlight/themes/quietlight-color-theme.json' with { type: 'json' };
 import solarized_dark from '../../../../../../extensions/theme-solarized-dark/themes/solarized-dark-color-theme.json' with { type: 'json' };
 import solarized_light from '../../../../../../extensions/theme-solarized-light/themes/solarized-light-color-theme.json' with { type: 'json' };
-import { mainWindow } from '../../../../base/browser/window.js';
 /* eslint-enable local/code-import-patterns */
 
 function toThemeJsonText(theme: string | object): string {
@@ -713,29 +694,6 @@ export function createEditorServices(disposables: DisposableStore, options?: Cre
 		setupManagedHover: () => ({ dispose: () => { }, show: () => { }, hide: () => { }, update: () => { } }),
 		showManagedHover: () => { },
 	});
-	defineInstance(IDefaultAccountService, {
-		_serviceBrand: undefined,
-		onDidChangeDefaultAccount: new Emitter<null>().event,
-		onDidChangePolicyData: new Emitter<null>().event,
-		policyData: null,
-		currentDefaultAccount: null,
-		copilotTokenInfo: null,
-		onDidChangeCopilotTokenInfo: new Emitter<null>().event,
-		managedSettingsFetchStatus: null,
-		managedSettingsFetchedAt: null,
-		managedSettingsRawResponse: null,
-		managedSettingsCompatibilityError: null,
-		onDidChangeManagedSettingsCompatibilityError: Event.None,
-		managedSettingsFreshness: MANAGED_SETTINGS_FRESHNESS_NOT_REQUIRED,
-		onDidChangeManagedSettingsFreshness: Event.None,
-		getDefaultAccount: async () => null,
-		getDefaultAccountAuthenticationProvider: () => ({ id: 'test', name: 'Test', scopes: [], enterprise: false }),
-		resolveGitHubUrl: (path: string) => `https://github.com/${path}`,
-		setDefaultAccountProvider: () => { },
-		refresh: async () => null,
-		signIn: async () => null,
-		signOut: async () => { },
-	});
 
 	const overrideFocus = disposables instanceof FixtureDisposableStore ? disposables.overrideFocus : true;
 	defineInstance(IUserInteractionService, createFixtureUserInteractionService(overrideFocus));
@@ -762,90 +720,10 @@ export function createEditorServices(disposables: DisposableStore, options?: Cre
 
 	define(ITextModelService, FixtureTextModelService);
 
-	defineInstance(IAgentFeedbackService, {
-		_serviceBrand: undefined,
-		onDidChangeFeedback: Event.None,
-		onDidChangeFeedbackVisibility: Event.None,
-		onDidChangeNavigation: Event.None,
-		onDidChangeFeedbackScope: Event.None,
-		activeFeedbackSessionResource: constObservable(AGENT_FEEDBACK_NEW_SESSION_RESOURCE),
-		onDidAddFeedback: Event.None,
-		onDidConvertFeedback: Event.None,
-		onDidAddReply: Event.None,
-		onDidSubmitFeedback: Event.None,
-		onDidRevealSessionComment: Event.None,
-		addFeedback: () => undefined!,
-		removeFeedback: () => { },
-		updateFeedback: () => { },
-		updateFeedbackSourcePullRequest: () => { },
-		acceptFeedback: () => { },
-		addReply: () => { },
-		getFeedback: () => [],
-		getFeedbackObservable: () => constObservable([]),
-		isAgentHostSession: () => false,
-		showFeedbackInEditor: () => { },
-		hideFeedbackInEditor: () => { },
-		getVisibleResolvedFeedbackIds: () => new Set(),
-		hasLoadedFeedback: () => true,
-		getSessionForFile: () => undefined,
-		getChatChanges: () => [],
-		getFeedbackSessionResource: () => undefined,
-		registerFeedbackResourceScope: () => toDisposable(() => { }),
-		getMostRecentSessionForResource: () => undefined,
-		revealFeedback: async () => { },
-		revealSessionComment: async () => { },
-		getNextFeedback: () => undefined,
-		getNextNavigableItem: () => undefined,
-		setNavigationAnchor: () => { },
-		getNavigationBearing: () => ({ activeIdx: -1, totalCount: 0 }),
-		clearFeedback: () => { },
-		markFeedbackSubmitted: () => { },
-		submitFeedback: async () => false,
-		addFeedbackAndSubmit: async () => { },
-		setFeedbackResolved: async () => { },
-	});
-
-	definePartialInstance(IChatEditingService, {
-		_serviceBrand: undefined,
-		editingSessionsObs: constObservable([]),
-		startOrContinueGlobalEditingSession: () => undefined!,
-		getEditingSession: () => undefined,
-	});
-
-	definePartialInstance(ISessionsManagementService, {
-		_serviceBrand: undefined,
-		getSession: () => undefined,
-		getSessions: () => [],
-	});
-
-	definePartialInstance(ISessionsService, {
-		_serviceBrand: undefined,
-		// The main window's host, which shows no session.
-		gridHost: new SessionHost({
-			kind: SessionHostKind.MainWindow,
-			parent: undefined,
-			session: constObservable(undefined), chat: constObservable(undefined),
-			contextKeyService: () => { throw new Error('The fixture grid host binds no context keys'); },
-			windowId: constObservable(mainWindow.vscodeWindowId),
-		}),
-	});
-
-	// The real cache: it only reads and writes the (null) storage service, and
-	// the changes pill it feeds reads it directly.
-	define(ISessionChangesStatsCache, SessionChangesStatsCache);
-
-	definePartialInstance(ICodeReviewService, {
-		_serviceBrand: undefined,
-		getPRReviewState: () => constObservable({ kind: PRReviewStateKind.None }),
-		resolvePRReviewThread: async () => { },
-		markPRReviewCommentConverted: () => { },
-	});
-
 	definePartialInstance(IPreferencesService, {
 		_serviceBrand: undefined,
 		openSettings: async () => undefined,
 	});
-
 	// Allow additional services to override defaults
 	options?.additionalServices?.({
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -862,17 +740,6 @@ export function createEditorServices(disposables: DisposableStore, options?: Cre
 			serviceIdentifiers.push(id);
 		},
 	});
-
-	// The Agents workbench is its own session host layout, with itself as the docked side pane. Unless a fixture defines
-	// one, resolve the host layout to the fixture's workbench layout service the same way, when it is first used.
-	if (!services.has(ISessionsHostLayoutService)) {
-		services.set(ISessionsHostLayoutService, new Proxy({}, {
-			get: (_target, property) => {
-				const layout = instantiationService.get(IWorkbenchLayoutService);
-				return property === 'sidePane' ? layout : Reflect.get(layout, property);
-			}
-		}) as ISessionsHostLayoutService);
-	}
 
 	// Pass `_properDispose: true` so the underlying `InstantiationService`'s
 	// dispose runs, which disposes services it instantiated lazily from
@@ -902,16 +769,6 @@ export function createEditorServices(disposables: DisposableStore, options?: Cre
  * Use with createEditorServices additionalServices option.
  */
 export function registerWorkbenchServices(registration: ServiceRegistration): void {
-	registration.defineInstance(IManagedSettingsService, new NullManagedSettingsService());
-	const accountPolicyGateService = {
-		_serviceBrand: undefined,
-		gateInfo: { state: AccountPolicyGateState.Inactive },
-		onDidChangeGateInfo: Event.None,
-		async whenInitialized(): Promise<void> { },
-	};
-	registration.defineInstance(IAccountPolicyGateService, accountPolicyGateService);
-	// No chat windows: the command center's session widget asks for one only as the user picks a session
-	registration.definePartialInstance(IChatWindowService, { getWindow: () => undefined });
 	registration.defineInstance(IContextMenuService, {
 		showContextMenu: () => { },
 		onDidShowContextMenu: () => ({ dispose: () => { } }),
@@ -948,23 +805,7 @@ export function registerWorkbenchServices(registration: ServiceRegistration): vo
 	registration.define(IMenuService, TestMenuService);
 	registration.define(IActionViewItemService, NullActionViewItemService);
 
-	// No-op phone presenter so chat-input fixtures don't crash on
-	// `chatPhoneInputPresenter.enabled.get()`. The real impl is in
-	// `vs/sessions` and only attaches in the agents window — desktop
-	// fixtures see the no-op (`enabled === false`, sheet calls resolve
-	// immediately) which matches desktop runtime behavior.
-	registration.defineInstance(IChatPhoneInputPresenter, {
-		_serviceBrand: undefined,
-		enabled: constObservable(false),
-		registerSessionModelPicker: () => ({ dispose: () => { } }),
-		getSessionModelPicker: () => undefined,
-		showCombinedModeAndModelSheet: () => Promise.resolve(),
-		setImpl: () => ({ dispose: () => { } }),
-	});
-
-	// Workspace trust stubs so chat-input fixtures can instantiate the model
-	// picker (ModelPickerWidget reads workspace trust to detect Restricted Mode).
-	// Reports the workspace as trusted so the picker renders normally.
+	// Workspace trust stubs so fixtures can instantiate trust-aware widgets.
 	registration.defineInstance(IWorkspaceTrustManagementService, new class extends mock<IWorkspaceTrustManagementService>() {
 		override onDidChangeTrust = Event.None;
 		override readonly workspaceTrustInitialized = Promise.resolve();
@@ -973,10 +814,6 @@ export function registerWorkbenchServices(registration: ServiceRegistration): vo
 	registration.defineInstance(IWorkspaceTrustRequestService, new class extends mock<IWorkspaceTrustRequestService>() {
 		override async requestWorkspaceTrust() { return true; }
 	}());
-
-	// Chat inputs register themselves as paste targets while rendering; the real
-	// service is a plain registry with no dependencies, so use it directly.
-	registration.defineInstance(IChatPasteTargetService, new ChatPasteTargetService());
 }
 
 

@@ -256,7 +256,6 @@ suite('GitHubRequestTelemetry', () => {
 			{ domain: 'content', resource: 'core' },
 			{ domain: 'search', resource: 'search' },
 			{ domain: 'reviews', resource: 'graphql' },
-			{ domain: 'tasks', resource: 'agents:sandbox' },
 		] as const;
 		for (const request of requests) {
 			telemetry.startQueue(context(request))?.finish('success');

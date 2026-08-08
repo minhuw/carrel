@@ -9,7 +9,6 @@ import { Emitter, Event } from '../../../../../base/common/event.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { mock } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { AGENT_HOST_SCHEME } from '../../../../../platform/agentHost/common/agentHostUri.js';
 import { ICommandService } from '../../../../../platform/commands/common/commands.js';
 import { IDialogService, IPrompt } from '../../../../../platform/dialogs/common/dialogs.js';
 import { ILabelService } from '../../../../../platform/label/common/label.js';
@@ -56,7 +55,7 @@ suite('WorkspaceTrustRequestHandler', () => {
 
 	test('names the remote agent environment and explains the trust scope', async () => {
 		const details = await getResourcesTrustDetails({
-			uri: URI.from({ scheme: AGENT_HOST_SCHEME, authority: 'box', path: '/work/project' }),
+			uri: URI.from({ scheme: 'vscode-remote', authority: 'box', path: '/work/project' }),
 			message: 'Message.',
 			remoteHostLabel: 'Dev `Box`',
 		});
@@ -70,7 +69,7 @@ suite('WorkspaceTrustRequestHandler', () => {
 
 	test('keeps a multiline remote environment name in a single code span', async () => {
 		const details = await getResourcesTrustDetails({
-			uri: URI.from({ scheme: AGENT_HOST_SCHEME, authority: 'box', path: '/work/project' }),
+			uri: URI.from({ scheme: 'vscode-remote', authority: 'box', path: '/work/project' }),
 			message: 'Message.',
 			remoteHostLabel: 'Box\n\n# Safe to trust\r\n\nrest',
 		});
@@ -81,18 +80,6 @@ suite('WorkspaceTrustRequestHandler', () => {
 		]);
 	});
 
-	test('does not claim local trust for an unnamed remote agent host folder', async () => {
-		const details = await getResourcesTrustDetails({
-			uri: URI.from({ scheme: AGENT_HOST_SCHEME, authority: 'box', path: '/work/project' }),
-			message: 'Message.',
-		});
-
-		assert.deepStrictEqual(details.slice(2), [
-			'`/work/project`',
-			'This folder is hosted on a remote agent environment.',
-			'Your decision is saved in Code - OSS on this computer and lets agent sessions read, modify, and run commands in this folder. It does not change any trust settings on the remote environment.',
-		]);
-	});
 
 	test('keeps the local trust note for a local folder', async () => {
 		const details = await getResourcesTrustDetails({

@@ -7,7 +7,6 @@ import { Emitter } from '../../../base/common/event.js';
 import { Disposable, DisposableMap, IDisposable, toDisposable } from '../../../base/common/lifecycle.js';
 import { CDPEvent, CDPTargetInfo, ICDPConnection } from '../common/cdp/types.js';
 import { BrowserView } from './browserView.js';
-import { readBrowserViewAccessibilityTree, type IBrowserViewAccessibilityTree } from './browserViewAccessibility.js';
 
 /**
  * Intercepts a CDP command before it is forwarded to the Electron debugger.
@@ -108,10 +107,6 @@ export class BrowserViewDebugger extends Disposable {
 		return result.targetInfo;
 	}
 
-	async getAccessibilityTree(): Promise<IBrowserViewAccessibilityTree> {
-		this.ensureAttached();
-		return readBrowserViewAccessibilityTree((method, params) => this._electronDebugger.sendCommand(method, params));
-	}
 
 	/**
 	 * Send a CDP command. Handles Electron-specific workarounds in a single place.

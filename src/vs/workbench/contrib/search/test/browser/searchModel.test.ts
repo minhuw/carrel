@@ -4,9 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 import assert from 'assert';
 import * as sinon from 'sinon';
-import * as arrays from '../../../../../base/common/arrays.js';
 import { DeferredPromise, timeout } from '../../../../../base/common/async.js';
 import { CancellationToken, CancellationTokenSource } from '../../../../../base/common/cancellation.js';
+import * as arrays from '../../../../../base/common/arrays.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { Range } from '../../../../../editor/common/core/range.js';
 import { IModelService } from '../../../../../editor/common/services/model.js';
@@ -14,7 +14,7 @@ import { ModelService } from '../../../../../editor/common/services/modelService
 import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
 import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
 import { TestInstantiationService } from '../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
-import { IAITextQuery, IFileMatch, IFileQuery, IFileSearchStats, IFolderQuery, ISearchComplete, ISearchProgressItem, ISearchQuery, ISearchService, ITextQuery, ITextSearchMatch, OneLineRange, QueryType, TextSearchMatch } from '../../../../services/search/common/search.js';
+import { IFileMatch, IFileQuery, IFileSearchStats, IFolderQuery, ISearchComplete, ISearchProgressItem, ISearchQuery, ISearchService, ITextQuery, ITextSearchMatch, OneLineRange, QueryType, TextSearchMatch } from '../../../../services/search/common/search.js';
 import { ITelemetryService } from '../../../../../platform/telemetry/common/telemetry.js';
 import { NullTelemetryService } from '../../../../../platform/telemetry/common/telemetryUtils.js';
 import { SearchModelImpl } from '../../browser/searchTreeModel/searchModel.js';
@@ -123,14 +123,6 @@ suite('SearchModel', () => {
 
 				});
 			},
-			aiTextSearch(query: ISearchQuery, token?: CancellationToken, onProgress?: (result: ISearchProgressItem) => void, notebookURIs?: ResourceSet): Promise<ISearchComplete> {
-				return new Promise(resolve => {
-					queueMicrotask(() => {
-						results.forEach(onProgress!);
-						resolve(complete!);
-					});
-				});
-			},
 			textSearchSplitSyncAsync(query: ITextQuery, token?: CancellationToken | undefined, onProgress?: ((result: ISearchProgressItem) => void) | undefined): { syncResults: ISearchComplete; asyncResults: Promise<ISearchComplete> } {
 				return {
 					syncResults: {
@@ -160,11 +152,6 @@ suite('SearchModel', () => {
 					queueMicrotask(() => {
 						reject(error);
 					});
-				});
-			},
-			aiTextSearch(query: ISearchQuery, token?: CancellationToken, onProgress?: (result: ISearchProgressItem) => void, notebookURIs?: ResourceSet): Promise<ISearchComplete> {
-				return new Promise((resolve, reject) => {
-					reject(error);
 				});
 			},
 			textSearchSplitSyncAsync(query: ITextQuery, token?: CancellationToken | undefined, onProgress?: ((result: ISearchProgressItem) => void) | undefined): { syncResults: ISearchComplete; asyncResults: Promise<ISearchComplete> } {
@@ -201,17 +188,6 @@ suite('SearchModel', () => {
 						// eslint-disable-next-line local/code-no-any-casts
 						resolve(<any>{});
 					});
-				});
-			},
-			aiTextSearch(query: IAITextQuery, token?: CancellationToken, onProgress?: (result: ISearchProgressItem) => void, notebookURIs?: ResourceSet): Promise<ISearchComplete> {
-				const disposable = token?.onCancellationRequested(() => tokenSource.cancel());
-				if (disposable) {
-					store.add(disposable);
-				}
-
-				return Promise.resolve({
-					results: [],
-					messages: []
 				});
 			},
 			textSearchSplitSyncAsync(query: ITextQuery, token?: CancellationToken | undefined, onProgress?: ((result: ISearchProgressItem) => void) | undefined): { syncResults: ISearchComplete; asyncResults: Promise<ISearchComplete> } {
@@ -287,55 +263,34 @@ suite('SearchModel', () => {
 		};
 	}
 
-	test('Search Model: cleared AI folder roots are not disposed again with the model', () => {
-		const model = store.add(instantiationService.createInstance(SearchModelImpl));
-		const heading = model.searchResult.aiTextSearchResult;
-		const disposals: sinon.SinonSpy[] = [];
+	for (const cleanup of ['add', 'clear', 'dispose']) {
+		test(`Search Model: text query replacements retain all roots until ${cleanup}`, () => {
+			const model = store.add(instantiationService.createInstance(SearchModelImpl));
+			const heading = model.searchResult.plainTextSearchResult;
+			const disposals: sinon.SinonSpy[] = [];
 
-		for (let i = 0; i < 3; i++) {
-			heading.query = { contentPattern: 'sample', type: QueryType.aiText, folderQueries };
-			const folder = heading.folderMatches()[0];
-			const dispose = sinon.spy(folder, 'dispose');
-			heading.clear(true);
-			disposals.push(dispose);
-		}
-
-		model.dispose();
-		assert.deepStrictEqual(disposals.map(dispose => dispose.callCount), [1, 1, 1]);
-	});
-
-	for (const ai of [false, true]) {
-		for (const cleanup of ['add', 'clear', 'dispose']) {
-			test(`Search Model: ${ai ? 'AI' : 'text'} query replacements retain all roots until ${cleanup}`, () => {
-				const model = store.add(instantiationService.createInstance(SearchModelImpl));
-				const heading = ai ? model.searchResult.aiTextSearchResult : model.searchResult.plainTextSearchResult;
-				const disposals: sinon.SinonSpy[] = [];
-
-				for (let i = 0; i < 3; i++) {
-					heading.query = ai
-						? { contentPattern: 'sample', type: QueryType.aiText, folderQueries }
-						: { contentPattern: { pattern: 'sample' }, type: QueryType.Text, folderQueries };
-					disposals.push(...heading.folderMatches().map(folder => sinon.spy(folder, 'dispose')));
-					if (i === 0) {
-						heading.add([aRawMatch('/sample', new TextSearchMatch('sample', lineOneRange))], 'initial', true);
-					}
+			for (let i = 0; i < 3; i++) {
+				heading.query = { contentPattern: { pattern: 'sample' }, type: QueryType.Text, folderQueries };
+				disposals.push(...heading.folderMatches().map(folder => sinon.spy(folder, 'dispose')));
+				if (i === 0) {
+					heading.add([aRawMatch('/sample', new TextSearchMatch('sample', lineOneRange))], 'initial', true);
 				}
+			}
 
-				const before = disposals.map(dispose => dispose.callCount);
-				if (cleanup === 'add') {
-					heading.add([], 'replacement', true);
-					heading.add([], 'replacement', true);
-				} else if (cleanup === 'clear') {
-					heading.clear(true);
-				}
-				model.dispose();
+			const before = disposals.map(dispose => dispose.callCount);
+			if (cleanup === 'add') {
+				heading.add([], 'replacement', true);
+				heading.add([], 'replacement', true);
+			} else if (cleanup === 'clear') {
+				heading.clear(true);
+			}
+			model.dispose();
 
-				assert.deepStrictEqual({ before, after: disposals.map(dispose => dispose.callCount) }, {
-					before: disposals.map(() => 0),
-					after: disposals.map(() => 1)
-				});
+			assert.deepStrictEqual({ before, after: disposals.map(dispose => dispose.callCount) }, {
+				before: disposals.map(() => 0),
+				after: disposals.map(() => 1)
 			});
-		}
+		});
 	}
 
 	test('Search Model: Search adds to results', async () => {

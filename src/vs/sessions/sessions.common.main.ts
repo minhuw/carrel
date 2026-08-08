@@ -228,8 +228,6 @@ import '../workbench/contrib/chat/browser/chatSessions/chatSessions.contribution
 import '../workbench/contrib/chat/browser/contextContrib/chatContext.contribution.js';
 import '../workbench/contrib/imageCarousel/browser/imageCarousel.contribution.js';
 
-// Voice Mode (voice UI actions, settings and context keys)
-import '../workbench/contrib/agentsVoice/browser/agentsVoice.contribution.js';
 import './contrib/chat/browser/voiceBridge.contribution.js';
 
 // Interactive
@@ -402,9 +400,6 @@ import '../workbench/contrib/userDataProfile/browser/userDataProfile.contributio
 
 // Continue Edit Session
 import '../workbench/contrib/editSessions/browser/editSessions.contribution.js';
-
-// Remote Coding Agents
-import '../workbench/contrib/remoteCodingAgents/browser/remoteCodingAgents.contribution.js';
 
 // Code Actions
 import '../workbench/contrib/codeActions/browser/codeActions.contribution.js';

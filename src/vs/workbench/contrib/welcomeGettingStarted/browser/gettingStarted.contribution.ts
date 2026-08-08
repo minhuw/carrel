@@ -19,7 +19,6 @@ import { IWalkthroughsService } from './gettingStartedService.js';
 import { GettingStartedEditorOptions, GettingStartedInput } from './gettingStartedInput.js';
 import { registerWorkbenchContribution2, WorkbenchPhase } from '../../../common/contributions.js';
 import { ConfigurationScope, Extensions as ConfigurationExtensions, IConfigurationRegistry } from '../../../../platform/configuration/common/configurationRegistry.js';
-import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { workbenchConfigurationNodeBase } from '../../../common/configuration.js';
 import { CommandsRegistry, ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IQuickInputService, IQuickPickItem } from '../../../../platform/quickinput/common/quickInput.js';
@@ -32,8 +31,6 @@ import { Categories } from '../../../../platform/action/common/actionCommonCateg
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import { AccessibleViewRegistry } from '../../../../platform/accessibility/browser/accessibleViewRegistry.js';
 import { GettingStartedAccessibleView } from './gettingStartedAccessibleView.js';
-import { AgentSessionsWelcomePage } from '../../welcomeAgentSessions/browser/agentSessionsWelcome.js';
-import { IChatEntitlementService } from '../../../services/chat/common/chatEntitlementService.js';
 
 export * as icons from './gettingStartedIcons.js';
 
@@ -62,18 +59,12 @@ registerAction2(class extends Action2 {
 	) {
 		const editorService = accessor.get(IEditorService);
 		const commandService = accessor.get(ICommandService);
-		const configurationService = accessor.get(IConfigurationService);
-		const chatEntitlementService = accessor.get(IChatEntitlementService);
 
 		const toSide = typeof optionsOrToSide === 'object' ? optionsOrToSide.toSide : optionsOrToSide;
 		const inactive = typeof optionsOrToSide === 'object' ? optionsOrToSide.inactive : false;
 		const activeEditor = editorService.activeEditor;
 
-		// If no specific walkthrough is requested and agent sessions welcome is preferred, open that instead
-		if (!walkthroughID && !chatEntitlementService.sentiment.hidden && configurationService.getValue<string>('workbench.startupEditor') === 'agentSessionsWelcomePage') {
-			commandService.executeCommand(AgentSessionsWelcomePage.COMMAND_ID);
-			return;
-		} else {
+		{
 			if (walkthroughID) {
 				const selectedCategory = typeof walkthroughID === 'string' ? walkthroughID : walkthroughID.category;
 				let selectedStep: string | undefined;

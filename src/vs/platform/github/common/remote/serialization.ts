@@ -5,12 +5,10 @@
 
 import { CancellationError, isCancellationError } from '../../../../base/common/errors.js';
 import { parse, SchemaError } from '../client/schema.js';
-import { GitHubGraphQLError, GitHubRequestError, GitHubRequestRateLimitError, GitHubRequestTimeoutError, GitHubResponseMetadata } from '../githubTypes.js';
-import { ApiRequestError, MutationUncertainError, parseApiError } from '../missionControl/missionControlClient.js';
-import { parseCreatedTaskId, parseMissionControlErrorCode } from '../missionControl/missionControlError.js';
 import { parseGitHubRequestId } from '../client/headers.js';
+import { GitHubGraphQLError, GitHubRequestError, GitHubRequestRateLimitError, GitHubRequestTimeoutError, GitHubResponseMetadata } from '../githubTypes.js';
 import { RequestErrorKind } from '../types.js';
-import { ApiResponseMessage, GitHubErrorResponse, parseBodyText, SerializedGitHubError, SerializedMissionControlError, SerializedRequestError } from './ipc.js';
+import { ApiResponseMessage, GitHubErrorResponse, parseBodyText, SerializedGitHubError, SerializedRequestError } from './ipc.js';
 
 const parseErrorKind = parse.oneOf<RequestErrorKind>(
 	'authentication', 'authorization', 'notFound', 'validation', 'schema', 'rateLimit',
@@ -42,17 +40,9 @@ const parseError = {
 	timeout: parse.object({ type: parse.exact('timeout'), requestDispatched: parse.boolean }),
 	rateLimit: parse.object({ type: parse.exact('rateLimit'), retryAfterMs: parse.nonNegativeNumber }),
 	cancelled: parse.object({ type: parse.exact('cancelled') }),
-	missionControl: parse.object({
-		type: parse.exact('missionControl'), statusCode: parse.range(100, 599), kind: parseErrorKind,
-		response: parse.optional(parseApiError), requestId: value => parseGitHubRequestId(typeof value === 'string' ? value : undefined),
-		code: value => parseMissionControlErrorCode(value), limitedResource: value => parseMissionControlErrorCode(value),
-		retryAfterSeconds: parse.optional(parse.nonNegativeNumber), outcome: parse.optional(parse.exact('indeterminate')),
-		createdTaskId: value => parseCreatedTaskId({ id: value }),
-	}),
-	mutationUncertain: parse.object({ type: parse.exact('mutationUncertain'), kind: parseErrorKind, statusCode: parse.optional(parse.range(100, 599)) }),
 };
 
-const parseErrorType = parse.object({ type: parse.oneOf('request', 'timeout', 'rateLimit', 'cancelled', 'missionControl', 'mutationUncertain') });
+const parseErrorType = parse.object({ type: parse.oneOf('request', 'timeout', 'rateLimit', 'cancelled') });
 const parseResponseType = parse.object({ type: parse.oneOf('success', 'error') });
 const parseSuccess = parse.object({
 	type: parse.exact('success'), status: parse.range(100, 599),
@@ -88,13 +78,8 @@ export function parseClientResponse<T>(value: unknown, parser: parse.Parser<T>):
 	return parse.object({ value: parser })(value[0]).value;
 }
 
-export function deserializeGitHubError(error: SerializedGitHubError | SerializedMissionControlError, bodyText: string | undefined): GitHubRequestError | CancellationError {
+export function deserializeGitHubError(error: SerializedGitHubError, bodyText: string | undefined): GitHubRequestError | CancellationError {
 	switch (error.type) {
-		case 'missionControl':
-			return new ApiRequestError(error.statusCode, error.kind, error.response, error.requestId, error.retryAfterSeconds, error.outcome,
-				{ code: error.code, limitedResource: error.limitedResource, requestId: error.requestId }, error.createdTaskId);
-		case 'mutationUncertain':
-			return new MutationUncertainError(error.kind, error.statusCode);
 		case 'cancelled':
 			return new CancellationError();
 		case 'timeout':
@@ -108,19 +93,6 @@ export function deserializeGitHubError(error: SerializedGitHubError | Serialized
 
 /** Preserves known failures in either IPC direction; unexpected failures use ordinary IPC errors. */
 export function serializeGitHubError(error: unknown): GitHubErrorResponse {
-	if (error instanceof ApiRequestError) {
-		return [{
-			type: 'error', error: {
-				type: 'missionControl', statusCode: error.statusCode, kind: error.kind, response: error.response,
-				requestId: error.requestId, retryAfterSeconds: error.retryAfterSeconds, outcome: error.outcome,
-				code: error.code, limitedResource: error.limitedResource,
-				createdTaskId: error.createdTaskId,
-			}
-		}, undefined];
-	}
-	if (error instanceof MutationUncertainError) {
-		return [{ type: 'error', error: { type: 'mutationUncertain', kind: error.kind, statusCode: error.statusCode } }, undefined];
-	}
 	if (isCancellationError(error)) {
 		return [{ type: 'error', error: { type: 'cancelled' } }, undefined];
 	}

@@ -5,6 +5,7 @@
 
 import { mapArrayOrNot } from '../../../../base/common/arrays.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
+import { ResourceSet } from '../../../../base/common/map.js';
 import * as glob from '../../../../base/common/glob.js';
 import { IDisposable } from '../../../../base/common/lifecycle.js';
 import * as objects from '../../../../base/common/objects.js';
@@ -17,9 +18,8 @@ import { ITelemetryData } from '../../../../platform/telemetry/common/telemetry.
 import { Event } from '../../../../base/common/event.js';
 import * as paths from '../../../../base/common/path.js';
 import { isCancellationError } from '../../../../base/common/errors.js';
-import { AISearchKeyword, GlobPattern, TextSearchCompleteMessageType } from './searchExtTypes.js';
+import { GlobPattern, TextSearchCompleteMessageType } from './searchExtTypes.js';
 import { isThenable } from '../../../../base/common/async.js';
-import { ResourceSet } from '../../../../base/common/map.js';
 
 export { TextSearchCompleteMessageType };
 
@@ -45,8 +45,6 @@ export const ISearchService = createDecorator<ISearchService>('searchService');
 export interface ISearchService {
 	readonly _serviceBrand: undefined;
 	textSearch(query: ITextQuery, token?: CancellationToken, onProgress?: (result: ISearchProgressItem) => void): Promise<ISearchComplete>;
-	aiTextSearch(query: IAITextQuery, token?: CancellationToken, onProgress?: (result: ISearchProgressItem) => void): Promise<ISearchComplete>;
-	getAIName(): Promise<string | undefined>;
 	textSearchSplitSyncAsync(query: ITextQuery, token?: CancellationToken | undefined, onProgress?: ((result: ISearchProgressItem) => void) | undefined, notebookFilesToIgnore?: ResourceSet, asyncNotebookFilesToIgnore?: Promise<ResourceSet>): { syncResults: ISearchComplete; asyncResults: Promise<ISearchComplete> };
 	fileSearch(query: IFileQuery, token?: CancellationToken): Promise<ISearchComplete>;
 	schemeHasFileSearchProvider(scheme: string): boolean;
@@ -59,12 +57,10 @@ export interface ISearchService {
  */
 export const enum SearchProviderType {
 	file,
-	text,
-	aiText
+	text
 }
 
 export interface ISearchResultProvider {
-	getAIName(): Promise<string | undefined>;
 	textSearch(query: ITextQuery, onProgress?: (p: ISearchProgressItem) => void, token?: CancellationToken): Promise<ISearchComplete>;
 	fileSearch(query: IFileQuery, token?: CancellationToken): Promise<ISearchComplete>;
 	clearCache(cacheKey: string): Promise<void>;
@@ -136,32 +132,16 @@ export interface ITextQueryProps<U extends UriComponents> extends ICommonQueryPr
 	userDisabledExcludesAndIgnoreFiles?: boolean;
 }
 
-export interface IAITextQueryProps<U extends UriComponents> extends ICommonQueryProps<U> {
-	type: QueryType.aiText;
-	contentPattern: string;
-
-	previewOptions?: ITextSearchPreviewOptions;
-	maxFileSize?: number;
-	surroundingContext?: number;
-
-	userDisabledExcludesAndIgnoreFiles?: boolean;
-}
-
 export type IFileQuery = IFileQueryProps<URI>;
 export type IRawFileQuery = IFileQueryProps<UriComponents>;
 export type ITextQuery = ITextQueryProps<URI>;
 export type IRawTextQuery = ITextQueryProps<UriComponents>;
-export type IAITextQuery = IAITextQueryProps<URI>;
-export type IRawAITextQuery = IAITextQueryProps<UriComponents>;
-
-export type IRawQuery = IRawTextQuery | IRawFileQuery | IRawAITextQuery;
-export type ISearchQuery = ITextQuery | IFileQuery | IAITextQuery;
-export type ITextSearchQuery = ITextQuery | IAITextQuery;
+export type IRawQuery = IRawTextQuery | IRawFileQuery;
+export type ISearchQuery = ITextQuery | IFileQuery;
 
 export const enum QueryType {
 	File = 1,
-	Text = 2,
-	aiText = 3
+	Text = 2
 }
 
 /* __GDPR__FRAGMENT__
@@ -235,14 +215,10 @@ export interface IProgressMessage {
 	message: string;
 }
 
-export type ISearchProgressItem = IFileMatch | IProgressMessage | AISearchKeyword;
+export type ISearchProgressItem = IFileMatch | IProgressMessage;
 
 export function isFileMatch(p: ISearchProgressItem): p is IFileMatch {
 	return !!(<IFileMatch>p).resource;
-}
-
-export function isAIKeyword(p: ISearchProgressItem): p is AISearchKeyword {
-	return !!(<AISearchKeyword>p).keyword;
 }
 
 export function isProgressMessage(p: ISearchProgressItem | ISerializedSearchProgressItem): p is IProgressMessage {
@@ -264,7 +240,6 @@ export interface ISearchCompleteStats {
 export interface ISearchComplete extends ISearchCompleteStats {
 	results: IFileMatch[];
 	exit?: SearchCompletionExitCode;
-	aiKeywords?: AISearchKeyword[];
 }
 
 export const enum SearchCompletionExitCode {
@@ -273,7 +248,7 @@ export const enum SearchCompletionExitCode {
 }
 
 export interface ITextSearchStats {
-	type: 'textSearchProvider' | 'searchProcess' | 'aiTextSearchProvider';
+	type: 'textSearchProvider' | 'searchProcess';
 }
 
 export interface IFileSearchStats {
@@ -425,12 +400,6 @@ export const enum SearchSortOrder {
 	CountAscending = 'countAscending'
 }
 
-export const enum SemanticSearchBehavior {
-	Auto = 'auto',
-	Manual = 'manual',
-	RunOnEmpty = 'runOnEmpty',
-}
-
 export interface ISearchConfigurationProperties {
 	exclude: glob.IExpression;
 	/**
@@ -471,10 +440,6 @@ export interface ISearchConfigurationProperties {
 	defaultViewMode: ViewMode;
 	experimental: {
 		closedNotebookRichContentResults: boolean;
-	};
-	searchView: {
-		semanticSearchBehavior: string;
-		keywordSuggestions: boolean;
 	};
 }
 

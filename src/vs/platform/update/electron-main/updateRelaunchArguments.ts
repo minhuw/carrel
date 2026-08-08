@@ -19,9 +19,6 @@ const RELAUNCH_STRING_ARGUMENTS: readonly (keyof NativeParsedArgs)[] = [
 	'builtin-extensions-dir',
 	'extensions-download-dir',
 	'shared-data-dir',
-	'agents-user-data-dir',
-	'agents-extensions-dir',
-	'agent-plugins-dir',
 	// Localization
 	'locale',
 	// Diagnostics
@@ -85,9 +82,6 @@ const RELAUNCH_PATH_ARGUMENTS: ReadonlySet<keyof NativeParsedArgs> = new Set([
 	'builtin-extensions-dir',
 	'extensions-download-dir',
 	'shared-data-dir',
-	'agents-user-data-dir',
-	'agents-extensions-dir',
-	'agent-plugins-dir',
 	'crash-reporter-directory',
 	'trace-startup-file',
 ]);

@@ -23,9 +23,6 @@ export function getRedactedServerParsedArgs(args: ServerParsedArgs): ServerParse
 	if (typeof redactedArgs['connection-token'] !== 'undefined') {
 		redactedArgs['connection-token'] = '<redacted>';
 	}
-	if (typeof redactedArgs['agent-host-bridge-connection-token'] !== 'undefined') {
-		redactedArgs['agent-host-bridge-connection-token'] = '<redacted>';
-	}
 	return redactedArgs;
 }
 
@@ -98,14 +95,6 @@ export const serverOptions: OptionDescriptions<Required<ServerParsedArgs>> = {
 	'enable-remote-auto-shutdown': { type: 'boolean' },
 	'remote-auto-shutdown-without-delay': { type: 'boolean' },
 	'inspect-ptyhost': { type: 'string', allowEmptyValue: true },
-
-	'agent-host-port': { type: 'string', cat: 'o', args: 'port', description: nls.localize('agent-host-port', "The port the agent host WebSocket server should listen on.") },
-	'agent-host-path': { type: 'string', cat: 'o', args: 'path', description: nls.localize('agent-host-path', "The path to a socket file for the agent host WebSocket server to listen on.") },
-	// Ignored: CLIs pass these for servers that predate agent host discovery through the endpoint registry.
-	'agent-host-bridge-port': { type: 'string' },
-	'agent-host-bridge-path': { type: 'string' },
-	'agent-host-bridge-host': { type: 'string' },
-	'agent-host-bridge-connection-token': { type: 'string' },
 
 	'use-host-proxy': { type: 'boolean' },
 	'without-browser-env-var': { type: 'boolean' },
@@ -237,13 +226,6 @@ export interface ServerParsedArgs {
 	'remote-auto-shutdown-without-delay'?: boolean;
 	'inspect-ptyhost'?: string;
 
-	'agent-host-port'?: string;
-	'agent-host-path'?: string;
-	'agent-host-bridge-port'?: string;
-	'agent-host-bridge-path'?: string;
-	'agent-host-bridge-host'?: string;
-	'agent-host-bridge-connection-token'?: string;
-
 	'use-host-proxy'?: boolean;
 	'without-browser-env-var'?: boolean;
 	'reconnection-grace-time'?: string;
@@ -262,7 +244,6 @@ export const IServerEnvironmentService = refineServiceDecorator<IEnvironmentServ
 
 export interface IServerEnvironmentService extends INativeEnvironmentService {
 	readonly machineSettingsResource: URI;
-	readonly mcpResource: URI;
 	readonly args: ServerParsedArgs;
 	readonly reconnectionGraceTime: number;
 }
@@ -273,7 +254,6 @@ export class ServerEnvironmentService extends NativeEnvironmentService implement
 	@memoize
 	get machineSettingsResource(): URI { return joinPath(URI.file(join(this.userDataPath, 'Machine')), 'settings.json'); }
 	@memoize
-	get mcpResource(): URI { return joinPath(URI.file(join(this.userDataPath, 'User')), 'mcp.json'); }
 	override get args(): ServerParsedArgs { return super.args as ServerParsedArgs; }
 	@memoize
 	get reconnectionGraceTime(): number { return parseGraceTime(this.args['reconnection-grace-time'], ProtocolConstants.ReconnectionGraceTime); }

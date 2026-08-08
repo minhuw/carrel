@@ -11,7 +11,6 @@ import { IChannel } from '../../../../base/parts/ipc/common/ipc.js';
 import { parse } from '../client/schema.js';
 import { normalizeReadApiBaseUri } from '../githubEndpoints.js';
 import { GitHubAuthorizationContext, GitHubClientOptions, GitHubCredentialChange, GitHubRequestError, IGitHubCredentialProvider } from '../githubTypes.js';
-import { MissionControlClient, parseMissionControlOptions } from '../missionControl/missionControlClient.js';
 import { parseAuthorization } from './ipc.js';
 import { parseClientResponse } from './serialization.js';
 
@@ -51,7 +50,6 @@ export class RemoteGitHubCredentialProvider extends Disposable implements IGitHu
 			authorization: resolved,
 			apiBaseUri,
 			graphQlUri,
-			missionControl: MissionControlClient.normalizeOptions(options.missionControl)
 		};
 	}
 
@@ -92,7 +90,6 @@ const parseClientOptions = parse.object<GitHubClientOptions>({
 	authorization: parseAuthorization,
 	apiBaseUri: parse.nonEmptyString,
 	graphQlUri: parse.nonEmptyString,
-	missionControl: parse.optional(parseMissionControlOptions),
 });
 
 const parseCredentialChange = parse.object<GitHubCredentialChange>({

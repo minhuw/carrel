@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { Schemas } from '../../../../../base/common/network.js';
 import { DeferredPromise } from '../../../../../base/common/async.js';
 import { VSBuffer } from '../../../../../base/common/buffer.js';
 import { CancellationTokenSource } from '../../../../../base/common/cancellation.js';
@@ -11,7 +12,6 @@ import { CancellationError } from '../../../../../base/common/errors.js';
 import { dirname, joinPath } from '../../../../../base/common/resources.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { AGENT_HOST_SCHEME, fromAgentHostUri, toAgentHostUri } from '../../../../../platform/agentHost/common/agentHostUri.js';
 import { createFileSystemProviderError, FileSystemProviderErrorCode, FileType } from '../../../../../platform/files/common/files.js';
 import { InMemoryFileSystemProvider } from '../../../../../platform/files/common/inMemoryFilesystemProvider.js';
 import { FileService } from '../../../../../platform/files/common/fileService.js';
@@ -21,11 +21,11 @@ import { FileSystemFileSearchProvider } from '../../common/fileSystemFileSearchP
 
 suite('FileSystemFileSearchProvider', () => {
 	const disposables = ensureNoDisposablesAreLeakedInTestSuite();
-	const root = toAgentHostUri(URI.parse('file:///C:/Users/test/project with spaces'), 'windows-host');
+	const root = URI.from({ scheme: Schemas.vscodeRemote, authority: 'windows-host', path: '/C:/Users/test/project with spaces' });
 
 	async function setup(files: Record<string, string>, provider = disposables.add(new InMemoryFileSystemProvider())) {
 		const fileService = disposables.add(new FileService(new NullLogService()));
-		disposables.add(fileService.registerProvider(AGENT_HOST_SCHEME, provider));
+		disposables.add(fileService.registerProvider(Schemas.vscodeRemote, provider));
 		await fileService.createFolder(root);
 		for (const [path, content] of Object.entries(files)) {
 			const resource = joinPath(root, path);
@@ -42,11 +42,11 @@ suite('FileSystemFileSearchProvider', () => {
 		const result = await search.fileSearch({ ...query, filePattern: 'ahur.ts' });
 
 		assert.deepStrictEqual({
-			files: result.results.map(match => ({ authority: match.resource.authority, original: fromAgentHostUri(match.resource).toString() })),
+			files: result.results.map(match => ({ authority: match.resource.authority, original: match.resource.toString() })),
 			limitHit: result.limitHit,
 			messages: result.messages,
 		}, {
-			files: [{ authority: 'windows-host', original: 'file:///c%3A/Users/test/project%20with%20spaces/src/agentHostUpdateRecovery.ts' }],
+			files: [{ authority: 'windows-host', original: 'vscode-remote://windows-host/c%3A/Users/test/project%20with%20spaces/src/agentHostUpdateRecovery.ts' }],
 			limitHit: false,
 			messages: [],
 		});

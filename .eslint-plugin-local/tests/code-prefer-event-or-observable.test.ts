@@ -120,17 +120,9 @@ suite('code-prefer-event-or-observable configuration', () => {
 
 	test('enforces errors only in migrated areas', async () => {
 		const files = [
-			'src/vs/workbench/api/browser/mainThreadMcp.ts',
 			'src/vs/workbench/api/common/extHostQuickOpen.ts',
-			'src/vs/platform/agentHost/node/claude/claudeAgentSession.ts',
-			'src/vs/platform/agentHost/node/claude/customizations/claudeSessionCustomizationDiscovery.ts',
-			'src/vs/platform/agentHost/node/claude/future/nested/example.ts',
-			'src/vs/platform/agentHost/node/copilot/copilotAgent.ts',
-			'src/vs/platform/agentHost/node/codex/codexAgent.ts',
-			'src/vs/workbench/api/common/extHostMcp.ts',
 			'src/vs/workbench/api/browser/mainThreadAuthentication.ts',
-			'src/vs/workbench/api/test/browser/mainThreadMcp.test.ts',
 		];
-		assert.deepStrictEqual(await severities(files), [['error'], ['error'], ['error'], ['error'], ['error'], undefined, undefined, undefined, undefined, undefined]);
+		assert.deepStrictEqual(await severities(files), [['error'], []]);
 	});
 });

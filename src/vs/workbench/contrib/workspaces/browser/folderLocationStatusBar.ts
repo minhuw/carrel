@@ -3,45 +3,30 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { DisposableResizeObserver, scheduleAtNextAnimationFrame } from '../../../../base/browser/dom.js';
 import { mainWindow } from '../../../../base/browser/window.js';
 import { isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';
 import { CancellationTokenSource } from '../../../../base/common/cancellation.js';
-import { IntervalTimer } from '../../../../base/common/async.js';
 import { Disposable, DisposableStore, MutableDisposable } from '../../../../base/common/lifecycle.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { URI } from '../../../../base/common/uri.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
-import { observableValue } from '../../../../base/common/observable.js';
 import { basename } from '../../../../base/common/resources.js';
 import { localize, localize2 } from '../../../../nls.js';
 import { Action2, registerAction2 } from '../../../../platform/actions/common/actions.js';
 import { IActionWidgetService } from '../../../../platform/actionWidget/browser/actionWidget.js';
 import { ActionListItemKind, IActionListItem } from '../../../../platform/actionWidget/browser/actionList.js';
 import { AnchorPosition } from '../../../../base/common/layout.js';
-import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { ILabelService } from '../../../../platform/label/common/label.js';
 import { ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
 import { IQuickInputService, IQuickPickItem } from '../../../../platform/quickinput/common/quickInput.js';
 import { IUriIdentityService } from '../../../../platform/uriIdentity/common/uriIdentity.js';
 import { IFolderLocation, IWorkspaceFolderLocationService } from '../../../../platform/workspace/common/folderLocations.js';
 import { IWorkspaceContextService } from '../../../../platform/workspace/common/workspace.js';
-import { registerOnboardingTargetProvider, resolveOnboardingTarget } from '../../onboarding/browser/spotlight/onboardingTarget.js';
-import { ISpotlightPayload, ISpotlightStep, SPOTLIGHT_PRESENTATION_KIND } from '../../onboarding/browser/spotlight/spotlightTypes.js';
-import { onboardingScenarioRegistry } from '../../onboarding/common/onboardingRegistry.js';
-import { IOnboardingScenario } from '../../onboarding/common/onboardingScenario.js';
-import { IOnboardingScenarioService } from '../../onboarding/common/onboardingScenarioService.js';
 import { IWorkbenchContribution } from '../../../common/contributions.js';
-import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser/layoutService.js';
 import { IStatusbarEntryAccessor, IStatusbarService, StatusbarAlignment } from '../../../services/statusbar/browser/statusbar.js';
 import { IWorkspaceEditingService } from '../../../services/workspaces/common/workspaceEditing.js';
 
-const FOLDER_LOCATION_INTRODUCTION_ID = 'workbench.folderLocation.introduction';
-const FOLDER_LOCATION_INTRODUCTION_TARGET_ID = 'workbench.folderLocation.statusEntry';
 const FOLDER_LOCATION_STATUS_ENTRY_ID = 'status.workspace.folderLocation';
-
-/** Coarse fallback for state without a change event (the onboarding service has none for "shown"). */
-const FOLDER_LOCATION_INTRODUCTION_POLL_INTERVAL = 2000;
 
 /** Just above the SCM entries (left priority 10000) and below the remote indicator (Number.MAX_VALUE). */
 const FOLDER_LOCATION_STATUS_ENTRY_PRIORITY = 10000.1;
@@ -75,74 +60,18 @@ export class FolderLocationStatusBarContribution extends Disposable implements I
 	static readonly ID = 'workbench.contrib.folderLocationStatusBar';
 
 	private readonly entry = this._register(new MutableDisposable<IStatusbarEntryAccessor>());
-	private readonly introductionReady = observableValue<boolean>(this, false);
-	private readonly introductionObservation = this._register(new MutableDisposable<DisposableStore>());
-	private primaryName: string | undefined;
 
 	constructor(
 		@IWorkspaceFolderLocationService private readonly folderLocationService: IWorkspaceFolderLocationService,
 		@IWorkspaceContextService private readonly contextService: IWorkspaceContextService,
 		@ILabelService private readonly labelService: ILabelService,
 		@IStatusbarService private readonly statusbarService: IStatusbarService,
-		@IWorkbenchLayoutService private readonly layoutService: IWorkbenchLayoutService,
-		@ICommandService private readonly commandService: ICommandService,
-		@IOnboardingScenarioService private readonly onboardingService: IOnboardingScenarioService
 	) {
 		super();
-
-		this.registerIntroduction();
 
 		this._register(this.folderLocationService.onDidChangeLocation(() => this.update()));
 		this._register(this.contextService.onDidChangeWorkspaceFolders(() => this.update()));
 		this.update();
-	}
-
-	/**
-	 * Introduces the status bar entry the first time the folder is at an alternate location,
-	 * with a spotlight anchored on the entry. The onboarding engine shows it once, announces it and
-	 * dismisses it with Escape.
-	 */
-	private registerIntroduction(): void {
-		this._register(registerOnboardingTargetProvider(FOLDER_LOCATION_INTRODUCTION_TARGET_ID, scope => {
-			// The status bar names each item element after its entry id, but does not expose the element otherwise.
-			// eslint-disable-next-line eslint-js/no-restricted-syntax -- see above
-			const element = scope === undefined ? mainWindow.document.getElementById(FOLDER_LOCATION_STATUS_ENTRY_ID) : null;
-			return element ? { element } : undefined;
-		}));
-
-		const scenario: IOnboardingScenario<ISpotlightPayload> = {
-			id: FOLDER_LOCATION_INTRODUCTION_ID,
-			trigger: { kind: 'observable', signal: this.introductionReady },
-			presentation: {
-				kind: SPOTLIGHT_PRESENTATION_KIND,
-				payload: {
-					steps: [],
-					resolveSteps: async () => [this.createIntroductionStep()]
-				}
-			}
-		};
-		this._register(onboardingScenarioRegistry.register(scenario));
-	}
-
-	private createIntroductionStep(): ISpotlightStep {
-		const primaryName = this.primaryName ?? '';
-		const folder = this.contextService.getWorkspace().folders[0];
-		const locationText = (folder && this.labelService.getFolderLocationLabel(folder.uri)) ?? '';
-		return {
-			id: 'folderLocation',
-			targetId: FOLDER_LOCATION_INTRODUCTION_TARGET_ID,
-			title: localize('folderLocationIntroductionTitle', "Folder Location"),
-			description: localize('folderLocationSwitched', "The folder is now at the location '{0}'. Files, search, terminals and extensions use this location.", locationText),
-			primaryAction: {
-				label: localize('returnToPrimaryNamed', "Return to {0}", primaryName),
-				run: () => this.commandService.executeCommand(RETURN_TO_PRIMARY_FOLDER_LOCATION_COMMAND_ID),
-				advance: true
-			},
-			endTourLabel: localize('gotIt', "Got It"),
-			focusEndTour: true,
-			placement: 'above',
-			missingTarget: { kind: 'abort' }
-		};
 	}
 
 	private update(): void {
@@ -152,14 +81,10 @@ export class FolderLocationStatusBarContribution extends Disposable implements I
 		const identity = workspace.uri;
 		if (!folder || !location || !identity) {
 			this.entry.clear();
-			this.introductionReady.set(false, undefined);
-			this.introductionObservation.clear();
-			this.primaryName = undefined;
 			return;
 		}
 
 		const primaryName = basename(identity);
-		this.primaryName = primaryName;
 		const props = {
 			name: localize('folderLocation', "Folder Location"),
 			text: `$(${location.icon?.id ?? Codicon.gitBranchCheckout.id}) ${location.label}`,
@@ -173,55 +98,9 @@ export class FolderLocationStatusBarContribution extends Disposable implements I
 			this.entry.value.update(props);
 		} else {
 			this.entry.value = this.statusbarService.addEntry(props, FOLDER_LOCATION_STATUS_ENTRY_ID, StatusbarAlignment.LEFT, FOLDER_LOCATION_STATUS_ENTRY_PRIORITY);
-			if (!this.onboardingService.hasBeenShown(FOLDER_LOCATION_INTRODUCTION_ID)) {
-				this.observeIntroductionTarget();
-			}
 		}
 	}
 
-	/**
-	 * The introduction is ready only while the entry is rendered and visible, because
-	 * the onboarding engine marks a scenario as seen before it resolves its target.
-	 * Readiness is re-evaluated, once per frame, when something that can change it happens (the
-	 * status bar resizes or changes visibility, the entry hides or shows) until the introduction
-	 * is shown or consumed. The onboarding service has no event for that, so a coarse timer,
-	 * paused while the window is hidden, notices it. Nothing runs while idle.
-	 */
-	private observeIntroductionTarget(): void {
-		const store = new DisposableStore();
-		const frame = store.add(new MutableDisposable());
-		const check = () => {
-			if (this.onboardingService.hasBeenShown(FOLDER_LOCATION_INTRODUCTION_ID)) {
-				this.introductionObservation.clear();
-				return;
-			}
-			this.introductionReady.set(!!resolveOnboardingTarget(mainWindow, FOLDER_LOCATION_INTRODUCTION_TARGET_ID), undefined);
-		};
-		const scheduleCheck = () => {
-			if (!frame.value) {
-				frame.value = scheduleAtNextAnimationFrame(mainWindow, () => {
-					frame.clear();
-					check();
-				});
-			}
-		};
-
-		const container = this.layoutService.getContainer(mainWindow, Parts.STATUSBAR_PART);
-		if (container) {
-			const resizeObserver = store.add(new DisposableResizeObserver('folderLocationIntroduction', scheduleCheck));
-			store.add(resizeObserver.observe(container));
-		}
-		store.add(this.statusbarService.onDidChangeEntryVisibility(e => e.id === FOLDER_LOCATION_STATUS_ENTRY_ID && scheduleCheck()));
-		store.add(this.layoutService.onDidChangePartVisibility(e => e.partId === Parts.STATUSBAR_PART && scheduleCheck()));
-		store.add(new IntervalTimer()).cancelAndSet(() => {
-			if (!mainWindow.document.hidden) {
-				scheduleCheck();
-			}
-		}, FOLDER_LOCATION_INTRODUCTION_POLL_INTERVAL);
-
-		scheduleCheck();
-		this.introductionObservation.value = store;
-	}
 }
 
 registerAction2(class ReturnToPrimaryFolderLocationAction extends Action2 {

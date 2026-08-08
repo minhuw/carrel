@@ -19,7 +19,7 @@ import { IOpenerService } from '../../../../platform/opener/common/opener.js';
 import { ITelemetryService } from '../../../../platform/telemetry/common/telemetry.js';
 import { IInstantiationService, ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
 import { IExtensionService } from '../../../services/extensions/common/extensions.js';
-import { IExtensionsNotification, IExtensionsWorkbenchService, IExtensionsViewPaneContainer, VIEWLET_ID, CloseExtensionDetailsOnViewChangeKey, INSTALL_EXTENSION_FROM_VSIX_COMMAND_ID, WORKSPACE_RECOMMENDATIONS_VIEW_ID, AutoCheckUpdatesConfigurationKey, OUTDATED_EXTENSIONS_VIEW_ID, CONTEXT_HAS_GALLERY, extensionsSearchActionsMenu, AutoRestartConfigurationKey, ExtensionRuntimeActionType, SearchMcpServersContext, SearchAgentPluginsContext, DefaultViewsContext, CONTEXT_EXTENSIONS_GALLERY_STATUS } from '../common/extensions.js';
+import { IExtensionsWorkbenchService, IExtensionsViewPaneContainer, VIEWLET_ID, CloseExtensionDetailsOnViewChangeKey, INSTALL_EXTENSION_FROM_VSIX_COMMAND_ID, WORKSPACE_RECOMMENDATIONS_VIEW_ID, AutoCheckUpdatesConfigurationKey, OUTDATED_EXTENSIONS_VIEW_ID, CONTEXT_HAS_GALLERY, extensionsSearchActionsMenu, AutoRestartConfigurationKey, ExtensionRuntimeActionType, DefaultViewsContext, CONTEXT_EXTENSIONS_GALLERY_STATUS } from '../common/extensions.js';
 import { InstallLocalExtensionsInRemoteAction, InstallRemoteExtensionsInLocalAction } from './extensionsActions.js';
 import { IExtensionManagementService, ILocalExtension } from '../../../../platform/extensionManagement/common/extensionManagement.js';
 import { IWorkbenchExtensionEnablementService, IExtensionManagementServerService, IExtensionManagementServer } from '../../../services/extensionManagement/common/extensionManagement.js';
@@ -71,9 +71,6 @@ import { StandardKeyboardEvent } from '../../../../base/browser/keyboardEvent.js
 import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { IExtensionGalleryManifest, IExtensionGalleryManifestService, ExtensionGalleryManifestStatus } from '../../../../platform/extensionManagement/common/extensionGalleryManifest.js';
 import { URI } from '../../../../base/common/uri.js';
-import { CustomizationMarketplaceConfiguration } from '../../../../platform/customizationMarketplace/common/customizationMarketplaceSources.js';
-import { IChatEntitlementService } from '../../../services/chat/common/chatEntitlementService.js';
-import { McpCommandIds } from '../../mcp/common/mcpCommandIds.js';
 
 export const ExtensionsSortByContext = new RawContextKey<string>('extensionsSortByValue', '');
 export const SearchMarketplaceExtensionsContext = new RawContextKey<boolean>('searchMarketplaceExtensions', false);
@@ -150,10 +147,7 @@ export class ExtensionsViewletViewsContribution extends Disposable implements IW
 				ContextKeyExpr.or(
 					ContextKeyExpr.has('searchMarketplaceExtensions'), ContextKeyExpr.and(DefaultViewsContext)
 				),
-				ContextKeyExpr.or(
-					CONTEXT_EXTENSIONS_GALLERY_STATUS.isEqualTo(ExtensionGalleryManifestStatus.RequiresSignIn),
-					CONTEXT_EXTENSIONS_GALLERY_STATUS.isEqualTo(ExtensionGalleryManifestStatus.AccessDenied)
-				)
+				CONTEXT_EXTENSIONS_GALLERY_STATUS.isEqualTo(ExtensionGalleryManifestStatus.AccessDenied)
 			),
 			order: -1,
 		});
@@ -161,12 +155,6 @@ export class ExtensionsViewletViewsContribution extends Disposable implements IW
 		const viewRegistry = Registry.as<IViewsRegistry>(Extensions.ViewsRegistry);
 		viewRegistry.registerViews(viewDescriptors, this.container);
 
-		viewRegistry.registerViewWelcomeContent('workbench.views.extensions.marketplaceAccess', {
-			content: localize('sign in', "[Sign in to access Extensions Marketplace]({0})", `command:workbench.extensions.actions.gallery.signIn`),
-			when: CONTEXT_EXTENSIONS_GALLERY_STATUS.isEqualTo(ExtensionGalleryManifestStatus.RequiresSignIn)
-		});
-
-		// Access denied applies to every provider (microsoft/github/default), so gate on status alone.
 		viewRegistry.registerViewWelcomeContent('workbench.views.extensions.marketplaceAccess', {
 			content: localize('access denied', "Your account does not have access to the Extensions Marketplace. Please contact your administrator."),
 			when: CONTEXT_EXTENSIONS_GALLERY_STATUS.isEqualTo(ExtensionGalleryManifestStatus.AccessDenied)
@@ -531,8 +519,6 @@ export class ExtensionsViewPaneContainer extends ViewPaneContainer<IExtensionsVi
 	private readonly defaultViewsContextKey: IContextKey<boolean>;
 	private readonly sortByContextKey: IContextKey<string>;
 	private readonly searchMarketplaceExtensionsContextKey: IContextKey<boolean>;
-	private readonly searchMcpServersContextKey: IContextKey<boolean>;
-	private readonly searchAgentPluginsContextKey: IContextKey<boolean>;
 	private readonly searchHasTextContextKey: IContextKey<boolean>;
 	private readonly sortByUpdateDateContextKey: IContextKey<boolean>;
 	private readonly installedExtensionsContextKey: IContextKey<boolean>;
@@ -557,7 +543,6 @@ export class ExtensionsViewPaneContainer extends ViewPaneContainer<IExtensionsVi
 	private notificationContainer: HTMLElement | undefined;
 	private readonly searchViewletState: IExtensionsViewletState;
 	private extensionGalleryManifest: IExtensionGalleryManifest | null = null;
-	private mcpSearchNotificationDismissed = false;
 
 	constructor(
 		@IWorkbenchLayoutService layoutService: IWorkbenchLayoutService,
@@ -582,7 +567,6 @@ export class ExtensionsViewPaneContainer extends ViewPaneContainer<IExtensionsVi
 		@ICommandService private readonly commandService: ICommandService,
 		@ILogService logService: ILogService,
 		@IOpenerService private readonly openerService: IOpenerService,
-		@IChatEntitlementService private readonly chatEntitlementService: IChatEntitlementService,
 	) {
 		super(VIEWLET_ID, { mergeViewWithContainerWhenSingleView: true }, instantiationService, configurationService, layoutService, contextMenuService, telemetryService, extensionService, themeService, storageService, contextService, viewDescriptorService, logService);
 
@@ -591,8 +575,6 @@ export class ExtensionsViewPaneContainer extends ViewPaneContainer<IExtensionsVi
 		this.defaultViewsContextKey = DefaultViewsContext.bindTo(contextKeyService);
 		this.sortByContextKey = ExtensionsSortByContext.bindTo(contextKeyService);
 		this.searchMarketplaceExtensionsContextKey = SearchMarketplaceExtensionsContext.bindTo(contextKeyService);
-		this.searchMcpServersContextKey = SearchMcpServersContext.bindTo(contextKeyService);
-		this.searchAgentPluginsContextKey = SearchAgentPluginsContext.bindTo(contextKeyService);
 		this.searchHasTextContextKey = SearchHasTextContext.bindTo(contextKeyService);
 		this.sortByUpdateDateContextKey = SortByUpdateDateContext.bindTo(contextKeyService);
 		this.installedExtensionsContextKey = InstalledExtensionsContext.bindTo(contextKeyService);
@@ -611,12 +593,6 @@ export class ExtensionsViewPaneContainer extends ViewPaneContainer<IExtensionsVi
 		this.recommendedExtensionsContextKey = RecommendedExtensionsContext.bindTo(contextKeyService);
 		this._register(this.paneCompositeService.onDidPaneCompositeOpen(e => { if (e.viewContainerLocation === ViewContainerLocation.Sidebar) { this.onViewletOpen(e.composite); } }, this));
 		this._register(extensionsWorkbenchService.onReset(() => this.refresh()));
-		this._register(configurationService.onDidChangeConfiguration(e => {
-			if (e.affectsConfiguration(CustomizationMarketplaceConfiguration.MarketplaceEnabled)) {
-				this.renderNotificaiton();
-			}
-		}));
-		this._register(this.chatEntitlementService.onDidChangeSentiment(() => this.renderNotificaiton()));
 		this.searchViewletState = this.getMemento(StorageScope.WORKSPACE, StorageTarget.MACHINE);
 
 		extensionGalleryManifestService.getExtensionGalleryManifest()
@@ -786,15 +762,11 @@ export class ExtensionsViewPaneContainer extends ViewPaneContainer<IExtensionsVi
 
 		clearNode(this.notificationContainer);
 		this.notificationDisposables.value = new DisposableStore();
-		const isMcpSearchNotificationEligible = this.isMcpSearchNotificationEligible();
-		if (!isMcpSearchNotificationEligible) {
-			this.mcpSearchNotificationDismissed = false;
-		}
 
 		const extensionsStatus = this.extensionsWorkbenchService.getExtensionsNotification();
 		const extensionsStatusQuery = extensionsStatus?.query ?? extensionsStatus?.extensions.map(extension => `@id:${extension.identifier.id}`).join(' ');
 		const isExtensionsStatusRelevant = extensionsStatus && (extensionsStatusQuery === this.searchBox?.getValue() || !this.searchMarketplaceExtensionsContextKey.get());
-		const status = isExtensionsStatusRelevant ? extensionsStatus : this.getMcpSearchNotification(isMcpSearchNotificationEligible);
+		const status = isExtensionsStatusRelevant ? extensionsStatus : undefined;
 		const query = status === extensionsStatus ? extensionsStatusQuery : undefined;
 		if (status) {
 			const messagePlainText = isMarkdownString(status.message) ? renderAsPlaintext(status.message) : status.message;
@@ -873,34 +845,6 @@ export class ExtensionsViewPaneContainer extends ViewPaneContainer<IExtensionsVi
 		}
 	}
 
-	private isMcpSearchNotificationEligible(): boolean {
-		return this.searchMarketplaceExtensionsContextKey.get() === true
-			&& Query.parse(this.searchBox?.getValue() ?? '').containsMcpTerm()
-			&& this.configurationService.getValue<boolean>(CustomizationMarketplaceConfiguration.MarketplaceEnabled) === true
-			&& !this.chatEntitlementService.sentiment.hidden
-			&& !this.chatEntitlementService.sentiment.disabledInWorkspace;
-	}
-
-	private getMcpSearchNotification(isEligible: boolean): IExtensionsNotification | undefined {
-		if (!isEligible || this.mcpSearchNotificationDismissed) {
-			return undefined;
-		}
-
-		return {
-			message: localize('mcpSearchNotification', "Showing extension results containing 'mcp'. Browse and install MCP servers from the Customizations marketplace."),
-			severity: Severity.Info,
-			extensions: [],
-			action: {
-				label: localize('browseMcpServers', "Browse MCP Servers"),
-				run: () => this.commandService.executeCommand(McpCommandIds.Browse)
-			},
-			dismiss: () => {
-				this.mcpSearchNotificationDismissed = true;
-				this.renderNotificaiton();
-			}
-		};
-	}
-
 	private async updateInstalledExtensionsContexts(): Promise<void> {
 		const result = await this.extensionsWorkbenchService.queryLocal();
 		this.hasInstalledExtensionsContextKey.set(result.some(r => !r.isBuiltin));
@@ -951,9 +895,7 @@ export class ExtensionsViewPaneContainer extends ViewPaneContainer<IExtensionsVi
 			this.searchRestartRequiredExtensionsContextKey.set(ExtensionsListView.isRestartRequiredQuery(value));
 			this.builtInExtensionsContextKey.set(ExtensionsListView.isBuiltInExtensionsQuery(value));
 			this.recommendedExtensionsContextKey.set(isRecommendedExtensionsQuery);
-			this.searchMcpServersContextKey.set(!!value && /@mcp\s?.*/i.test(value));
-			this.searchAgentPluginsContextKey.set(!!value && /@agentPlugins\s?.*/i.test(value));
-			this.searchMarketplaceExtensionsContextKey.set(!!value && !ExtensionsListView.isLocalExtensionsQuery(value) && !isRecommendedExtensionsQuery && !this.searchMcpServersContextKey.get() && !this.searchAgentPluginsContextKey.get());
+			this.searchMarketplaceExtensionsContextKey.set(!!value && !ExtensionsListView.isLocalExtensionsQuery(value) && !isRecommendedExtensionsQuery);
 			this.sortByUpdateDateContextKey.set(ExtensionsListView.isSortUpdateDateQuery(value));
 			this.defaultViewsContextKey.set(!value || ExtensionsListView.isSortInstalledExtensionsQuery(value));
 		});

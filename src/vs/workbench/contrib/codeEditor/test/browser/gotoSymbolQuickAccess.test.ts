@@ -20,7 +20,6 @@ import { EditorInput } from '../../../../common/editor/editorInput.js';
 import { IEditorGroupsService } from '../../../../services/editor/common/editorGroupsService.js';
 import { IEditorService, PreferredGroup, SIDE_GROUP } from '../../../../services/editor/common/editorService.js';
 import { IOutlineService } from '../../../../services/outline/browser/outline.js';
-import { IChatWidgetService } from '../../../chat/browser/chat.js';
 import { GotoSymbolQuickAccessProvider } from '../../browser/quickaccess/gotoSymbolQuickAccess.js';
 
 class TestGotoSymbolQuickAccessProvider extends GotoSymbolQuickAccessProvider {
@@ -65,7 +64,6 @@ suite('GotoSymbolQuickAccessProvider', () => {
 			new class extends mock<ILanguageFeaturesService>() { },
 			new class extends mock<IOutlineService>() { },
 			new class extends mock<IOutlineModelService>() { },
-			new class extends mock<IChatWidgetService>() { },
 			editorGroupService,
 		);
 

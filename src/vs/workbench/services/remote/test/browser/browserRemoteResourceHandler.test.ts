@@ -7,11 +7,10 @@ import assert from 'assert';
 import { DeferredPromise } from '../../../../../base/common/async.js';
 import { VSBuffer } from '../../../../../base/common/buffer.js';
 import { Emitter } from '../../../../../base/common/event.js';
-import { FileAccess } from '../../../../../base/common/network.js';
+import { FileAccess, Schemas } from '../../../../../base/common/network.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { mock } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { AGENT_HOST_SCHEME, toAgentHostUri } from '../../../../../platform/agentHost/common/agentHostUri.js';
 import { BrowserResourceService } from '../../../../../platform/files/browser/browserResourceService.js';
 import { createFileSystemProviderError, FileOperationError, FileOperationResult, FileSystemProviderErrorCode, IFileContent, IFileService } from '../../../../../platform/files/common/files.js';
 import { IRemoteResourceRequest } from '../../../../browser/web.api.js';
@@ -38,7 +37,7 @@ suite('BrowserRemoteResourceLoader', () => {
 		const browserResources = store.add(new BrowserResourceService((id, resource) => URI.from({
 			scheme: 'https', authority: 'workbench.test', path: '/resource', query: new URLSearchParams({ resourceId: id }).toString(), fragment: resource.fragment,
 		}), fileService));
-		store.add(browserResources.registerScheme(AGENT_HOST_SCHEME));
+		store.add(browserResources.registerScheme(Schemas.vscodeRemote));
 		store.add(new BrowserRemoteResourceLoader({ path: '/resource', onDidReceiveRequest: requests.event }, fileService, browserResources));
 
 		async function request(uri: URI) {
@@ -50,19 +49,6 @@ suite('BrowserRemoteResourceLoader', () => {
 		}
 		return { reads, request };
 	}
-
-	test('loads Agent Host resources using their full original identity', async () => {
-		const { reads, request } = createLoader();
-		const resource = toAgentHostUri(URI.parse('file:///project/my%20image.png?version=2#fragment'), 'sandbox');
-		const browserUri = FileAccess.uriToBrowserUri(resource);
-		const response = await request(browserUri);
-		const rejected = await request(browserUri.with({ query: 'resourceId=forged&scheme=file' }));
-		assert.deepStrictEqual({ response, rejected, reads: reads.map(uri => uri.toString()) }, {
-			response: { status: 200, text: 'image', headers: { 'content-type': 'image/png' } },
-			rejected: { status: 404, text: '', headers: {} },
-			reads: [resource.toString()],
-		});
-	});
 
 	test('preserves existing embedder remote-resource requests', async () => {
 		const { reads, request } = createLoader();
@@ -81,7 +67,7 @@ suite('BrowserRemoteResourceLoader', () => {
 	]) {
 		test(`returns a resource failure without reporting a product error: ${error.message}`, async () => {
 			const { request } = createLoader(error);
-			const resource = toAgentHostUri(URI.file('/project/image.png'), 'sandbox');
+			const resource = URI.from({ scheme: Schemas.vscodeRemote, authority: 'ssh-remote+sandbox', path: '/project/image.png' });
 			const response = await request(FileAccess.uriToBrowserUri(resource));
 			assert.deepStrictEqual(response, { status, text: error.message, headers: {} });
 		});

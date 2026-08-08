@@ -132,7 +132,7 @@ function createManagedConnectFn(targetPort: number, onSocket?: (socket: ManagedT
 
 /**
  * Present a raw `net.Socket` as a pull-based {@link ITunnelByteStream} (the
- * shape of an agent host TCP connection): data is only read from the socket
+ * shape of a raw TCP connection): data is only read from the socket
  * when the consumer asks for it.
  */
 function pullByteStream(socket: import('net').Socket): ITunnelByteStream {
@@ -754,7 +754,7 @@ suite('TunnelProxy', () => {
 		// the proxy's side has already emitted its 'close'.
 		proxy.dispose();
 		await clientClosed;
-		// Half-open like an agent host stream: ending it leaves its incoming side open, so only destroying it closes it.
+		// Half-open like a raw TCP stream: ending it leaves its incoming side open, so only destroying it closes it.
 		const tunnel = new stream.Duplex({ allowHalfOpen: true, read() { }, write: (_chunk, _encoding, callback) => callback() });
 		const destroyed = new Promise<boolean>(resolve => tunnel.once('close', () => resolve(true)));
 		connected.complete({ stream: tunnel, leftover: VSBuffer.alloc(0) });

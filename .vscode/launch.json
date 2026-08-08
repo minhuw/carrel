@@ -20,8 +20,7 @@
 			"port": 5870,
 			"outFiles": [
 				"${workspaceFolder}/out/**/*.js",
-				"${workspaceFolder}/extensions/*/out/**/*.js",
-				"${workspaceFolder}/extensions/copilot/dist/**/*.js"
+				"${workspaceFolder}/extensions/*/out/**/*.js"
 			]
 		},
 		{
@@ -393,21 +392,6 @@
 			"windows": {
 				"runtimeExecutable": "${workspaceFolder}/scripts/code-server.bat",
 			},
-			"outFiles": [
-				"${workspaceFolder}/out/**/*.js"
-			],
-			"presentation": {
-				"group": "0_vscode",
-				"order": 2
-			}
-		},
-		{
-			"type": "node",
-			"request": "launch",
-			"name": "VS Code Agent Host",
-			"outputCapture": "std",
-			"program": "./scripts/code-agent-host.js",
-			"args": ["--port", "7777", "--without-connection-token"],
 			"outFiles": [
 				"${workspaceFolder}/out/**/*.js"
 			],

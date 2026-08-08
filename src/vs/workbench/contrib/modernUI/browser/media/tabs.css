@@ -771,7 +771,6 @@
 	border-radius: var(--vscode-cornerRadius-circle);
 }
 
-/* Agents paints thumbs with a pseudo-element; tab thumbs use the full track in both hosts. */
 .modern-ui-tabs .part.editor .tabs-and-actions-container > .monaco-scrollable-element > .scrollbar.horizontal > .slider::before {
 	inset: 0;
 }

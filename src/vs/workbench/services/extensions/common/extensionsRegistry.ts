@@ -395,11 +395,6 @@ export const schema: IJSONSchema = {
 						description: nls.localize('vscode.extension.activationEvents.onChatParticipant', 'An activation event emitted when the specified chat participant is invoked.'),
 					},
 					{
-						label: 'onChatArtifactIntegration',
-						body: 'onChatArtifactIntegration',
-						description: nls.localize('vscode.extension.activationEvents.onChatArtifactIntegration', 'An activation event emitted when recorded chat artifacts are observed or an agent host that can use artifact integrations connects.'),
-					},
-					{
 						label: 'onChatContextProvider',
 						body: 'onChatContextProvider:${1:contextProviderId}',
 						description: nls.localize('vscode.extension.activationEvents.onChatContextProvider', 'An activation event emitted when the specified chat context provider is invoked.'),
@@ -423,11 +418,6 @@ export const schema: IJSONSchema = {
 						label: 'onTerminalShellIntegration',
 						body: 'onTerminalShellIntegration:${1:shellType}',
 						description: nls.localize('vscode.extension.activationEvents.onTerminalShellIntegration', 'An activation event emitted when terminal shell integration is activated for the given shell type.'),
-					},
-					{
-						label: 'onMcpCollection',
-						description: nls.localize('vscode.extension.activationEvents.onMcpCollection', 'An activation event emitted whenever a tool from the MCP server is requested.'),
-						body: 'onMcpCollection:${2:collectionId}',
 					},
 					{
 						label: '*',
@@ -590,20 +580,6 @@ export const schema: IJSONSchema = {
 						description: {
 							type: 'string',
 							markdownDescription: nls.localize('vscode.extension.capabilities.untrustedWorkspaces.description', "A description of how workspace trust affects the extensions behavior and why it is needed. This only applies when `supported` is not `true`."),
-						}
-					}
-				},
-				agentsWindow: {
-					description: nls.localize('vscode.extension.capabilities.agentsWindow', "Declares whether the extension should be enabled in the Agents window."),
-					type: 'object',
-					required: ['supported'],
-					defaultSnippets: [
-						{ body: { supported: true } },
-					],
-					properties: {
-						supported: {
-							markdownDescription: nls.localize('vscode.extension.capabilities.agentsWindow.supported', "Declares whether the extension supports running in the Agents window."),
-							type: 'boolean'
 						}
 					}
 				}

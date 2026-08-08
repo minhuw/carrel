@@ -328,7 +328,6 @@ suite('ConfigurationRegistry', () => {
 			'type': 'object',
 			'properties': {
 				'restore.overridden': { 'type': 'boolean', 'default': false },
-				'restore.hiddenMirrored': { 'type': 'string', 'default': '', 'included': false, 'agentHost': { key: 'restore.hiddenMirrored' } },
 				'restore.hiddenExperiment': { 'type': 'boolean', 'default': false, 'included': false, 'experiment': { mode: 'auto' } },
 			}
 		};
@@ -336,7 +335,6 @@ suite('ConfigurationRegistry', () => {
 		configurationRegistry.registerDefaultConfigurations([{ overrides: { 'restore.overridden': true } }]);
 		const state = () => ({
 			overriddenDefault: configurationRegistry.getConfigurationProperties()['restore.overridden']?.default,
-			hiddenMirrored: configurationRegistry.getAgentHostSyncConfigurations().get('restore.hiddenMirrored'),
 			hiddenExperiment: configurationRegistry.getExcludedConfigurationProperties()['restore.hiddenExperiment']?.experiment,
 		});
 		const registered = state();
@@ -350,14 +348,14 @@ suite('ConfigurationRegistry', () => {
 		configurationRegistry.deregisterConfigurations([node]);
 		const withoutNode = state();
 
-		const hidden = { hiddenMirrored: { key: 'restore.hiddenMirrored' }, hiddenExperiment: { mode: 'auto' } };
+		const hidden = { hiddenExperiment: { mode: 'auto' } };
 		assert.deepStrictEqual({ registered, restored, withoutOverride, withoutNode }, {
 			registered: { overriddenDefault: true, ...hidden },
 			restored: { overriddenDefault: true, ...hidden },
 			// The declared default, not the overridden one
 			withoutOverride: { overriddenDefault: false, ...hidden },
 			// The hidden settings belong to their node again
-			withoutNode: { overriddenDefault: undefined, hiddenMirrored: undefined, hiddenExperiment: undefined },
+			withoutNode: { overriddenDefault: undefined, hiddenExperiment: undefined },
 		});
 	});
 

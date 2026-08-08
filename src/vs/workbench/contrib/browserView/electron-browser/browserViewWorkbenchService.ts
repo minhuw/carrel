@@ -5,7 +5,7 @@
 
 import { BrowserViewChangeEvent, BrowserViewEventData, BrowserViewCommandId, BrowserViewPresentation, BrowserViewSessionSelector, BrowserViewStorageScope, getBrowserViewRemoteFile, getBrowserViewSessionAffinity, getBrowserViewSessionNetwork, IBrowserViewEditorOpenOptions, IBrowserViewInfo, IBrowserViewNetwork, IBrowserViewOwner, IBrowserViewNetworkFileSystem, IBrowserViewRemoteNetwork, IBrowserViewService, IBrowserViewTheme, ipcBrowserViewChannelName, reviveBrowserViewInfo, IBrowserViewSessionOptions, toBrowserViewSessionOptions } from '../../../../platform/browserView/common/browserView.js';
 import { matchesBrowserViewSandboxSession } from '../../../../platform/browserView/common/browserViewGroup.js';
-import { BrowserRemoteProxyEnabledSettingId, BrowserViewEventEmitters, createBrowserViewEventEmitters, BrowserViewSharingState, getLocalFileBrowserViewSession, IBrowserViewWorkbenchService, IBrowserViewModel, BrowserViewModel, IBrowserViewContextualFilter, IBrowserViewFilterContext, IBrowserViewOpenHandler, IBrowserViewWorkbenchCreateOptions, IBrowserViewNetworkProxyProvider, IBrowserViewNetworkResolver, IBrowserViewNetworkStatus, IBrowserViewSessionRequest, normalizeBrowserViewUrl } from '../common/browserView.js';
+import { BrowserRemoteProxyEnabledSettingId, BrowserViewEventEmitters, createBrowserViewEventEmitters, getLocalFileBrowserViewSession, IBrowserViewWorkbenchService, IBrowserViewModel, BrowserViewModel, IBrowserViewContextualFilter, IBrowserViewFilterContext, IBrowserViewOpenHandler, IBrowserViewWorkbenchCreateOptions, IBrowserViewNetworkProxyProvider, IBrowserViewNetworkResolver, IBrowserViewNetworkStatus, IBrowserViewSessionRequest, normalizeBrowserViewUrl } from '../common/browserView.js';
 import { IMainProcessService } from '../../../../platform/ipc/common/mainProcessService.js';
 import { ProxyChannel } from '../../../../base/parts/ipc/common/ipc.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
@@ -23,25 +23,16 @@ import { IWorkspaceTrustEnablementService, IWorkspaceTrustManagementService } fr
 import { BrowserEditorInput, IBrowserEditorInputData } from '../common/browserEditorInput.js';
 import { getWindowMainPart, GroupsOrder, IEditorGroup, IEditorGroupsService, preferredSideBySideGroupDirection } from '../../../services/editor/common/editorGroupsService.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
-import { ContextKeyExpr, IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
-import { ChatContextKeys } from '../../chat/common/actions/chatContextKeys.js';
-import { IsSessionsWindowContext } from '../../../common/contextkeys.js';
-import { ChatConfiguration } from '../../chat/common/constants.js';
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
 import { contrastBorder, descriptionForeground, focusBorder } from '../../../../platform/theme/common/colors/baseColors.js';
 import { buttonForeground, buttonBackground, inputPlaceholderForeground } from '../../../../platform/theme/common/colors/inputColors.js';
 import { editorWidgetBackground, editorWidgetBorder, editorWidgetForeground, toolbarHoverBackground, widgetShadow } from '../../../../platform/theme/common/colors/editorColors.js';
 import { DEFAULT_FONT_FAMILY } from '../../../../base/browser/fonts.js';
 import { findGroup, handOffFromSelfTitledEditor } from '../../../services/editor/common/editorGroupFinder.js';
-import { ChatEditorInput } from '../../chat/browser/widgetHosts/editor/chatEditorInput.js';
-import { IChatWidgetService } from '../../chat/browser/chat.js';
 import { IAccessibilityService } from '../../../../platform/accessibility/common/accessibility.js';
 import { URI } from '../../../../base/common/uri.js';
 import { extUri, isEqual } from '../../../../base/common/resources.js';
 import { Schemas } from '../../../../base/common/network.js';
-import { getCopilotRootPaths } from '../../../../platform/environment/common/copilotHome.js';
-import { ICopilotHomeService } from '../../../services/environment/common/copilotHomeService.js';
-import { localChatSessionType } from '../../chat/common/chatSessionsService.js';
 import { INativeWorkbenchEnvironmentService } from '../../../services/environment/electron-browser/environmentService.js';
 import { FileSystemProviderCapabilities, IFileService } from '../../../../platform/files/common/files.js';
 import { AGENT_HOST_SCHEME } from '../../../../platform/agentHost/common/agentHostUri.js';
@@ -49,8 +40,6 @@ import { ITunnelProxyInfo } from '../../../../platform/tunnel/common/tunnelProxy
 import { generateUuid } from '../../../../base/common/uuid.js';
 import { DeferredPromise, raceCancellationError, raceTimeout } from '../../../../base/common/async.js';
 import { CancellationToken, CancellationTokenSource, cancelOnDispose } from '../../../../base/common/cancellation.js';
-import { AgentNetworkDomainSettingId } from '../../../../platform/networkFilter/common/settings.js';
-import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { localize } from '../../../../nls.js';
 import { ILabelService } from '../../../../platform/label/common/label.js';
 
@@ -123,29 +112,6 @@ export class BrowserViewWorkbenchService extends Disposable implements IBrowserV
 	private readonly _onDidChangeBrowserViews = this._register(new Emitter<void>());
 	readonly onDidChangeBrowserViews: Event<void> = this._onDidChangeBrowserViews.event;
 
-	private static readonly _sharingAvailableContext = ContextKeyExpr.and(
-		ChatContextKeys.enabled,
-		ContextKeyExpr.has(`config.${ChatConfiguration.AgentEnabled}`),
-		ContextKeyExpr.has(`config.workbench.browser.enableChatTools`),
-		// If we're in Sessions Window, we require some additional conditions.
-		ContextKeyExpr.or(
-			IsSessionsWindowContext.negate(),
-			ContextKeyExpr.or(
-				ContextKeyExpr.equals('sessionType', localChatSessionType),
-				ContextKeyExpr.equals('sessions.isAgentHostSession', true),
-			),
-		),
-	)!;
-
-	private _isSharingAvailable: boolean = false;
-
-	private readonly _onDidChangeSharingAvailable = this._register(new Emitter<boolean>());
-	readonly onDidChangeSharingAvailable: Event<boolean> = this._onDidChangeSharingAvailable.event;
-
-	get isSharingAvailable(): boolean {
-		return this._isSharingAvailable;
-	}
-
 	constructor(
 		@IMainProcessService mainProcessService: IMainProcessService,
 		@IInstantiationService private readonly instantiationService: IInstantiationService,
@@ -157,13 +123,9 @@ export class BrowserViewWorkbenchService extends Disposable implements IBrowserV
 		@IWorkspaceTrustManagementService private readonly workspaceTrustManagementService: IWorkspaceTrustManagementService,
 		@IWorkspaceTrustEnablementService private readonly workspaceTrustEnablementService: IWorkspaceTrustEnablementService,
 		@ILogService private readonly logService: ILogService,
-		@IContextKeyService private readonly contextKeyService: IContextKeyService,
 		@INativeWorkbenchEnvironmentService private readonly environmentService: INativeWorkbenchEnvironmentService,
-		@ICopilotHomeService private readonly copilotHomeService: ICopilotHomeService,
 		@IThemeService private readonly themeService: IThemeService,
-		@IChatWidgetService private readonly chatWidgetService: IChatWidgetService,
 		@IAccessibilityService private readonly accessibilityService: IAccessibilityService,
-		@INotificationService private readonly notificationService: INotificationService,
 		@ILabelService private readonly labelService: ILabelService,
 		@IFileService private readonly fileService: IFileService,
 		@IUnattendedRestartService unattendedRestartService: IUnattendedRestartService,
@@ -181,7 +143,6 @@ export class BrowserViewWorkbenchService extends Disposable implements IBrowserV
 		// Send the full per-window configuration as a single unit, and resend it
 		// whenever any of its inputs change.
 		void this._updateWindowConfiguration();
-		const chatEnabledKeys = new Set(ChatContextKeys.enabled.keys());
 		this._register(this.keybindingService.onDidUpdateKeybindings(() => void this._updateWindowConfiguration()));
 		this._register(this.themeService.onDidColorThemeChange(() => void this._updateWindowConfiguration()));
 		this._register(this.accessibilityService.onDidChangeReducedMotion(() => void this._updateWindowConfiguration()));
@@ -193,34 +154,9 @@ export class BrowserViewWorkbenchService extends Disposable implements IBrowserV
 				void this._updateWindowConfiguration();
 			}
 		}));
-		this._register(this.contextKeyService.onDidChangeContext(e => {
-			if (e.affectsSome(chatEnabledKeys)) {
-				void this._updateWindowConfiguration();
-			}
-		}));
 		this._register(this.configurationService.onDidChangeConfiguration(e => {
-			if (
-				e.affectsConfiguration(AgentNetworkDomainSettingId.NetworkFilter)
-				&& this.configurationService.getValue<boolean>(AgentNetworkDomainSettingId.NetworkFilter)
-				&& [...this._known.values()].some(input => input.model?.sharingState === BrowserViewSharingState.Shared && !input.model.isDirectlyShareable)
-			) {
-				this.notificationService.info(localize('browser.networkFilteringEnabled', "Agent access to browser tabs was revoked because network filtering was enabled."));
-			}
 			if (e.affectsConfiguration(BrowserMaxHistoryEntriesSettingId) || e.affectsConfiguration(BrowserRemoteProxyEnabledSettingId)) {
 				void this._updateWindowConfiguration();
-			}
-		}));
-
-		// Track sharing availability from context keys
-		this._isSharingAvailable = this.contextKeyService.contextMatchesRules(BrowserViewWorkbenchService._sharingAvailableContext);
-		const sharingKeys = new Set(BrowserViewWorkbenchService._sharingAvailableContext.keys());
-		this._register(this.contextKeyService.onDidChangeContext(e => {
-			if (e.affectsSome(sharingKeys)) {
-				const was = this._isSharingAvailable;
-				this._isSharingAvailable = this.contextKeyService.contextMatchesRules(BrowserViewWorkbenchService._sharingAvailableContext);
-				if (was !== this._isSharingAvailable) {
-					this._onDidChangeSharingAvailable.fire(this._isSharingAvailable);
-				}
 			}
 		}));
 
@@ -596,7 +532,6 @@ export class BrowserViewWorkbenchService extends Disposable implements IBrowserV
 						associatedResource,
 						session,
 						initialAudiences: createOptions?.initialAudiences,
-						sandboxNetworkRestrictions: createOptions?.sandboxNetworkRestrictions,
 						initialUrl: createOptions ? createOptions.initialUrl : input.url && normalizeBrowserViewUrl(input.url),
 						openSource: createOptions?.openSource
 					});
@@ -910,20 +845,7 @@ export class BrowserViewWorkbenchService extends Disposable implements IBrowserV
 				: undefined,
 		};
 
-		// If the browser is opened by a chat session,
-		// only open in the foreground if the session's widget is currently visible
-		// and not the active editor in the target group.
 		const [group] = await this.instantiationService.invokeFunction(findGroup, { editor: view, options: editorOptions }, targetGroup);
-		if (owner.type === 'agent') {
-			const sessionResource = URI.parse(owner.sessionId);
-			const widget = this.chatWidgetService.getWidgetBySessionResource(sessionResource);
-			const isWidgetVisible = !!widget && widget.domNode.offsetParent !== null;
-			const activeIsSameSession = group.activeEditor instanceof ChatEditorInput
-				&& isEqual(group.activeEditor.sessionResource, sessionResource);
-			if (!isWidgetVisible || activeIsSameSession) {
-				editorOptions.inactive = true;
-			}
-		}
 
 		void this.editorService.openEditor(view, editorOptions, group);
 	}
@@ -949,7 +871,7 @@ export class BrowserViewWorkbenchService extends Disposable implements IBrowserV
 		return this._browserViewService.updateWindowConfiguration(this._mainWindowId, {
 			theme: this._getTheme(),
 			keybindings: this._getKeybindings(),
-			aiFeaturesDisabled: !this.contextKeyService.contextMatchesRules(ChatContextKeys.enabled),
+			aiFeaturesDisabled: true,
 			maxHistoryEntries: this.configurationService.getValue<number>(BrowserMaxHistoryEntriesSettingId),
 			remoteNetworks: this._getRemoteNetworks(trustedRoots, trustAllFiles),
 			trustedLocalFileRoots: trustedRoots.filter(root => root.scheme === Schemas.file).map(root => root.fsPath),
@@ -1022,8 +944,7 @@ export class BrowserViewWorkbenchService extends Disposable implements IBrowserV
 
 	/** The candidate trusted roots on any file system. Local ones go to the window configuration as paths; remote ones are matched to the network of their scheme and authority. */
 	private _getTrustedFileRoots(): URI[] {
-		// Trust Copilot roots so agents can create HTML files and open them in the browser.
-		const roots = getCopilotRootPaths(this.environmentService.userHome.fsPath, this.copilotHomeService.home.fsPath).map(path => URI.file(path));
+		const roots: URI[] = [];
 		if (this.workspaceTrustManagementService.isWorkspaceTrusted()) {
 			for (const folder of this.workspaceContextService.getWorkspace().folders) {
 				roots.push(folder.uri);

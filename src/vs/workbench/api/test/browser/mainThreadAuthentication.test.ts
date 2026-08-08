@@ -94,7 +94,7 @@ suite('MainThreadAuthentication', () => {
 				upcastPartial<IAuthenticationExtensionsService>({ onDidChangeAccountPreference: Event.None }),
 				undefined!, undefined!, undefined!, undefined!, undefined!,
 				upcastPartial<ITelemetryService>({ publicLog2: () => { } }), undefined!, new NullLogService(), undefined!,
-				dynamicStorage, undefined!, undefined!, undefined!, undefined!
+				dynamicStorage, undefined!, undefined!, undefined!
 			));
 			return {
 				mainThread, unregistered,

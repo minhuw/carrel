@@ -22,7 +22,7 @@ export class Query {
 			commands.push('featured');
 		}
 
-		commands.push(...['mcp', 'agentPlugins', 'popular', 'recommended', 'recentlyPublished', 'workspaceUnsupported', 'deprecated', 'sort']);
+		commands.push(...['popular', 'recommended', 'recentlyPublished', 'workspaceUnsupported', 'deprecated', 'sort']);
 		const isCategoriesEnabled = galleryManifest?.capabilities.extensionQuery?.filtering?.some(c => c.name === FilterType.Category);
 		if (isCategoriesEnabled) {
 			commands.push('category');
@@ -91,10 +91,6 @@ export class Query {
 
 	isValid(): boolean {
 		return !/@outdated/.test(this.value);
-	}
-
-	containsMcpTerm(): boolean {
-		return /(^|[^a-z0-9_])mcp($|[^a-z0-9_])/i.test(this.value);
 	}
 
 	equals(other: Query): boolean {

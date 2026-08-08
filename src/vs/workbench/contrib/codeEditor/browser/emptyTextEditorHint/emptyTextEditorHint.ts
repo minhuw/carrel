@@ -27,9 +27,6 @@ import { ChangeLanguageAction } from '../../../../browser/parts/editor/editorSta
 import { LOG_MODE_ID, OUTPUT_MODE_ID } from '../../../../services/output/common/output.js';
 import { SEARCH_RESULT_LANGUAGE_ID } from '../../../../services/search/common/search.js';
 import { AccessibilityVerbositySettingId } from '../../../accessibility/browser/accessibilityConfiguration.js';
-import { IChatAgentService } from '../../../chat/common/participants/chatAgents.js';
-import { ChatAgentLocation } from '../../../chat/common/constants.js';
-import { IInlineChatSessionService } from '../../../inlineChat/browser/inlineChatSessionService.js';
 import { IUntitledDocumentTelemetryService } from '../../../../services/untitled/common/untitledDocumentTelemetry.js';
 import { EmptyTextEditorHintContributionId, IEmptyTextEditorHintContribution } from './emptyTextEditorHintTypes.js';
 import { EmptyEditorHintActionsVisible, EmptyEditorHintActionsWidget, emptyEditorHintActionsSetting, IEmptyEditorHintActionsSize } from './emptyEditorHintActions.js';
@@ -59,8 +56,6 @@ export class EmptyTextEditorHintContribution extends Disposable implements IEmpt
 	constructor(
 		protected readonly editor: ICodeEditor,
 		@IConfigurationService private readonly configurationService: IConfigurationService,
-		@IInlineChatSessionService private readonly inlineChatSessionService: IInlineChatSessionService,
-		@IChatAgentService private readonly chatAgentService: IChatAgentService,
 		@IInstantiationService private readonly instantiationService: IInstantiationService
 	) {
 		super();
@@ -68,7 +63,6 @@ export class EmptyTextEditorHintContribution extends Disposable implements IEmpt
 		this._register(this.editor.onDidChangeModel(() => this.update()));
 		this._register(this.editor.onDidChangeModelLanguage(() => this.update()));
 		this._register(this.editor.onDidChangeModelContent(() => this.update()));
-		this._register(this.chatAgentService.onDidChangeAgents(() => this.update()));
 		this._register(this.editor.onDidChangeModelDecorations(() => this.update()));
 		this._register(this.editor.onDidLayoutChange(() => {
 			if (this.actionsRequiredSize) {
@@ -85,14 +79,6 @@ export class EmptyTextEditorHintContribution extends Disposable implements IEmpt
 				this.update();
 			}
 		}));
-		this._register(inlineChatSessionService.onWillStartSession(editor => {
-			if (this.editor === editor) {
-				this.disposeHint();
-			}
-		}));
-		this._register(inlineChatSessionService.onDidChangeSessions(() => {
-			this.update();
-		}));
 	}
 
 	protected shouldRenderHint() {
@@ -108,10 +94,6 @@ export class EmptyTextEditorHintContribution extends Disposable implements IEmpt
 		const model = this.editor.getModel();
 		const languageId = model?.getLanguageId();
 		if (!model || languageId === OUTPUT_MODE_ID || languageId === LOG_MODE_ID || languageId === SEARCH_RESULT_LANGUAGE_ID) {
-			return false;
-		}
-
-		if (this.inlineChatSessionService.getSessionByTextModel(model.uri)) {
 			return false;
 		}
 
@@ -133,9 +115,8 @@ export class EmptyTextEditorHintContribution extends Disposable implements IEmpt
 			return false;
 		}
 
-		const hasEditorAgents = Boolean(this.chatAgentService.getDefaultAgent(ChatAgentLocation.EditorInline));
 		const shouldRenderDefaultHint = model?.uri.scheme === Schemas.untitled && languageId === PLAINTEXT_LANGUAGE_ID;
-		return hasEditorAgents || shouldRenderDefaultHint;
+		return shouldRenderDefaultHint;
 	}
 
 	/**
@@ -235,7 +216,6 @@ class EmptyTextEditorHintContentWidget extends Disposable implements IContentWid
 		@ICommandService private readonly commandService: ICommandService,
 		@IConfigurationService private readonly configurationService: IConfigurationService,
 		@IKeybindingService private readonly keybindingService: IKeybindingService,
-		@IChatAgentService private readonly chatAgentService: IChatAgentService,
 		@ITelemetryService private readonly telemetryService: ITelemetryService,
 		@IContextMenuService private readonly contextMenuService: IContextMenuService,
 		@IUntitledDocumentTelemetryService private readonly untitledDocumentTelemetryService: IUntitledDocumentTelemetryService,
@@ -297,19 +277,14 @@ class EmptyTextEditorHintContentWidget extends Disposable implements IContentWid
 	}
 
 	private getHint() {
-		const hasInlineChatProvider = this.chatAgentService.getActivatedAgents().filter(candidate => candidate.locations.includes(ChatAgentLocation.EditorInline)).length > 0;
-
 		const hintHandler: IContentActionHandler = {
 			disposables: this._store,
 			callback: (index, event) => {
 				switch (index) {
 					case '0':
-						hasInlineChatProvider ? askSomething(event.browserEvent) : languageOnClickOrTap(event.browserEvent);
+						languageOnClickOrTap(event.browserEvent);
 						break;
 					case '1':
-						hasInlineChatProvider ? languageOnClickOrTap(event.browserEvent) : this.disableHint();
-						break;
-					case '2':
 						this.disableHint();
 						break;
 				}
@@ -317,16 +292,6 @@ class EmptyTextEditorHintContentWidget extends Disposable implements IContentWid
 		};
 
 		// the actual command handlers...
-		const askSomethingCommandId = 'inlineChat.start';
-		const askSomething = async (e: UIEvent) => {
-			e.stopPropagation();
-			this.logHintEvent('action', 'generateCode');
-			this.telemetryService.publicLog2<WorkbenchActionExecutedEvent, WorkbenchActionExecutedClassification>('workbenchActionExecuted', {
-				id: askSomethingCommandId,
-				from: 'hint'
-			});
-			await this.commandService.executeCommand(askSomethingCommandId, { from: 'hint' });
-		};
 		const languageOnClickOrTap = async (e: UIEvent) => {
 			e.stopPropagation();
 			this.logHintEvent('action', 'selectLanguage');
@@ -340,31 +305,23 @@ class EmptyTextEditorHintContentWidget extends Disposable implements IContentWid
 			this.editor.focus();
 		};
 
-		const keybindingsLookup = [askSomethingCommandId, ChangeLanguageAction.ID];
+		const keybindingsLookup = [ChangeLanguageAction.ID];
 		const keybindingLabels = keybindingsLookup.map(id => this.keybindingService.lookupKeybinding(id)?.getLabel());
 
-		const hintMsg = (hasInlineChatProvider ? localize({
-			key: 'emptyTextEditorHintWithInlineChat',
+		const hintMsg = localize({
+			key: 'emptyTextEditorHint',
 			comment: [
 				'Preserve double-square brackets and their order',
 				'language refers to a programming language'
 			]
-		}, '[[Generate code]] ({0}), or [[select a language]] ({1}). Start typing to dismiss or [[don\'t show]] this again.', keybindingLabels.at(0) ?? '', keybindingLabels.at(1) ?? '') : localize({
-			key: 'emptyTextEditorHintWithoutInlineChat',
-			comment: [
-				'Preserve double-square brackets and their order',
-				'language refers to a programming language'
-			]
-		}, '[[Select a language]] ({0}) to get started. Start typing to dismiss or [[don\'t show]] this again.', keybindingLabels.at(1) ?? '')).replaceAll(' ()', '');
+		}, '[[Select a language]] ({0}) to get started. Start typing to dismiss or [[don\'t show]] this again.', keybindingLabels.at(0) ?? '').replaceAll(' ()', '');
 		const hintElement = renderFormattedText(hintMsg, {
 			actionHandler: hintHandler,
 			renderCodeSegments: false,
 		});
 		hintElement.style.fontStyle = 'italic';
 
-		const ariaLabel = hasInlineChatProvider ?
-			localize('defaultHintAriaLabelWithInlineChat', 'Execute {0} to ask a question, execute {1} to select a language and get started. Start typing to dismiss.', ...keybindingLabels) :
-			localize('defaultHintAriaLabelWithoutInlineChat', 'Execute {0} to select a language and get started. Start typing to dismiss.', ...keybindingLabels);
+		const ariaLabel = localize('defaultHintAriaLabel', 'Execute {0} to select a language and get started. Start typing to dismiss.', ...keybindingLabels);
 		// eslint-disable-next-line eslint-js/no-restricted-syntax
 		for (const anchor of hintElement.querySelectorAll('a')) {
 			anchor.style.cursor = 'pointer';

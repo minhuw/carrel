@@ -41,7 +41,6 @@ SUITE_FILTER=""
 ONLY_NODE_TESTS=false
 ONLY_EXTENSION_HOST_TESTS=false
 HELP=false
-AGENT_HOST_E2E_GLOB="**/agentHost/test/node/e2e/{providers/*AgentHostE2E,conformance/*}.integrationTest.js"
 
 while [[ $# -gt 0 ]]; do
 	case "$1" in
@@ -99,14 +98,13 @@ while [[ $# -gt 0 ]]; do
 done
 
 # Known suite names (used for help text and validation)
-KNOWN_SUITES="api-folder api-workspace colorize terminal-suggest typescript markdown emmet git git-base ipynb notebook-renderers configuration-editing github-authentication copilot css html json"
+KNOWN_SUITES="api-folder api-workspace colorize terminal-suggest typescript markdown emmet git git-base configuration-editing github-authentication css html json"
 
 if $HELP; then
 	echo "Usage: $0 [options]"
 	echo ""
 	echo "Runs integration tests. When no filters are given, all integration tests"
 	echo "(node.js integration tests + extension host tests) are run."
-	echo "Agent Host E2E suites are not included; run them with scripts/test-agent-host-e2e.sh."
 	echo ""
 	echo "--run and --runGlob select which node.js integration test files to load, and"
 	echo "--runList runs only the files that a list names. Extension host tests are"
@@ -234,10 +232,8 @@ fi
 
 if [[ -z "$SUITE_FILTER" ]] && ! $ONLY_EXTENSION_HOST_TESTS; then
 	start_suite "node.js integration tests"
-	node --input-type=module -e "import { getAgentHostTestProfile } from './src/vs/platform/agentHost/test/node/agentHostTestProfile.ts'; console.log('Agent Host test profile:', getAgentHostTestProfile(), '(' + (process.env.AGENT_HOST_TEST_PROFILE_REASON ?? 'default') + ')');"
 	if [[ -z "$RUN_GLOB" && -z "$RUN_FILE" ]]; then
-		# Agent Host E2E runs separately, in parallel isolated processes: scripts/test-agent-host-e2e.sh
-		./scripts/test.sh --runGlob "**/*.integrationTest.js" --excludeRunGlob "$AGENT_HOST_E2E_GLOB" "${EXTRA_ARGS[@]}"
+		VSCODE_SKIP_PRELAUNCH=1 ./scripts/test.sh --runGlob "**/*.integrationTest.js" "${EXTRA_ARGS[@]}"
 	else
 		./scripts/test.sh "${EXTRA_ARGS[@]}"
 	fi
@@ -348,11 +344,6 @@ suite_github_authentication() {
 	kill_app
 }
 
-suite_copilot() {
-	pnpm run test-extension -l copilot "${GREP_ARGS[@]}"
-	kill_app
-}
-
 # Tests standalone (CommonJS)
 
 suite_css() {
@@ -387,7 +378,6 @@ should_run_suite ipynb && add_suite ipynb ipynb 5 "Ipynb tests" suite_ipynb
 should_run_suite notebook-renderers && add_suite notebook-renderers notebook-renderers 6 "Notebook Output tests" suite_notebook_renderers
 should_run_suite configuration-editing && add_suite configuration-editing configuration-editing 6 "Configuration editing tests" suite_configuration_editing
 should_run_suite github-authentication && add_suite github-authentication github-authentication 6 "GitHub Authentication tests" suite_github_authentication
-should_run_suite copilot && add_suite copilot copilot 5 "Copilot tests" suite_copilot
 should_run_suite css && add_suite css css 5 "CSS tests" suite_css
 should_run_suite html && add_suite html html 8 "HTML tests" suite_html
 should_run_suite json && add_suite json json 5 "JSON tests" suite_json

@@ -15,7 +15,6 @@ import { IMainProcessService } from '../../../ipc/common/mainProcessService.js';
 import { NODE_REMOTE_RESOURCE_CHANNEL_NAME, NODE_REMOTE_RESOURCE_IPC_METHOD_NAME, NodeRemoteResourceResponse } from '../../common/electronRemoteResources.js';
 import { createBrowserResourceUriProvider, ElectronRemoteResourceLoader } from '../../electron-browser/electronRemoteResourceLoader.js';
 import { BrowserResourceService } from '../../../files/browser/browserResourceService.js';
-import { AGENT_HOST_SCHEME, fromAgentHostUri, toAgentHostUri } from '../../../agentHost/common/agentHostUri.js';
 
 suite('ElectronRemoteResourceLoader', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
@@ -91,37 +90,6 @@ suite('ElectronRemoteResourceLoader', () => {
 		});
 	});
 
-	test('reads agent host files through the agent host file system', async () => {
-		const { channel, reads } = createLoader();
-		const response = await request(channel, URI.from({
-			scheme: Schemas.vscodeManagedRemoteResource,
-			authority: 'window:7',
-			path: '/a/index.html',
-			query: new URLSearchParams({ authority: 'host-a', scheme: AGENT_HOST_SCHEME }).toString(),
-		}));
-
-		assert.deepStrictEqual({
-			status: response.statusCode,
-			reads: reads.map(resource => resource.toString()),
-		}, {
-			status: 200,
-			reads: [toAgentHostUri(URI.file('/a/index.html'), 'host-a').toString()],
-		});
-	});
-
-	test('reads agent host paths without applying the client OS path rules', async () => {
-		const { channel, reads } = createLoader();
-
-		await request(channel, URI.from({
-			scheme: Schemas.vscodeManagedRemoteResource,
-			authority: 'window:7',
-			path: '/trusted/a\\b.html',
-			query: new URLSearchParams({ authority: 'host-a', scheme: AGENT_HOST_SCHEME }).toString(),
-		}));
-
-		assert.deepStrictEqual(reads.map(resource => fromAgentHostUri(resource).path), ['/trusted/a\\b.html']);
-	});
-
 	test('ignores downstream scheme substitution', async () => {
 		const { loader, channel, reads } = createLoader();
 		const managedResource = loader.getResourceUriProvider()(URI.from({
@@ -172,33 +140,6 @@ suite('ElectronRemoteResourceLoader', () => {
 		});
 	});
 
-	test('loads issued Agent Host resources through FileAccess with their complete identity', async () => {
-		const { channel, reads, browserResources } = createLoader();
-		store.add(browserResources.registerScheme(AGENT_HOST_SCHEME));
-		const resource = toAgentHostUri(URI.parse('git-blob:///project/image.png?ref=HEAD#part'), 'sandbox');
-		const browserUri = FileAccess.uriToBrowserUri(resource);
-		const response = await request(channel, browserUri);
-		const forged = browserUri.with({ path: '/other.txt', query: 'resourceId=unknown&scheme=file&authority=local' });
-		const rejected = await request(channel, forged);
-
-		assert.deepStrictEqual({ scheme: browserUri.scheme, authority: browserUri.authority, response, rejected, reads: reads.map(uri => uri.toString()) }, {
-			scheme: Schemas.vscodeManagedRemoteResource,
-			authority: 'window:7',
-			response: { statusCode: 200, body: 'Y29udGVudA==', mimeType: 'image/png' },
-			rejected: { statusCode: 404, body: '' },
-			reads: [resource.toString()],
-		});
-	});
-
-	test('an issued resource cannot be redirected by substituting its path or scheme', async () => {
-		const { channel, reads, browserResources } = createLoader();
-		store.add(browserResources.registerScheme(AGENT_HOST_SCHEME));
-		const resource = toAgentHostUri(URI.file('/project/image.png'), 'sandbox');
-		const browserUri = FileAccess.uriToBrowserUri(resource);
-		await request(channel, browserUri.with({ path: '/secrets.txt', query: `${browserUri.query}&scheme=file&authority=local` }));
-		assert.deepStrictEqual(reads.map(uri => uri.toString()), [resource.toString()]);
-	});
-
 	for (const { error, statusCode } of [
 		{ error: new FileOperationError('Missing image', FileOperationResult.FILE_NOT_FOUND), statusCode: 404 },
 		{ error: createFileSystemProviderError('Sandbox offline', FileSystemProviderErrorCode.Unavailable), statusCode: 500 },
@@ -206,8 +147,8 @@ suite('ElectronRemoteResourceLoader', () => {
 	]) {
 		test(`returns a resource failure without reporting a product error: ${error.message}`, async () => {
 			const { channel, browserResources } = createLoader(7, error);
-			store.add(browserResources.registerScheme(AGENT_HOST_SCHEME));
-			const resource = toAgentHostUri(URI.file('/project/image.png'), 'sandbox');
+			store.add(browserResources.registerScheme(Schemas.vscodeRemote));
+			const resource = URI.from({ scheme: Schemas.vscodeRemote, authority: 'ssh-remote+sandbox', path: '/project/image.png' });
 			const response = await request(channel, FileAccess.uriToBrowserUri(resource));
 			assert.deepStrictEqual({ statusCode: response.statusCode, message: decodeBase64(response.body).toString() }, { statusCode, message: error.message });
 		});

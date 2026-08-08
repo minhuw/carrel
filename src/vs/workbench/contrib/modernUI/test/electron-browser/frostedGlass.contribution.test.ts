@@ -88,14 +88,10 @@ suite('FrostedGlassContribution', () => {
 	test('shares enabled and opacity defaults with the Agents window', () => {
 		assert.deepStrictEqual({
 			enabled: properties[LayoutSettings.MODERN_UI_FROSTED_GLASS].default,
-			agentsWindow: properties[LayoutSettings.MODERN_UI_FROSTED_GLASS].agentsWindow,
 			opacity: properties[LayoutSettings.MODERN_UI_FROSTED_GLASS_OPACITY].default,
-			agentsOpacity: properties[LayoutSettings.MODERN_UI_FROSTED_GLASS_OPACITY].agentsWindow,
 		}, {
 			enabled: true,
-			agentsWindow: undefined,
 			opacity: 80,
-			agentsOpacity: undefined,
 		});
 	});
 

@@ -10,7 +10,6 @@ import { IMainProcessService } from '../../ipc/common/mainProcessService.js';
 import { IBrowserViewGroup, IBrowserViewGroupFilter, IBrowserViewGroupService, ipcBrowserViewGroupChannelName } from '../common/browserViewGroup.js';
 import { IBrowserViewCreationContext } from '../common/browserView.js';
 import { CDPEvent, CDPRequest, CDPResponse } from '../common/cdp/types.js';
-import { ISandboxNetworkRestrictions } from '../../sandbox/common/sandboxSettingsResolutionHelper.js';
 
 /**
  * Remote-process service for managing browser view groups.
@@ -22,7 +21,6 @@ import { ISandboxNetworkRestrictions } from '../../sandbox/common/sandboxSetting
  * Usable from the shared process.
  */
 export interface IBrowserViewGroupRemoteService {
-	setSessionNetworkRestrictions(sessionId: string, restrictions: ISandboxNetworkRestrictions): Promise<void>;
 	/**
 	 * Create a new browser view group.
 	 */
@@ -81,9 +79,6 @@ export class BrowserViewGroupRemoteService implements IBrowserViewGroupRemoteSer
 		return this._wrap(id);
 	}
 
-	setSessionNetworkRestrictions(sessionId: string, restrictions: ISandboxNetworkRestrictions): Promise<void> {
-		return this._groupService.setSessionNetworkRestrictions(sessionId, restrictions);
-	}
 
 	private _wrap(id: string): IBrowserViewGroup {
 		const group = new RemoteBrowserViewGroup(id, this._groupService);

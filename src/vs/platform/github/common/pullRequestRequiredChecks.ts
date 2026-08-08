@@ -191,9 +191,8 @@ export interface RequiredPullRequestChecks {
  * requires no check at all, every check counts, including check suites that
  * have not reported a check yet.
  *
- * @param isIgnored Excludes checks by name, as do the patterns of
- * `chat.artifactIntegrations.githubPullRequests.autoMarkReadyIgnoredChecks`
- * when deciding readiness. An excluded required check also excludes the
+ * @param isIgnored Excludes checks by name, as do the configured ignored-check
+ * patterns, when deciding readiness. An excluded required check also excludes the
  * checks it needs.
  */
 export function classifyRequiredPullRequestChecks(value: PullRequestChecks, isIgnored: (name: string) => boolean = () => false): RequiredPullRequestChecks {

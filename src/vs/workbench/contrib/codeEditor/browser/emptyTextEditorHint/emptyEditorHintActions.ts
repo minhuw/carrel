@@ -38,10 +38,6 @@ import { IEditorResolverService, RegisteredEditorInfo } from '../../../../servic
 import { IEditorService } from '../../../../services/editor/common/editorService.js';
 import { IUntitledDocumentTelemetryService } from '../../../../services/untitled/common/untitledDocumentTelemetry.js';
 import { AccessibilityVerbositySettingId } from '../../../accessibility/browser/accessibilityConfiguration.js';
-import { ACTION_ID_OPEN_CHAT } from '../../../chat/browser/actions/chatActions.js';
-import { ChatContextKeys } from '../../../chat/common/actions/chatContextKeys.js';
-import { ChatAgentLocation } from '../../../chat/common/constants.js';
-import { IChatAgentService } from '../../../chat/common/participants/chatAgents.js';
 import { EmptyEditorHintAction, logEmptyEditorHintEvent } from './emptyTextEditorHintTelemetry.js';
 
 export const emptyEditorHintActionsSetting = 'workbench.editor.experimental.emptyEditorHintActions';
@@ -50,7 +46,6 @@ export const emptyEditorHintActionsSetting = 'workbench.editor.experimental.empt
 export const EmptyEditorHintActionsVisible = new RawContextKey<boolean>('emptyEditorHintActionsVisible', false, localize('emptyEditorHintActionsVisible', "Whether the empty editor hint shows its list of actions"));
 
 const markdownEditorId = 'vscode.markdown.editor';
-const inlineChatStartCommandId = 'inlineChat.start';
 const reopenWithEditorCommandId = 'workbench.action.reopenWithEditor';
 
 /** The editor that an untitled file was last reopened in from the hint, offered first next time. */
@@ -110,7 +105,6 @@ export class EmptyEditorHintActionsWidget extends Disposable implements IOverlay
 		@ICommandService private readonly _commandService: ICommandService,
 		@IConfigurationService private readonly _configurationService: IConfigurationService,
 		@IKeybindingService private readonly _keybindingService: IKeybindingService,
-		@IChatAgentService private readonly _chatAgentService: IChatAgentService,
 		@IContextKeyService private readonly _contextKeyService: IContextKeyService,
 		@IEditorResolverService private readonly _editorResolverService: IEditorResolverService,
 		@IEditorService private readonly _editorService: IEditorService,
@@ -131,14 +125,11 @@ export class EmptyEditorHintActionsWidget extends Disposable implements IOverlay
 		this._renderFooter();
 		this._renderRows();
 
-		const chatEnabledKeys = new Set([ChatContextKeys.enabled.key]);
 		this._register(Event.any(
 			this._keybindingService.onDidUpdateKeybindings,
-			this._chatAgentService.onDidChangeAgents,
 			this._editorResolverService.onDidChangeEditorRegistrations,
 			// The editors that can open the file depend on its language
 			this._editor.onDidChangeModelLanguage,
-			Event.filter(this._contextKeyService.onDidChangeContext, e => e.affectsSome(chatEnabledKeys)),
 		)(() => {
 			this._renderRows();
 			this._layoutAndNotifyFit();
@@ -242,8 +233,6 @@ export class EmptyEditorHintActionsWidget extends Disposable implements IOverlay
 	 */
 	private _getEntryGroups(): IEmptyEditorHintActionEntry[][] {
 		const resource = this._editor.getModel()?.uri;
-		const hasInlineChat = this._chatAgentService.getActivatedAgents().some(agent => agent.locations.includes(ChatAgentLocation.EditorInline));
-		const chatEnabled = this._contextKeyService.contextMatchesRules(ChatContextKeys.enabled);
 		const otherEditors = resource ? this._getOtherEditors(resource) : [];
 		const lastEditorId = this._storageService.get(lastUntitledEditorStorageKey, StorageScope.PROFILE);
 		const primaryEditor = otherEditors.find(editor => editor.id === lastEditorId) ?? otherEditors.find(editor => editor.id === markdownEditorId);
@@ -255,19 +244,6 @@ export class EmptyEditorHintActionsWidget extends Disposable implements IOverlay
 		};
 
 		const groups: (IEmptyEditorHintActionEntry | undefined)[][] = [[
-			hasInlineChat ? {
-				action: 'generateCode',
-				label: localize('emptyEditorHintActions.generateCode', "Generate Code"),
-				icon: Codicon.sparkle,
-				keybindingCommandId: inlineChatStartCommandId,
-				run: () => this._runCommand(inlineChatStartCommandId, { from: 'hint' }),
-			} : undefined,
-			chatEnabled ? {
-				action: 'newChatEditor',
-				label: localize('emptyEditorHintActions.newChatEditor', "New Chat Editor"),
-				icon: Codicon.chatSparkle,
-				run: () => this._replaceWithNewChatEditor(),
-			} : undefined,
 			{
 				action: 'selectLanguage',
 				label: localize('emptyEditorHintActions.selectLanguage', "Select a Language"),
@@ -438,18 +414,6 @@ export class EmptyEditorHintActionsWidget extends Disposable implements IOverlay
 	private async _runCommand(commandId: string, ...args: unknown[]): Promise<void> {
 		this._telemetryService.publicLog2<WorkbenchActionExecutedEvent, WorkbenchActionExecutedClassification>('workbenchActionExecuted', { id: commandId, from: 'hint' });
 		await this._commandService.executeCommand(commandId, ...args);
-	}
-
-	/**
-	 * Turns this blank file into a chat: opens a new chat editor in the group of this editor and closes this editor.
-	 */
-	private async _replaceWithNewChatEditor(): Promise<void> {
-		const resource = this._editor.getModel()?.uri;
-		const untitledEditor = resource ? this._editorService.findEditors(resource).find(({ groupId }) => this._editorService.activeEditorPane?.group.id === groupId) : undefined;
-		await this._runCommand(ACTION_ID_OPEN_CHAT);
-		if (untitledEditor && !untitledEditor.editor.isDirty()) {
-			await this._editorService.closeEditor(untitledEditor, { preserveFocus: true });
-		}
 	}
 
 	private _logEvent(kind: 'shown' | 'action', action?: EmptyEditorHintAction): void {

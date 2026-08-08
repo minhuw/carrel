@@ -234,12 +234,6 @@ export interface IToolSetContribution {
 	tools: string[];
 }
 
-export interface IMcpCollectionContribution {
-	readonly id: string;
-	readonly label: string;
-	readonly when?: string;
-}
-
 export interface IChatFileContribution {
 	readonly path: string;
 	readonly name?: string;
@@ -283,13 +277,11 @@ export interface IExtensionContributions {
 	readonly chatPlugins?: ReadonlyArray<IChatFileContribution>;
 	readonly languageModelTools?: ReadonlyArray<IToolContribution>;
 	readonly languageModelToolSets?: ReadonlyArray<IToolSetContribution>;
-	readonly mcpServerDefinitionProviders?: ReadonlyArray<IMcpCollectionContribution>;
 }
 
 export interface IExtensionCapabilities {
 	readonly virtualWorkspaces?: ExtensionVirtualWorkspaceSupport;
 	readonly untrustedWorkspaces?: ExtensionUntrustedWorkspaceSupport;
-	readonly agentsWindow?: { readonly supported: boolean };
 }
 
 /**

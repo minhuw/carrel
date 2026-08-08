@@ -25,8 +25,6 @@ import { EditorInput } from '../../../../common/editor/editorInput.js';
 import { IVisibleEditorPane } from '../../../../common/editor.js';
 import { IUntitledDocumentTelemetryService } from '../../../../services/untitled/common/untitledDocumentTelemetry.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
-import { ChatContextKeys } from '../../../chat/common/actions/chatContextKeys.js';
-import { IChatAgentService } from '../../../chat/common/participants/chatAgents.js';
 import { EmptyEditorHintActionsWidget } from '../../browser/emptyTextEditorHint/emptyEditorHintActions.js';
 
 suite('EmptyEditorHintActionsWidget', () => {
@@ -44,7 +42,6 @@ suite('EmptyEditorHintActionsWidget', () => {
 			publicLog2: (eventName: string, data?: unknown) => { events.push({ eventName, data }); },
 		}));
 		instantiationService.stub(IUntitledDocumentTelemetryService, upcastPartial<IUntitledDocumentTelemetryService>({ getUntitledDocumentId: () => 'doc-1' }));
-		instantiationService.stub(IChatAgentService, upcastPartial<IChatAgentService>({ getActivatedAgents: () => [], onDidChangeAgents: Event.None }));
 		instantiationService.stub(IEditorResolverService, upcastPartial<IEditorResolverService>({
 			getEditors: () => [upcastPartial<RegisteredEditorInfo>({ id: 'default', label: 'Text Editor' }), upcastPartial<RegisteredEditorInfo>({ id: 'vscode.markdown.editor', label: 'Markdown Editor' }), upcastPartial<RegisteredEditorInfo>({ id: 'hexEditor.hexedit', label: 'Hex Editor' })],
 			onDidChangeEditorRegistrations: Event.None,
@@ -55,7 +52,6 @@ suite('EmptyEditorHintActionsWidget', () => {
 			onDidExecuteCommand: Event.None,
 		}));
 		const contextKeyService = store.add(new ContextKeyService(instantiationService.get(IConfigurationService)));
-		contextKeyService.createKey(ChatContextKeys.enabled.key, true);
 		instantiationService.stub(IContextKeyService, contextKeyService);
 		// The editor last chosen from the hint is offered first
 		instantiationService.get(IStorageService).store('emptyEditorHint.lastUntitledEditor', 'hexEditor.hexedit', StorageScope.PROFILE, StorageTarget.USER);
@@ -99,7 +95,7 @@ suite('EmptyEditorHintActionsWidget', () => {
 		await timeout(0);
 
 		assert.deepStrictEqual({ rowLabels, hasDropdown: !!domNode.querySelector('.empty-editor-hint-actions-dropdown'), visibleBeforeClose, commands, selectedEditors: selectedEditors.map(input => input === thisInput ? 'this' : 'other'), callbacks, events }, {
-			rowLabels: ['New Chat Editor', 'Select a Language', '---', 'Open in Hex Editor'],
+			rowLabels: ['Select a Language', '---', 'Open in Hex Editor'],
 			hasDropdown: true,
 			visibleBeforeClose: true,
 			commands: [['reopenActiveEditorWith', 'hexEditor.hexedit', { groupId: 1, editorIndex: 0 }]],

@@ -26,8 +26,7 @@ export class SharedProcessGitHubService extends GitHubService {
 	) {
 		super({
 			fetch: createFetch(nativeHostService, configurationService, environmentService, logService),
-			connectorsApiBaseUri: productService.defaultChatAgent?.mcpConnectorsUrl,
-			telemetrySource: 'sharedProcess',
+					telemetrySource: 'sharedProcess',
 			clientMetadata: createGitHubClientMetadata(productService, 'shared-process', 'node'),
 			onDidChangeTelemetryLevel: Event.map(Event.filter(configurationService.onDidChangeConfiguration, event =>
 				event.affectsConfiguration(TELEMETRY_SETTING_ID)

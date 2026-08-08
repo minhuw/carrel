@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import * as vscode from 'vscode';
-import { registerChatSupport } from './chatOutputRenderer';
 import { MermaidEditorManager } from './editorManager';
 import { configSection, injectMermaidConfig } from './markdownMermaid/config';
 import { extendMarkdownItWithMermaid } from './markdownMermaid/markdownIt';
@@ -17,7 +16,6 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(editorManager);
 
 	// Register chat support
-	context.subscriptions.push(registerChatSupport(context, webviewManager, editorManager));
 
 	// Register commands
 	context.subscriptions.push(

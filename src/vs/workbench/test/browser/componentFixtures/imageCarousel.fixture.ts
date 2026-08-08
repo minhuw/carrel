@@ -21,7 +21,7 @@ import { NullLogService } from '../../../../platform/log/common/log.js';
 import { Schemas } from '../../../../base/common/network.js';
 import { IWebviewService } from '../../../contrib/webview/browser/webview.js';
 import { IFileDialogService } from '../../../../platform/dialogs/common/dialogs.js';
-import { ISharedWebContentExtractorService, NullSharedWebContentExtractorService } from '../../../../platform/webContentExtractor/common/webContentExtractor.js';
+import { IDownloadService } from '../../../../platform/download/common/download.js';
 import { IWebWorkerService } from '../../../../platform/webWorker/browser/webWorkerService.js';
 
 function createSolidPng(r: number, g: number, b: number, width: number = 64, height: number = 64): VSBuffer {
@@ -70,7 +70,7 @@ async function renderCarousel(context: ComponentFixtureContext, collection: IIma
 			defineInstance(IFileService, fileService);
 			defineInstance(IWebviewService, new class extends mock<IWebviewService>() { }());
 			defineInstance(IFileDialogService, new class extends mock<IFileDialogService>() { }());
-			defineInstance(ISharedWebContentExtractorService, new NullSharedWebContentExtractorService());
+			defineInstance(IDownloadService, new class extends mock<IDownloadService>() { }());
 			defineInstance(IWebWorkerService, new class extends mock<IWebWorkerService>() { }());
 		},
 	});

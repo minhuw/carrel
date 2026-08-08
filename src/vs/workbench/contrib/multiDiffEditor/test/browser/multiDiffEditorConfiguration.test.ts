@@ -45,8 +45,7 @@ suite('MultiDiffEditorConfiguration', () => {
 			enum: property.enum,
 			enumDescriptions: property.enumDescriptions,
 			default: property.default,
-			agentsWindowDefault: property.agentsWindow?.default,
-			scope: property.scope,
+				scope: property.scope,
 			isExperimental: property.tags?.includes('experimental'),
 			experiment: property.experiment,
 		}, {
@@ -57,8 +56,7 @@ suite('MultiDiffEditorConfiguration', () => {
 				'Use the compact variant without cards.',
 			],
 			default: 'noCards',
-			agentsWindowDefault: 'cards',
-			scope: ConfigurationScope.WINDOW,
+				scope: ConfigurationScope.WINDOW,
 			isExperimental: true,
 			experiment: { mode: 'auto' },
 		});

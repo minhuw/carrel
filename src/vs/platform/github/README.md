@@ -17,7 +17,6 @@ Portable clients share contracts and execution policies, but engine state belong
 | --- | --- |
 | Desktop workbench and proposed extension API | The [workbench binding](../../workbench/services/github/electron-browser/githubService.ts) routes portable clients to the [shared-process service](electron-utility/githubService.ts). |
 | Web workbench and proposed extension API | The [browser binding](../../workbench/services/github/browser/githubService.ts) executes locally with browser fetch. |
-| Standalone Agent Host | The [Agent Host binding](../agentHost/node/agentHostGitHubService.ts) uses host-owned credentials and networking, without requiring an attached workbench. |
 
 Legacy renderer clients can still execute locally. Independent engines and browser tabs do not share application-wide request state. Within the shared process, connections share admission and verified-account cooldowns, but private caches and credential callbacks remain connection- and grant-scoped.
 
@@ -73,15 +72,11 @@ The [account interface](common/account/account.ts) is the authoritative list of 
 | Repositories, PRs, issues, reviews, search, users, organizations, notifications, Actions, checks | [Core domains](common/core/) |
 | Repository files, refs, trees, and blobs | [Content](common/content/content.ts) |
 | Gist retrieval and creation | [Gists](common/gists/gists.ts) |
-| Mission Control | [Automations](common/missionControl/automations.ts), [tasks](common/missionControl/tasks.ts), [environments](common/missionControl/environments.ts) |
-| Copilot Connector catalog and connection management | [Connectors](common/connectors/connectors.ts) |
 
 Repository operations use `RepositoryRef` (`{ owner, repo }`). Typed request methods take an `AbortSignal` and optional trailing request options. They normally return parsed domain data or `void`, not transport objects, ETags, or header collections. Domain-specific counts, cursors, nullable values, and acceptance states remain meaningful; HTTP success does not necessarily mean an asynchronous operation has completed.
 
 ### Domain-specific boundaries
 
-- **Mission Control:** bindings approve service endpoints; individual calls cannot choose a host or supply authentication. Environment connection and task-feed credentials are not cached or coalesced. Feed negotiation uses a separately approved GitHub gateway. Dispatched mutations with uncertain outcomes require reconciliation, not blind retries. See the [execution provider](common/client/localMissionControlRequestProvider.ts).
-- **Connectors:** the [workbench consumer](../../workbench/contrib/chat/browser/aiCustomization/copilotConnectorsService.ts) owns account selection, consent, and polling. Catalog status does not grant runtime MCP access. The [provider](common/client/localConnectorsRequestProvider.ts) enforces its response-size bound, no redirects, and no automatic replay.
 - **Raw repository content:** reads are anonymous and confined to the configured raw origin and pinned repository/commit path. The text-download limit is 1 MiB; mutable refs must first be resolved to a full SHA-1 or SHA-256 commit. Raw files are not fetched through arbitrary response-provided URLs. See the [content client](common/content/contentClient.ts).
 - **Legacy resources and guarded mutations:** existing [subscriptions](common/githubQueryService.ts) and [compound mutations](common/githubPullRequestMutationService.ts) retain their own polling, reconciliation, and authorization rules. A raw endpoint call is not a replacement for guarded merging or reply-and-resolve behavior; an unpublished review reply must not be treated as a published comment.
 
@@ -110,7 +105,6 @@ Bindings own their fetch implementation. There is no automatic move to another m
 
 - **Browser:** CORS and browser/OS proxy and certificate behavior apply. A restricted repository-read fallback can follow browser-opaque redirects; it validates the final destination but cannot guarantee that no intermediate origin was contacted.
 - **Shared process:** [createFetch](electron-utility/githubFetch.ts) uses local-machine proxy/PAC, authentication, shell environment, and certificate integration. Remote-workspace settings do not select its proxy.
-- **Agent Host:** the binding reuses the host's existing network implementation.
 
 Certificate verification remains enabled by default. The shared-process helper does not turn `http.proxyStrictSSL: false` into a verification bypass and does not promise full Chromium parity for SOCKS4/4a, native NTLM, ordered PAC failover, or certificate exceptions. Identification headers follow binding-specific egress/CORS policy and are not forwarded to cross-origin download storage.
 

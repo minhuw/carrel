@@ -10,13 +10,11 @@ import { Emitter, Event as CommonEvent } from '../../../base/common/event.js';
 import { normalizeDriveLetter, splitRecentLabel } from '../../../base/common/labels.js';
 import { Disposable } from '../../../base/common/lifecycle.js';
 import { Schemas } from '../../../base/common/network.js';
-import { join } from '../../../base/common/path.js';
 import { isMacintosh, isWindows } from '../../../base/common/platform.js';
 import { basename, dirname, extUriBiasedIgnorePathCase, isEqual, originalFSPath } from '../../../base/common/resources.js';
 import { URI } from '../../../base/common/uri.js';
 import { Promises } from '../../../base/node/pfs.js';
 import { localize } from '../../../nls.js';
-import { ChatAIDisabledSettingId } from '../../chat/common/chatSettings.js';
 import { IConfigurationService } from '../../configuration/common/configuration.js';
 import { createDecorator } from '../../instantiation/common/instantiation.js';
 import { ILifecycleMainService, LifecycleMainPhase } from '../../lifecycle/electron-main/lifecycleMainService.js';
@@ -63,7 +61,7 @@ export class WorkspacesHistoryMainService extends Disposable implements IWorkspa
 		@IApplicationStorageMainService private readonly applicationStorageMainService: IApplicationStorageMainService,
 		@IDialogMainService private readonly dialogMainService: IDialogMainService,
 		@IEnvironmentMainService private readonly environmentMainService: IEnvironmentMainService,
-		@IConfigurationService private readonly configurationService: IConfigurationService
+		@IConfigurationService configurationService: IConfigurationService
 	) {
 		super();
 
@@ -368,11 +366,6 @@ export class WorkspacesHistoryMainService extends Disposable implements IWorkspa
 
 		await this.updateWindowsJumpList();
 		this._register(this.onDidChangeRecentlyOpened(() => this.updateWindowsJumpList()));
-		this._register(this.configurationService.onDidChangeConfiguration(e => {
-			if (e.affectsConfiguration(ChatAIDisabledSettingId)) {
-				this.updateWindowsJumpList();
-			}
-		}));
 	}
 
 	private async updateWindowsJumpList(): Promise<void> {
@@ -395,20 +388,6 @@ export class WorkspacesHistoryMainService extends Disposable implements IWorkspa
 				iconIndex: 0
 			}
 		];
-
-		// Agents Window (hidden when AI features are disabled)
-		if (this.configurationService.getValue<boolean>(ChatAIDisabledSettingId) !== true) {
-			tasks.push({
-				type: 'task',
-				title: localize('agentsWindow', "Agents Window"),
-				description: localize('openAgentsWindowDesc', "Opens the Agents Window"),
-				program: process.execPath,
-				args: '--agents',
-				iconPath: join(this.environmentMainService.appRoot, 'resources/win32/sessions.ico'),
-				iconIndex: 0
-			});
-		}
-
 		jumpList.push({
 			type: 'tasks',
 			items: tasks

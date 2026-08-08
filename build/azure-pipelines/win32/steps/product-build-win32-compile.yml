@@ -5,9 +5,6 @@ parameters:
     type: boolean
   - name: VSCODE_QUALITY
     type: string
-  - name: VSCODE_SKIP_FOUNDRY_LOCAL_INSTALL
-    type: boolean
-    default: false
   - name: VSCODE_RUN_ELECTRON_TESTS
     type: boolean
     default: false
@@ -32,10 +29,6 @@ steps:
       versionSource: fromFile
       versionFilePath: .nvmrc
 
-  - ${{ if or(eq(parameters.VSCODE_CIBUILD, true), eq(parameters.VSCODE_SKIP_FOUNDRY_LOCAL_INSTALL, true)) }}:
-    - script: node build/azure-pipelines/common/disableFoundryLocalInstall.ts
-      displayName: Disable Foundry Local Native Install
-
   - task: UsePythonVersion@0
     inputs:
       versionSpec: "3.x"
@@ -53,10 +46,6 @@ steps:
   - powershell: node build/setup-npm-registry.ts $env:NPM_REGISTRY
     condition: and(succeeded(), ne(variables['NPM_REGISTRY'], 'none'))
     displayName: Setup NPM Registry
-
-  - template: ../../common/apply-sdk-canary.yml@self
-    parameters:
-      windows: true
 
   - pwsh: |
       mkdir .build -ea 0
@@ -92,11 +81,6 @@ steps:
     condition: and(succeeded(), ne(variables['NPM_REGISTRY'], 'none'))
     displayName: Setup NPM Authentication
 
-  - ${{ if and(eq(parameters.VSCODE_CIBUILD, false), eq(parameters.VSCODE_SKIP_FOUNDRY_LOCAL_INSTALL, false)) }}:
-    - template: ../../common/foundry-local.yml@self
-      parameters:
-        phase: prepare
-
   - powershell: |
       . build/azure-pipelines/win32/exec.ps1
       $ErrorActionPreference = "Stop"
@@ -110,14 +94,6 @@ steps:
     retryCountOnTaskFailure: 5
     displayName: Install dependencies
     condition: and(succeeded(), ne(variables.NODE_MODULES_RESTORED, 'true'))
-
-  - ${{ if and(eq(parameters.VSCODE_CIBUILD, false), eq(parameters.VSCODE_SKIP_FOUNDRY_LOCAL_INSTALL, false)) }}:
-    - template: ../../common/foundry-local.yml@self
-      parameters:
-        phase: install
-
-  - powershell: node build/azure-pipelines/common/checkNativeOptionalDeps.ts
-    displayName: Verify native optional dependency binaries
 
   - powershell: node build/azure-pipelines/distro/mixin-npm.ts
     condition: and(succeeded(), ne(variables.NODE_MODULES_RESTORED, 'true'))
@@ -156,19 +132,6 @@ steps:
   - powershell: node build/npm/electronTypes.ts
     displayName: Prepare Electron types
 
-  - template: ../../common/agent-sdk-produce.yml@self
-    parameters:
-      vscodePlatform: win32
-
-  - template: ../../common/dictation-runtime-produce.yml@self
-    parameters:
-      vscodePlatform: win32
-
-  - pwsh: npx deemon --detach --wait -- node build/azure-pipelines/common/downloadCopilotVsix.ts
-    env:
-      SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-    displayName: Download Copilot VSIX (background)
-
   - template: ../../common/mixin-vscode-capi.yml@self
 
   - powershell: npm run gulp core-ci
@@ -198,11 +161,6 @@ steps:
   - ${{ if and(ne(parameters.VSCODE_CIBUILD, true), ne(parameters.VSCODE_QUALITY, 'exploration')) }}:
     - powershell: node build/win32/explorer-dll-fetcher.ts .build/win32/appx
       displayName: Download Explorer dll
-
-  - pwsh: npx deemon --attach -- node build/azure-pipelines/common/downloadCopilotVsix.ts
-    env:
-      SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-    displayName: Download Copilot VSIX
 
   # Block on the CG NOTICE download and overwrite ThirdPartyNotices.txt
   # right before gulp packages it. Non-fatal: falls back to legacy on any problem.
@@ -261,10 +219,6 @@ steps:
       GITHUB_TOKEN: "$(github-token-code-oss)"
       AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
     displayName: Build server
-
-  - ${{ if eq(parameters.VSCODE_ARCH, 'x64') }}:
-    - powershell: node build/azure-pipelines/common/smokeTestAgentHost.ts "$(Agent.BuildDirectory)\vscode-server-win32-$(VSCODE_ARCH)"
-      displayName: 🧪 Smoke test packaged Agent Host
 
   - powershell: |
       . build/azure-pipelines/win32/exec.ps1

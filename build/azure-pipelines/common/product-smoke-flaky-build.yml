@@ -115,13 +115,10 @@ jobs:
                 compile-extension:git `
                 compile-extension:github-authentication `
                 compile-extension:html-language-features-server `
-                compile-extension:ipynb `
-                compile-extension:notebook-renderers `
                 compile-extension:json-language-features-client `
                 compile-extension:json-language-features-server `
                 compile-extension:markdown-language-features `
                 compile-extension-media `
-                compile-extension:microsoft-authentication `
                 compile-extension:typescript-language-features `
                 compile-extension:vscode-api-tests `
                 compile-extension:vscode-colorize-tests `
@@ -139,13 +136,10 @@ jobs:
                 compile-extension:git \
                 compile-extension:github-authentication \
                 compile-extension:html-language-features-server \
-                compile-extension:ipynb \
-                compile-extension:notebook-renderers \
-                compile-extension:json-language-features-client \
+                compile-extension:json-language-features-client `
                 compile-extension:json-language-features-server \
                 compile-extension:markdown-language-features \
                 compile-extension-media \
-                compile-extension:microsoft-authentication \
                 compile-extension:typescript-language-features \
                 compile-extension:vscode-api-tests \
                 compile-extension:vscode-colorize-tests \

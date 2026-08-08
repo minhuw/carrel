@@ -847,7 +847,7 @@ suite('ModernUIContribution', () => {
 		});
 	});
 
-	test('pane composite actions fill regular and Agents headers', () => {
+	test('pane composite actions fill regular Modern UI headers', () => {
 		const regularRoot = document.createElement('div');
 		regularRoot.className = 'monaco-workbench modern-ui modern-ui-tabs';
 		document.body.appendChild(regularRoot);
@@ -859,45 +859,17 @@ suite('ModernUIContribution', () => {
 		const regularIconBadgeContent = appendElement(regularIconBadge, 'badge-content');
 		regularIcon.actionItem.insertBefore(regularIconBadge, regularIcon.indicator);
 
-		const agentsRoot = document.createElement('div');
-		agentsRoot.className = 'monaco-workbench modern-ui-tabs';
-		document.body.appendChild(agentsRoot);
-		store.add(toDisposable(() => agentsRoot.remove()));
-		const agents = createCompositeAction(agentsRoot, 35, false);
-		const agentsIcon = createCompositeAction(agentsRoot, 35, true, true);
-		const agentsIconBadge = appendElement(agentsIcon.actionItem, 'badge compact');
-		const agentsIconBadgeContent = appendElement(agentsIconBadge, 'badge-content');
-		agentsIcon.actionItem.insertBefore(agentsIconBadge, agentsIcon.indicator);
-
-		const targetWindow = getWindow(agents.actionItem);
-		const agentsIconTargetBounds = agentsIcon.actionItem.getBoundingClientRect();
-		const agentsIconIndicatorBounds = agentsIcon.indicator.getBoundingClientRect();
+		const targetWindow = getWindow(regular.actionItem);
 		assert.deepStrictEqual({
 			regularTargetHeight: targetWindow.getComputedStyle(regular.actionItem).height,
 			regularIndicatorHeight: targetWindow.getComputedStyle(regular.indicator).height,
 			regularIconBadgeTop: targetWindow.getComputedStyle(regularIconBadgeContent).top,
 			regularIconBadgeRight: targetWindow.getComputedStyle(regularIconBadgeContent).right,
-			agentsTargetHeight: targetWindow.getComputedStyle(agents.actionItem).height,
-			agentsIndicatorHeight: targetWindow.getComputedStyle(agents.indicator).height,
-			agentsIconTargetHeight: targetWindow.getComputedStyle(agentsIcon.actionItem).height,
-			agentsIconIndicatorHeight: targetWindow.getComputedStyle(agentsIcon.indicator).height,
-			agentsIconIndicatorTopInset: agentsIconIndicatorBounds.top - agentsIconTargetBounds.top,
-			agentsIconIndicatorBottomInset: agentsIconTargetBounds.bottom - agentsIconIndicatorBounds.bottom,
-			agentsIconBadgeTop: targetWindow.getComputedStyle(agentsIconBadgeContent).top,
-			agentsIconBadgeRight: targetWindow.getComputedStyle(agentsIconBadgeContent).right,
 		}, {
 			regularTargetHeight: '32px',
 			regularIndicatorHeight: '24px',
 			regularIconBadgeTop: '13px',
 			regularIconBadgeRight: '2px',
-			agentsTargetHeight: '35px',
-			agentsIndicatorHeight: '24px',
-			agentsIconTargetHeight: '35px',
-			agentsIconIndicatorHeight: '24px',
-			agentsIconIndicatorTopInset: 5.5,
-			agentsIconIndicatorBottomInset: 5.5,
-			agentsIconBadgeTop: '13px',
-			agentsIconBadgeRight: '2px',
 		});
 	});
 

@@ -106,10 +106,6 @@ jobs:
         condition: and(succeeded(), ne(variables['NPM_REGISTRY'], 'none'))
         displayName: Setup NPM Authentication
 
-      - template: ../common/foundry-local.yml@self
-        parameters:
-          phase: prepare
-
       - task: Docker@1
         inputs:
           azureSubscriptionEndpoint: vscode
@@ -181,13 +177,6 @@ jobs:
         displayName: Install dependencies
         condition: and(succeeded(), ne(variables.NODE_MODULES_RESTORED, 'true'))
 
-      - template: ../common/foundry-local.yml@self
-        parameters:
-          phase: install
-
-      - script: node build/azure-pipelines/common/checkNativeOptionalDeps.ts
-        displayName: Verify native optional dependency binaries
-
       - script: node build/azure-pipelines/distro/mixin-npm.ts
         displayName: Mixin distro node modules
         condition: and(succeeded(), ne(variables.NODE_MODULES_RESTORED, 'true'))
@@ -208,26 +197,12 @@ jobs:
       - script: node build/npm/electronTypes.ts
         displayName: Prepare Electron types
 
-      - template: ../common/agent-sdk-produce.yml@self
-        parameters:
-          vscodePlatform: alpine
-
-      - script: npx deemon --detach --wait -- node build/azure-pipelines/common/downloadCopilotVsix.ts
-        env:
-          SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-        displayName: Download Copilot VSIX (background)
-
       - template: ../common/mixin-vscode-capi.yml@self
 
       - script: npm run gulp core-ci
         env:
           GITHUB_TOKEN: "$(github-token-code-oss)"
         displayName: Compile
-
-      - script: npx deemon --attach -- node build/azure-pipelines/common/downloadCopilotVsix.ts
-        env:
-          SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-        displayName: Download Copilot VSIX
 
       - script: |
           set -e

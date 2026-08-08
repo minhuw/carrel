@@ -31,10 +31,6 @@ jobs:
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: sudo apt update -y && sudo apt install -y build-essential pkg-config libx11-dev libx11-xcb-dev libxkbfile-dev libnotify-bin libkrb5-dev
 
-      - name: Install Electron headers
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: node build/npm/preinstall.ts
-
       - name: Install dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: |
@@ -92,20 +88,13 @@ jobs:
         with:
           node-version-file: .nvmrc
 
-      - name: Check Electron cache
-        id: cache-electron
-        uses: ./.github/actions/setup-electron
-        with:
-          arch: ${{ env.VSCODE_ARCH }}
-          lookup-only: 'true'
-
       - name: Restore node_modules cache
         id: cache-node-modules
         uses: ./.github/actions/restore-node-modules
         with:
           key-prefix: node_modules-linux
           key-args: "linux ${{ env.VSCODE_ARCH }} $(node -p process.arch)"
-          lookup-only: ${{ steps.cache-electron.outputs.cache-hit == 'true' }}
+          lookup-only: 'true'
 
       - name: Install build dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
@@ -146,22 +135,9 @@ jobs:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
           GITHUB_TOKEN: ${{ secrets.VSCODE_OSS }}
 
-      - name: Verify native optional dependency binaries
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: node build/azure-pipelines/common/checkNativeOptionalDeps.ts
-
       - name: Save node_modules cache
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         uses: ./.github/actions/save-node-modules
-
-      - name: Setup Electron
-        if: steps.cache-electron.outputs.cache-hit != 'true'
-        uses: ./.github/actions/setup-electron
-        with:
-          arch: ${{ env.VSCODE_ARCH }}
-          save-cache: 'true'
-        env:
-          GITHUB_TOKEN: ${{ secrets.VSCODE_OSS }}
 
   macOS:
     name: macOS
@@ -178,20 +154,13 @@ jobs:
         with:
           node-version-file: .nvmrc
 
-      - name: Check Electron cache
-        id: cache-electron
-        uses: ./.github/actions/setup-electron
-        with:
-          arch: ${{ env.VSCODE_ARCH }}
-          lookup-only: 'true'
-
       - name: Restore node_modules cache
         id: cache-node-modules
         uses: ./.github/actions/restore-node-modules
         with:
           key-prefix: node_modules-macos
           key-args: "darwin ${{ env.VSCODE_ARCH }} $(node -p process.arch)"
-          lookup-only: ${{ steps.cache-electron.outputs.cache-hit == 'true' }}
+          lookup-only: 'true'
 
       - name: Install dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
@@ -221,22 +190,9 @@ jobs:
           # on macOS.
           GYP_DEFINES: "kerberos_use_rtld=false"
 
-      - name: Verify native optional dependency binaries
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: node build/azure-pipelines/common/checkNativeOptionalDeps.ts
-
       - name: Save node_modules cache
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         uses: ./.github/actions/save-node-modules
-
-      - name: Setup Electron
-        if: steps.cache-electron.outputs.cache-hit != 'true'
-        uses: ./.github/actions/setup-electron
-        with:
-          arch: ${{ env.VSCODE_ARCH }}
-          save-cache: 'true'
-        env:
-          GITHUB_TOKEN: ${{ secrets.VSCODE_OSS }}
 
   windows:
     name: Windows
@@ -253,20 +209,13 @@ jobs:
         with:
           node-version-file: .nvmrc
 
-      - name: Check Electron cache
-        id: cache-electron
-        uses: ./.github/actions/setup-electron
-        with:
-          arch: ${{ env.VSCODE_ARCH }}
-          lookup-only: 'true'
-
       - name: Restore node_modules cache
         id: node-modules-cache
         uses: ./.github/actions/restore-node-modules
         with:
           key-prefix: node_modules-windows
           key-args: "win32 ${{ env.VSCODE_ARCH }} $(node -p process.arch)"
-          lookup-only: ${{ steps.cache-electron.outputs.cache-hit == 'true' }}
+          lookup-only: 'true'
 
       - name: Install dependencies
         if: steps.node-modules-cache.outputs.cache-hit != 'true'
@@ -296,85 +245,7 @@ jobs:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
           GITHUB_TOKEN: ${{ secrets.VSCODE_OSS }}
 
-      - name: Verify native optional dependency binaries
-        if: steps.node-modules-cache.outputs.cache-hit != 'true'
-        run: node build/azure-pipelines/common/checkNativeOptionalDeps.ts
-
       - name: Save node_modules cache
         if: steps.node-modules-cache.outputs.cache-hit != 'true'
         uses: ./.github/actions/save-node-modules
 
-      - name: Setup Electron
-        if: steps.cache-electron.outputs.cache-hit != 'true'
-        uses: ./.github/actions/setup-electron
-        with:
-          arch: ${{ env.VSCODE_ARCH }}
-          save-cache: 'true'
-        env:
-          GITHUB_TOKEN: ${{ secrets.VSCODE_OSS }}
-
-  copilot-linux:
-    name: Copilot (Linux)
-    runs-on: [ self-hosted, 1ES.Pool=1es-vscode-oss-ubuntu-22.04-x64, "JobId=copilot-linux-${{ github.run_id }}-${{ github.run_number }}-${{ github.run_attempt }}" ]
-    steps:
-      - name: Checkout microsoft/vscode
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Setup Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version-file: extensions/copilot/.nvmrc
-
-      - name: Restore node_modules cache
-        id: cache-node-modules
-        uses: ./.github/actions/restore-node-modules
-        with:
-          key-prefix: copilot-node_modules-linux
-          key-args: "$(node -p process.platform) $(node -p process.arch)"
-          lookup-only: 'true'
-
-      - name: Install root dependencies
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: npm ci --ignore-scripts --no-workspaces
-
-      - name: Install copilot dependencies
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        working-directory: extensions/copilot
-        run: npm ci
-
-      - name: Save node_modules cache
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        uses: ./.github/actions/save-node-modules
-
-  copilot-windows:
-    name: Copilot (Windows)
-    runs-on: [ self-hosted, 1ES.Pool=1es-vscode-oss-windows-2022-x64, "JobId=copilot-windows-${{ github.run_id }}-${{ github.run_number }}-${{ github.run_attempt }}" ]
-    steps:
-      - name: Checkout microsoft/vscode
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Setup Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version-file: extensions/copilot/.nvmrc
-
-      - name: Restore node_modules cache
-        id: cache-node-modules
-        uses: ./.github/actions/restore-node-modules
-        with:
-          key-prefix: copilot-node_modules-windows
-          key-args: "$(node -p process.platform) $(node -p process.arch)"
-          lookup-only: 'true'
-
-      - name: Install root dependencies
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: npm ci --ignore-scripts --no-workspaces
-
-      - name: Install copilot dependencies
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        working-directory: extensions/copilot
-        run: npm ci
-
-      - name: Save node_modules cache
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        uses: ./.github/actions/save-node-modules

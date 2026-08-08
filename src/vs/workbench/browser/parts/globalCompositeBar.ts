@@ -48,9 +48,7 @@ import { KeyCode } from '../../../base/common/keyCodes.js';
 import { ACTIVITY_BAR_BADGE_BACKGROUND, ACTIVITY_BAR_BADGE_FOREGROUND } from '../../common/theme.js';
 import { IBaseActionViewItemOptions } from '../../../base/browser/ui/actionbar/actionViewItems.js';
 import { ICommandService } from '../../../platform/commands/common/commands.js';
-import { IDefaultAccountService } from '../../../platform/defaultAccount/common/defaultAccount.js';
 import { WORKBENCH_MENU_MOTION_CLASS, workbenchMenuCloseAnimation } from '../actions/menuMotion.js';
-import { createCodexAccountMenuActions, ICodexAccountService, shouldShowCodexAccount } from '../../services/agentHost/browser/codexAccountService.js';
 
 export class GlobalCompositeBar extends Disposable {
 
@@ -304,8 +302,6 @@ export class AccountsActivityActionViewItem extends AbstractGlobalActivityAction
 		@IActivityService activityService: IActivityService,
 		@IInstantiationService instantiationService: IInstantiationService,
 		@ICommandService private readonly commandService: ICommandService,
-		@ICodexAccountService private readonly codexAccountService: ICodexAccountService,
-		@IDefaultAccountService private readonly defaultAccountService: IDefaultAccountService,
 	) {
 		const action = instantiationService.createInstance(CompositeBarAction, {
 			id: ACCOUNTS_ACTIVITY_ID,
@@ -350,10 +346,6 @@ export class AccountsActivityActionViewItem extends AbstractGlobalActivityAction
 			if (e.affectsConfiguration(ACCOUNTS_AVATAR_SETTING)) {
 				this.updateAvatar();
 			}
-		}));
-
-		this._register(this.defaultAccountService.onDidChangeDefaultAccount(() => {
-			this.updateAvatar();
 		}));
 	}
 
@@ -412,18 +404,15 @@ export class AccountsActivityActionViewItem extends AbstractGlobalActivityAction
 
 		let avatarIcon: URI | undefined;
 		if (this.configurationService.getValue<boolean>(ACCOUNTS_AVATAR_SETTING)) {
-			avatarIcon = this.getDefaultAccountAvatarIcon();
-			if (!avatarIcon) {
-				for (const accounts of this.groupedAccounts.values()) {
-					for (const account of accounts) {
-						if (account.icon) {
-							avatarIcon = account.icon;
-							break;
-						}
-					}
-					if (avatarIcon) {
+			for (const accounts of this.groupedAccounts.values()) {
+				for (const account of accounts) {
+					if (account.icon) {
+						avatarIcon = account.icon;
 						break;
 					}
+				}
+				if (avatarIcon) {
+					break;
 				}
 			}
 		}
@@ -437,16 +426,6 @@ export class AccountsActivityActionViewItem extends AbstractGlobalActivityAction
 			this.avatarImg.style.display = 'none';
 			this.label.classList.remove('has-avatar');
 		}
-	}
-
-	private getDefaultAccountAvatarIcon(): URI | undefined {
-		const currentDefaultAccount = this.defaultAccountService.currentDefaultAccount;
-		if (!currentDefaultAccount) {
-			return undefined;
-		}
-
-		const accounts = this.groupedAccounts.get(currentDefaultAccount.authenticationProvider.id);
-		return accounts?.find(account => account.label === currentDefaultAccount.accountName)?.icon;
 	}
 
 	//#region overrides
@@ -482,7 +461,6 @@ export class AccountsActivityActionViewItem extends AbstractGlobalActivityAction
 					continue;
 				}
 
-				const canUseMcp = !!provider.authorizationServers?.length;
 				for (const account of accounts) {
 					const manageExtensionsAction = toAction({
 						id: `configureSessions${account.label}`,
@@ -493,15 +471,6 @@ export class AccountsActivityActionViewItem extends AbstractGlobalActivityAction
 
 
 					const providerSubMenuActions: IAction[] = [manageExtensionsAction];
-					if (canUseMcp) {
-						const manageMCPAction = toAction({
-							id: `configureSessions${account.label}`,
-							label: localize('manageTrustedMCPServers', "Manage Trusted MCP Servers"),
-							enabled: true,
-							run: () => this.commandService.executeCommand('_manageTrustedMCPServersForAccount', { providerId, accountLabel: account.label })
-						});
-						providerSubMenuActions.push(manageMCPAction);
-					}
 					if (account.canSignOut) {
 						providerSubMenuActions.push(toAction({
 							id: 'signOut',
@@ -556,15 +525,7 @@ export class AccountsActivityActionViewItem extends AbstractGlobalActivityAction
 					// 	run: () => this.commandService.executeCommand('_manageTrustedExtensionsForAccount', { providerId, accountLabel: account.label })
 					// });
 
-					const providerSubMenuActions: IAction[] = [];
-					const manageMCPAction = toAction({
-						id: `configureSessions${account.label}`,
-						label: localize('manageTrustedMCPServers', "Manage Trusted MCP Servers"),
-						enabled: true,
-						run: () => this.commandService.executeCommand('_manageTrustedMCPServersForAccount', { providerId, accountLabel: account.label })
-					});
-					providerSubMenuActions.push(manageMCPAction);
-					providerSubMenuActions.push(manageDynamicAuthProvidersAction);
+					const providerSubMenuActions: IAction[] = [manageDynamicAuthProvidersAction];
 					if (account.canSignOut) {
 						providerSubMenuActions.push(toAction({
 							id: 'signOut',
@@ -577,16 +538,6 @@ export class AccountsActivityActionViewItem extends AbstractGlobalActivityAction
 					const providerSubMenu = new SubmenuAction('activitybar.submenu', `${account.label} (${provider.label})`, providerSubMenuActions);
 					menus.push(providerSubMenu);
 				}
-			}
-		}
-
-		const codexAccountActions = createCodexAccountMenuActions(this.codexAccountService, shouldShowCodexAccount(this.configurationService, false));
-		if (codexAccountActions.length) {
-			if (menus.length) {
-				menus.push(new Separator());
-			}
-			for (const action of codexAccountActions) {
-				menus.push(action instanceof Action ? disposables.add(action) : action);
 			}
 		}
 
@@ -788,8 +739,6 @@ export class SimpleAccountActivityActionViewItem extends AccountsActivityActionV
 		@IActivityService activityService: IActivityService,
 		@IInstantiationService instantiationService: IInstantiationService,
 		@ICommandService commandService: ICommandService,
-		@ICodexAccountService codexAccountService: ICodexAccountService,
-		@IDefaultAccountService defaultAccountService: IDefaultAccountService,
 	) {
 		super(() => simpleActivityContextMenuActions(storageService, true),
 			{
@@ -800,7 +749,7 @@ export class SimpleAccountActivityActionViewItem extends AccountsActivityActionV
 				}),
 				hoverOptions,
 				compact: true,
-			}, () => undefined, actions => actions, themeService, lifecycleService, hoverService, contextMenuService, menuService, contextKeyService, authenticationService, environmentService, productService, configurationService, keybindingService, secretStorageService, logService, activityService, instantiationService, commandService, codexAccountService, defaultAccountService);
+			}, () => undefined, actions => actions, themeService, lifecycleService, hoverService, contextMenuService, menuService, contextKeyService, authenticationService, environmentService, productService, configurationService, keybindingService, secretStorageService, logService, activityService, instantiationService, commandService);
 	}
 }
 

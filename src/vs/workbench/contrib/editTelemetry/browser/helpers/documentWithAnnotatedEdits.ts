@@ -122,8 +122,6 @@ export abstract class EditSourceBase {
 
 			case 'Chat.applyEdits':
 				return this._cache.get(new ChatEditSource('sidebar'));
-			case 'inlineChat.applyEdits':
-				return this._cache.get(new ChatEditSource('inline'));
 			case 'cursor':
 				return this._cache.get(new UserEditSource());
 			default:

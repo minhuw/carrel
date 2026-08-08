@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { registerTerminalContribution } from '../../../terminal/browser/terminalExtensions.js';
-import { TerminalInlineChatAccessibleView } from './terminalChatAccessibleView.js';
+import { TerminalChatAccessibleView } from './terminalChatAccessibleView.js';
 import { TerminalChatController } from './terminalChatController.js';
 
 // #region Terminal Contributions
@@ -15,7 +15,7 @@ registerTerminalContribution(TerminalChatController.ID, TerminalChatController, 
 
 // #region Contributions
 
-AccessibleViewRegistry.register(new TerminalInlineChatAccessibleView());
+AccessibleViewRegistry.register(new TerminalChatAccessibleView());
 AccessibleViewRegistry.register(new TerminalChatAccessibilityHelp());
 
 registerWorkbenchContribution2(TerminalChatEnabler.Id, TerminalChatEnabler, WorkbenchPhase.AfterRestored);

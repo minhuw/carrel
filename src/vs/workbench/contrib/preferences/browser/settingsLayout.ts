@@ -270,11 +270,6 @@ export const tocData: ITOCEntry<string> = {
 					]
 				},
 				{
-					id: 'chat/inlineChat',
-					label: localize('chatInlineChat', "Inline Chat"),
-					settings: ['inlineChat.*']
-				},
-				{
 					id: 'chat/miscellaneous',
 					label: localize('chatMiscellaneous', "Miscellaneous"),
 					settings: [

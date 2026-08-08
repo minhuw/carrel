@@ -75,7 +75,6 @@ export function isAiEdit(source: TextModelEditSource): boolean {
 	switch (source.metadata.source) {
 		case 'inlineCompletionAccept':
 		case 'inlineCompletionPartialAccept':
-		case 'inlineChat.applyEdits':
 		case 'Chat.applyEdits':
 			return true;
 	}
@@ -144,18 +143,6 @@ export const EditSources = {
 			...toProperties(data.providerId),
 			$$correlationId: data.correlationId,
 			$$requestUuid: data.requestUuid,
-			$$languageId: data.languageId,
-		} as const);
-	},
-
-	inlineChatApplyEdit(data: { modelId: string | undefined; requestId: string | undefined; sessionId: string | undefined; languageId: string; extensionId: VersionedExtensionId | undefined }) {
-		return createEditSource({
-			source: 'inlineChat.applyEdits',
-			$modelId: avoidPathRedaction(data.modelId),
-			$extensionId: data.extensionId?.extensionId,
-			$extensionVersion: data.extensionId?.version,
-			$$sessionId: data.sessionId,
-			$$requestId: data.requestId,
 			$$languageId: data.languageId,
 		} as const);
 	},

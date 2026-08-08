@@ -13,9 +13,9 @@ import { IMenuService, MenuItemAction } from '../../../../../platform/actions/co
 import { MENU_TERMINAL_CHAT_WIDGET_STATUS, TerminalChatContextKeys } from './terminalChat.js';
 import { IAction } from '../../../../../base/common/actions.js';
 
-export class TerminalInlineChatAccessibleView implements IAccessibleViewImplementation {
+export class TerminalChatAccessibleView implements IAccessibleViewImplementation {
 	readonly priority = 105;
-	readonly name = 'terminalInlineChat';
+	readonly name = 'terminalChat';
 	readonly type = AccessibleViewType.View;
 	readonly when = TerminalChatContextKeys.focused;
 
@@ -47,7 +47,7 @@ export class TerminalInlineChatAccessibleView implements IAccessibleViewImplemen
 			() => {
 				controller.focus();
 			},
-			AccessibilityVerbositySettingId.InlineChat,
+			AccessibilityVerbositySettingId.TerminalInlineChat,
 			undefined,
 			actions
 		);

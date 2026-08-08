@@ -36,7 +36,6 @@ import { getNotebookEditorFromEditorPane, ICellOutputViewModel, INotebookEditor 
 import * as icons from '../../notebookIcons.js';
 import { getOutputViewModelFromId } from '../cellOutputActions.js';
 import { INotebookOutputActionContext, NOTEBOOK_ACTIONS_CATEGORY } from '../coreActions.js';
-import './cellChatActions.js';
 import { CTX_NOTEBOOK_CHAT_HAS_AGENT } from './notebookChatContext.js';
 
 const NotebookKernelVariableKey = 'kernelVariable';

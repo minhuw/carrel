@@ -303,7 +303,6 @@ export class MenuId {
 	static readonly ChatEditorInlineMenu = new MenuId('ChatEditorInlineGutter');
 	static readonly ChatEditorInlineExecute = new MenuId('ChatEditorInputExecute');
 	static readonly ChatEditorInlineInputSide = new MenuId('ChatEditorInputSide');
-	static readonly InlineChatEditorAffordance = new MenuId('InlineChatEditorAffordance');
 
 	static readonly AccessibleView = new MenuId('AccessibleView');
 	static readonly MultiDiffEditorContent = new MenuId('MultiDiffEditorContent');

@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import type { Terminal as RawXtermTerminal } from '@xterm/xterm';
-import { Dimension, getActiveWindow, IFocusTracker, trackFocus } from '../../../../../base/browser/dom.js';
+import { Dimension, getActiveElement, getActiveWindow, getTotalHeight, h, IFocusTracker, trackFocus } from '../../../../../base/browser/dom.js';
 import { CancelablePromise, createCancelablePromise, DeferredPromise } from '../../../../../base/common/async.js';
 import { CancellationTokenSource } from '../../../../../base/common/cancellation.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
@@ -13,17 +13,19 @@ import { autorun, observableValue, type IObservable } from '../../../../../base/
 import { MicrotaskDelay } from '../../../../../base/common/symbols.js';
 import { localize } from '../../../../../nls.js';
 import { MenuId } from '../../../../../platform/actions/common/actions.js';
+import { IWorkbenchButtonBarOptions, MenuWorkbenchButtonBar } from '../../../../../platform/actions/browser/buttonbar.js';
+import { ServiceCollection } from '../../../../../platform/instantiation/common/serviceCollection.js';
+import { editorBackground, editorForeground, inputBackground } from '../../../../../platform/theme/common/colorRegistry.js';
+import { EDITOR_DRAG_AND_DROP_BACKGROUND } from '../../../../common/theme.js';
 import { IContextKey, IContextKeyService } from '../../../../../platform/contextkey/common/contextkey.js';
 import { IInstantiationService } from '../../../../../platform/instantiation/common/instantiation.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../../../../platform/storage/common/storage.js';
-import { IChatAcceptInputOptions, IChatWidgetService } from '../../../chat/browser/chat.js';
+import { IChatAcceptInputOptions, IChatWidgetService, IChatWidgetViewOptions } from '../../../chat/browser/chat.js';
 import { IChatAgentService } from '../../../chat/common/participants/chatAgents.js';
 import { IChatModel, IChatResponseModel, isCellTextEditOperationArray } from '../../../chat/common/model/chatModel.js';
 import { ChatMode } from '../../../chat/common/chatModes.js';
 import { IChatModelReference, IChatProgress, IChatService } from '../../../chat/common/chatService/chatService.js';
 import { ChatAgentLocation } from '../../../chat/common/constants.js';
-import { IInlineChatWidgetConstructionOptions, InlineChatWidget } from '../../../inlineChat/browser/inlineChatWidget.js';
-import { MENU_INLINE_CHAT_WIDGET_SECONDARY } from '../../../inlineChat/common/inlineChat.js';
 import { ITerminalInstance, type IXtermTerminal } from '../../../terminal/browser/terminal.js';
 import { TerminalStickyScrollContribution } from '../../stickyScroll/browser/terminalStickyScrollContribution.js';
 import './media/terminalChatWidget.css';
@@ -31,15 +33,7 @@ import { MENU_TERMINAL_CHAT_WIDGET_INPUT_SIDE_TOOLBAR, MENU_TERMINAL_CHAT_WIDGET
 import { ITextModel } from '../../../../../editor/common/model.js';
 import { isResponseVM } from '../../../chat/common/model/chatViewModel.js';
 import { IModelService } from '../../../../../editor/common/services/model.js';
-import { ITextModelService } from '../../../../../editor/common/services/resolverService.js';
-import { IAccessibleViewService } from '../../../../../platform/accessibility/browser/accessibleView.js';
-import { IAccessibilityService } from '../../../../../platform/accessibility/common/accessibility.js';
-import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
-import { IHoverService } from '../../../../../platform/hover/browser/hover.js';
-import { IKeybindingService } from '../../../../../platform/keybinding/common/keybinding.js';
-import { IMarkdownRendererService } from '../../../../../platform/markdown/browser/markdownRenderer.js';
-import { IChatEntitlementService } from '../../../../services/chat/common/chatEntitlementService.js';
-import { IChatWidgetLocationOptions } from '../../../chat/browser/widget/chatWidget.js';
+import { ChatWidget, IChatWidgetLocationOptions } from '../../../chat/browser/widget/chatWidget.js';
 import { Selection } from '../../../../../editor/common/core/selection.js';
 
 const enum Constants {
@@ -71,8 +65,8 @@ export class TerminalChatWidget extends Disposable {
 	private readonly _onDidHide = this._register(new Emitter<void>());
 	readonly onDidHide = this._onDidHide.event;
 
-	private readonly _inlineChatWidget: TerminalInlineChatWidget;
-	public get inlineChatWidget(): TerminalInlineChatWidget { return this._inlineChatWidget; }
+	private readonly _chatWidget: TerminalChatWidgetImpl;
+	public get chatWidget(): TerminalChatWidgetImpl { return this._chatWidget; }
 
 	private readonly _focusTracker: IFocusTracker;
 
@@ -128,8 +122,8 @@ export class TerminalChatWidget extends Disposable {
 		this._container.classList.add('terminal-inline-chat');
 		this._terminalElement.appendChild(this._container);
 
-		this._inlineChatWidget = instantiationService.createInstance(
-			TerminalInlineChatWidget,
+		this._chatWidget = instantiationService.createInstance(
+			TerminalChatWidgetImpl,
 			{
 				location: ChatAgentLocation.Terminal,
 				resolveData: () => {
@@ -148,7 +142,6 @@ export class TerminalChatWidget extends Disposable {
 						})
 					}
 				},
-				secondaryMenuId: MENU_INLINE_CHAT_WIDGET_SECONDARY,
 				chatWidgetViewOptions: {
 					menus: {
 						telemetrySource: 'terminal-inline-chat',
@@ -159,12 +152,12 @@ export class TerminalChatWidget extends Disposable {
 				}
 			},
 		);
-		this._register(this._inlineChatWidget.chatWidget.onDidChangeViewModel(() => this._saveViewState()));
+		this._register(this._chatWidget.chatWidget.onDidChangeViewModel(() => this._saveViewState()));
 		this._register(Event.any(
-			this._inlineChatWidget.onDidChangeHeight,
+			this._chatWidget.onDidChangeHeight,
 			this._instance.onDimensionsChanged,
-			this._inlineChatWidget.chatWidget.onDidChangeContentHeight,
-			Event.fromObservableLight(this._inlineChatWidget.chatWidget.input.selectedLanguageModel),
+			this._chatWidget.chatWidget.onDidChangeContentHeight,
+			Event.fromObservableLight(this._chatWidget.chatWidget.input.selectedLanguageModel),
 			Event.debounce(this._xterm.raw.onCursorMove, () => void 0, MicrotaskDelay),
 		)(() => this._relayout()));
 
@@ -173,29 +166,29 @@ export class TerminalChatWidget extends Disposable {
 		this._register(toDisposable(() => observer.disconnect()));
 
 		this._resetPlaceholder();
-		this._container.appendChild(this._inlineChatWidget.domNode);
+		this._container.appendChild(this._chatWidget.domNode);
 
 		this._focusTracker = this._register(trackFocus(this._container));
 		this._register(this._focusTracker.onDidFocus(() => this._focusedContextKey.set(true)));
 		this._register(this._focusTracker.onDidBlur(() => this._focusedContextKey.set(false)));
 
 		this._register(autorun(r => {
-			const isBusy = this._inlineChatWidget.requestInProgress.read(r);
+			const isBusy = this._chatWidget.requestInProgress.read(r);
 			this._container.classList.toggle('busy', isBusy);
 
-			this._inlineChatWidget.toggleStatus(!!this._inlineChatWidget.responseContent);
+			this._chatWidget.toggleStatus(!!this._chatWidget.responseContent);
 
-			if (isBusy || !this._inlineChatWidget.responseContent) {
+			if (isBusy || !this._chatWidget.responseContent) {
 				this._responseContainsCodeBlockContextKey.set(false);
 				this._responseContainsMulitpleCodeBlocksContextKey.set(false);
 			} else {
 				Promise.all([
-					this._inlineChatWidget.getCodeBlockInfo(0),
-					this._inlineChatWidget.getCodeBlockInfo(1)
+					this._chatWidget.getCodeBlockInfo(0),
+					this._chatWidget.getCodeBlockInfo(1)
 				]).then(([firstCodeBlock, secondCodeBlock]) => {
 					this._responseContainsCodeBlockContextKey.set(!!firstCodeBlock);
 					this._responseContainsMulitpleCodeBlocksContextKey.set(!!secondCodeBlock);
-					this._inlineChatWidget.updateToolbar(true);
+					this._chatWidget.updateToolbar(true);
 				});
 			}
 		}));
@@ -229,21 +222,21 @@ export class TerminalChatWidget extends Disposable {
 		// Calculate height
 		const terminalViewportHeight = this._getTerminalViewportHeight();
 		const widgetAllowedPercentBasedHeight = (terminalViewportHeight ?? 0) * Constants.MaxHeightPercentageOfViewport;
-		const height = Math.max(Math.min(Constants.MaxHeight, this._inlineChatWidget.contentHeight, widgetAllowedPercentBasedHeight), this._inlineChatWidget.minHeight);
+		const height = Math.max(Math.min(Constants.MaxHeight, this._chatWidget.contentHeight, widgetAllowedPercentBasedHeight), this._chatWidget.minHeight);
 		if (height === 0) {
 			return;
 		}
 
 		// Layout
 		this._dimension = new Dimension(width, height);
-		this._inlineChatWidget.layout(this._dimension);
-		this._inlineChatWidget.domNode.style.paddingLeft = `${xtermLeftPadding}px`;
+		this._chatWidget.layout(this._dimension);
+		this._chatWidget.domNode.style.paddingLeft = `${xtermLeftPadding}px`;
 		this._updateXtermViewportPosition();
 	}
 
 	private _resetPlaceholder() {
 		const defaultAgent = this._chatAgentService.getDefaultAgent(ChatAgentLocation.Terminal);
-		this.inlineChatWidget.placeholder = defaultAgent?.description ?? localize('askAboutCommands', 'Ask about commands');
+		this.chatWidget.placeholder = defaultAgent?.description ?? localize('askAboutCommands', 'Ask about commands');
 	}
 
 	async reveal(): Promise<void> {
@@ -252,7 +245,7 @@ export class TerminalChatWidget extends Disposable {
 		this._container.classList.remove('hide');
 		this._visibleContextKey.set(true);
 		this._resetPlaceholder();
-		this._inlineChatWidget.focus();
+		this._chatWidget.focus();
 		this._instance.scrollToBottom();
 	}
 
@@ -280,7 +273,7 @@ export class TerminalChatWidget extends Disposable {
 		}
 
 		const widgetAllowedPercentBasedHeight = terminalViewportHeight * Constants.MaxHeightPercentageOfViewport;
-		const height = Math.max(Math.min(Constants.MaxHeight, this._inlineChatWidget.contentHeight, widgetAllowedPercentBasedHeight), this._inlineChatWidget.minHeight);
+		const height = Math.max(Math.min(Constants.MaxHeight, this._chatWidget.contentHeight, widgetAllowedPercentBasedHeight), this._chatWidget.minHeight);
 		if (top > terminalViewportHeight - height && terminalViewportHeight - height > 0) {
 			this._setTerminalViewportOffset(top - (terminalViewportHeight - height));
 		} else {
@@ -294,11 +287,11 @@ export class TerminalChatWidget extends Disposable {
 
 	hide(): void {
 		this._container.classList.add('hide');
-		this._inlineChatWidget.reset();
+		this._chatWidget.reset();
 		this._resetPlaceholder();
-		this._inlineChatWidget.updateToolbar(false);
+		this._chatWidget.updateToolbar(false);
 		this._visibleContextKey.set(false);
-		this._inlineChatWidget.value = '';
+		this._chatWidget.value = '';
 		this._instance.focus();
 		this._setTerminalViewportOffset(undefined);
 		this._onDidHide.fire();
@@ -315,18 +308,18 @@ export class TerminalChatWidget extends Disposable {
 		}
 	}
 	focus(): void {
-		this.inlineChatWidget.focus();
+		this.chatWidget.focus();
 	}
 	hasFocus(): boolean {
-		return this._inlineChatWidget.hasFocus();
+		return this._chatWidget.hasFocus();
 	}
 
 	setValue(value?: string) {
-		this._inlineChatWidget.value = value ?? '';
+		this._chatWidget.value = value ?? '';
 	}
 
 	async acceptCommand(shouldExecute: boolean): Promise<void> {
-		const code = await this.inlineChatWidget.getCodeBlockInfo(0);
+		const code = await this.chatWidget.getCodeBlockInfo(0);
 		if (!code) {
 			return;
 		}
@@ -345,7 +338,7 @@ export class TerminalChatWidget extends Disposable {
 				const modelRef = this._chatService.startNewLocalSession(ChatAgentLocation.Terminal);
 				this._model.value = modelRef;
 				const model = modelRef.object;
-				this._inlineChatWidget.setChatModel(model);
+				this._chatWidget.setChatModel(model);
 				this._resetPlaceholder();
 			}
 		});
@@ -353,7 +346,7 @@ export class TerminalChatWidget extends Disposable {
 	}
 
 	private _saveViewState() {
-		const viewState = this._inlineChatWidget.chatWidget.getViewState();
+		const viewState = this._chatWidget.chatWidget.getViewState();
 		if (viewState) {
 			this._storageService.store(this._viewStateStorageKey, JSON.stringify(viewState), StorageScope.PROFILE, StorageTarget.USER);
 		}
@@ -373,7 +366,7 @@ export class TerminalChatWidget extends Disposable {
 			await this.reveal();
 		}
 		this._messages.fire(Message.AcceptInput);
-		const lastInput = this._inlineChatWidget.value;
+		const lastInput = this._chatWidget.value;
 		if (!lastInput) {
 			return;
 		}
@@ -381,7 +374,7 @@ export class TerminalChatWidget extends Disposable {
 		this._activeRequestCts = new CancellationTokenSource();
 		const store = new DisposableStore();
 		this._requestActiveContextKey.set(true);
-		const response = await this._inlineChatWidget.chatWidget.acceptInput(lastInput, { isVoiceInput: options?.isVoiceInput });
+		const response = await this._chatWidget.chatWidget.acceptInput(lastInput, { isVoiceInput: options?.isVoiceInput });
 		this._currentRequestId = response?.requestId;
 		const responsePromise = new DeferredPromise<IChatResponseModel | undefined>();
 		try {
@@ -396,11 +389,11 @@ export class TerminalChatWidget extends Disposable {
 					if (response.isComplete) {
 						this._requestActiveContextKey.set(false);
 						this._requestActiveContextKey.set(false);
-						const firstCodeBlock = await this._inlineChatWidget.getCodeBlockInfo(0);
-						const secondCodeBlock = await this._inlineChatWidget.getCodeBlockInfo(1);
+						const firstCodeBlock = await this._chatWidget.getCodeBlockInfo(0);
+						const secondCodeBlock = await this._chatWidget.getCodeBlockInfo(1);
 						this._responseContainsCodeBlockContextKey.set(!!firstCodeBlock);
 						this._responseContainsMulitpleCodeBlocksContextKey.set(!!secondCodeBlock);
-						this._inlineChatWidget.updateToolbar(true);
+						this._chatWidget.updateToolbar(true);
 						responsePromise.complete(response);
 					}
 				}));
@@ -421,7 +414,7 @@ export class TerminalChatWidget extends Disposable {
 		this._sessionCtor = undefined;
 		this._activeRequestCts?.cancel();
 		this._requestActiveContextKey.set(false);
-		const model = this._inlineChatWidget.getChatModel();
+		const model = this._chatWidget.getChatModel();
 		if (!model?.sessionResource) {
 			return;
 		}
@@ -430,7 +423,7 @@ export class TerminalChatWidget extends Disposable {
 
 	async viewInChat(): Promise<void> {
 		const widget = await this._chatWidgetService.revealWidget();
-		const currentRequest = this._inlineChatWidget.chatWidget.viewModel?.model.getRequests().find(r => r.id === this._currentRequestId);
+		const currentRequest = this._chatWidget.chatWidget.viewModel?.model.getRequests().find(r => r.id === this._currentRequestId);
 		if (!widget || !currentRequest?.response) {
 			return;
 		}
@@ -481,26 +474,179 @@ export class TerminalChatWidget extends Disposable {
 }
 
 
-class TerminalInlineChatWidget extends InlineChatWidget {
+interface ITerminalChatWidgetConstructionOptions {
 
+	/**
+	 * The menu that is rendered as button bar, used for accept, rerun etc
+	 */
+	statusMenuId?: { menu: MenuId; options: IWorkbenchButtonBarOptions };
+
+	/**
+	 * The options for the chat widget
+	 */
+	chatWidgetViewOptions?: IChatWidgetViewOptions;
+}
+
+class TerminalChatWidgetImpl {
+
+	private readonly _elements = h(
+		'div.inline-chat@root',
+		[
+			h('div.chat-widget@chatWidget'),
+			h('div.status@status', [
+				h('div.label.info.hidden@infoLabel'),
+				h('div.actions.hidden@toolbar1'),
+				h('div.label.status.hidden@statusLabel'),
+				h('div.actions.secondary.hidden@toolbar2'),
+			]),
+		]
+	);
+
+	private readonly _store = new DisposableStore();
+
+	readonly chatWidget: ChatWidget;
+
+	private readonly _onDidChangeHeight = this._store.add(new Emitter<void>());
+	readonly onDidChangeHeight: Event<void> = this._onDidChangeHeight.event;
+
+	private readonly _requestInProgress = observableValue<boolean>(this, false);
+	readonly requestInProgress: IObservable<boolean> = this._requestInProgress;
+
+	readonly scopedContextKeyService: IContextKeyService;
 
 	constructor(
 		location: IChatWidgetLocationOptions,
-		options: IInlineChatWidgetConstructionOptions,
+		options: ITerminalChatWidgetConstructionOptions,
 		@IInstantiationService instantiationService: IInstantiationService,
 		@IContextKeyService contextKeyService: IContextKeyService,
-		@IKeybindingService keybindingService: IKeybindingService,
-		@IAccessibilityService accessibilityService: IAccessibilityService,
-		@IConfigurationService configurationService: IConfigurationService,
-		@IAccessibleViewService accessibleViewService: IAccessibleViewService,
-		@ITextModelService textModelResolverService: ITextModelService,
-		@IChatService chatService: IChatService,
-		@IHoverService hoverService: IHoverService,
-		@IChatEntitlementService chatEntitlementService: IChatEntitlementService,
-		@IMarkdownRendererService markdownRendererService: IMarkdownRendererService,
-		@IModelService private _modelService: IModelService,
+		@IModelService private readonly _modelService: IModelService,
 	) {
-		super(location, options, instantiationService, contextKeyService, keybindingService, accessibilityService, configurationService, accessibleViewService, textModelResolverService, chatService, hoverService, chatEntitlementService, markdownRendererService);
+		this.scopedContextKeyService = this._store.add(contextKeyService.createScoped(this._elements.chatWidget));
+		const scopedInstaService = this._store.add(instantiationService.createChild(
+			new ServiceCollection([IContextKeyService, this.scopedContextKeyService])
+		));
+
+		this.chatWidget = this._store.add(scopedInstaService.createInstance(
+			ChatWidget,
+			location,
+			{},
+			{
+				autoScroll: true,
+				renderFollowups: true,
+				supportsFileReferences: true,
+				dndContainer: this._elements.root,
+				defaultMode: ChatMode.Ask,
+				...options.chatWidgetViewOptions
+			},
+			{
+				listForeground: editorForeground,
+				listBackground: editorBackground,
+				overlayBackground: EDITOR_DRAG_AND_DROP_BACKGROUND,
+				inputEditorBackground: inputBackground,
+				resultEditorBackground: editorBackground
+			}
+		));
+		this.chatWidget.render(this._elements.chatWidget);
+		this.chatWidget.setVisible(true);
+
+		const viewModelStore = this._store.add(new DisposableStore());
+		this._store.add(this.chatWidget.onDidChangeViewModel(() => {
+			viewModelStore.clear();
+
+			const viewModel = this.chatWidget.viewModel;
+			if (!viewModel) {
+				return;
+			}
+
+			viewModelStore.add(viewModel.onDidChange(() => {
+				this._requestInProgress.set(viewModel.model.requestInProgress.get(), undefined);
+				this._onDidChangeHeight.fire();
+			}));
+			this._onDidChangeHeight.fire();
+		}));
+
+		this._store.add(this.chatWidget.onDidChangeContentHeight(() => {
+			this._onDidChangeHeight.fire();
+		}));
+
+		// BUTTON bar
+		if (options.statusMenuId) {
+			const statusButtonBar = scopedInstaService.createInstance(MenuWorkbenchButtonBar, this._elements.toolbar1, options.statusMenuId.menu, {
+				toolbarOptions: { primaryGroup: '0_main' },
+				telemetrySource: options.chatWidgetViewOptions?.menus?.telemetrySource,
+				menuOptions: { renderShortTitle: true },
+				...options.statusMenuId.options,
+			});
+			this._store.add(statusButtonBar.onDidChange(() => this._onDidChangeHeight.fire()));
+			this._store.add(statusButtonBar);
+		}
+
+		this._elements.root.tabIndex = 0;
+		this._elements.statusLabel.tabIndex = 0;
+	}
+
+	dispose(): void {
+		this._store.dispose();
+	}
+
+	get domNode(): HTMLElement {
+		return this._elements.root;
+	}
+
+	layout(dimension: Dimension) {
+		const statusHeight = getTotalHeight(this._elements.status);
+
+		this._elements.root.style.height = `${dimension.height}px`;
+		this._elements.root.style.width = `${dimension.width}px`;
+
+		this.chatWidget.layout(
+			dimension.height - statusHeight,
+			dimension.width
+		);
+	}
+
+	/**
+	 * The content height of this widget is the size that would require no scrolling
+	 */
+	get contentHeight(): number {
+		return this.chatWidget.contentHeight + getTotalHeight(this._elements.status);
+	}
+
+	get minHeight(): number {
+		// The chat widget is variable height and supports scrolling. It should be
+		// at least "maxWidgetHeight" high and at most the content height.
+
+		let maxWidgetOutputHeight = 100;
+		for (const item of this.chatWidget.viewModel?.getItems() ?? []) {
+			if (isResponseVM(item) && item.response.value.some(r => r.kind === 'textEditGroup' && !r.state?.applied)) {
+				maxWidgetOutputHeight = 270;
+				break;
+			}
+		}
+
+		let value = this.contentHeight;
+		value -= this.chatWidget.contentHeight;
+		value += Math.min(this.chatWidget.input.height.get() + maxWidgetOutputHeight, this.chatWidget.contentHeight);
+		return value;
+	}
+
+	reset() {
+		this.chatWidget.attachmentModel.clear(true);
+		this.chatWidget.saveState();
+
+		this._elements.statusLabel.classList.toggle('hidden', true);
+		this._elements.toolbar1.classList.add('hidden');
+		this._elements.toolbar2.classList.add('hidden');
+		this._elements.infoLabel.classList.add('hidden');
+		this._onDidChangeHeight.fire();
+	}
+
+	focus() {
+		this.chatWidget.focusInput();
+	}
+
+	hasFocus() {
+		return this.domNode.contains(getActiveElement());
 	}
 
 	get value(): string {

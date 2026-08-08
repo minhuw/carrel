@@ -25,16 +25,16 @@ export interface IEditTelemetryBaseData {
 	feature:
 	/** Code suggestions generated in the sidebar chat panel */
 	| 'sideBarChat'
-	/** Code suggestions generated through inline chat within the editor */
-	| 'inlineChat'
 	/** Inline code completion suggestions */
 	| 'inlineSuggestion'
+	// eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
+	| (string & {})
 	| undefined;
 
 	presentation:
-	/** Code displayed in a code block within chat responses. Only possible when feature is `sideBarChat` or `inlineChat`. */
+	/** Code displayed in a code block within chat responses. Only possible when feature is `sideBarChat`. */
 	| 'codeBlock'
-	/** Code already applied to the editor and highlighted with diff-style formatting. Only possible when feature is `sideBarChat` or `inlineChat`. */
+	/** Code already applied to the editor and highlighted with diff-style formatting. Only possible when feature is `sideBarChat`. */
 	| 'highlightedEdit'
 	/** Code suggested inline as completion text. Only possible when feature is `inlineSuggestion`. */
 	| 'inlineCompletion'

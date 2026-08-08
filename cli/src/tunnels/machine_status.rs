@@ -96,22 +96,13 @@ fn emit_to_stdout(status: &MachineStatus) {
 	println!("{}", status_line(status));
 }
 
-pub fn emit_connected(
-	tunnel_name: &str,
-	tunnel_id: Option<&str>,
-	is_attached: bool,
-	has_editor_link: bool,
-) {
-	let (link, domain) = if has_editor_link {
-		match get_tunnel_web_url(tunnel_name) {
-			Some(link) => (
-				Some(link.to_string()),
-				link.host_str().map(ToString::to_string),
-			),
-			None => (None, None),
-		}
-	} else {
-		(None, None)
+pub fn emit_connected(tunnel_name: &str, tunnel_id: Option<&str>, is_attached: bool) {
+	let (link, domain) = match get_tunnel_web_url(tunnel_name) {
+		Some(link) => (
+			Some(link.to_string()),
+			link.host_str().map(ToString::to_string),
+		),
+		None => (None, None),
 	};
 
 	emit(MachineStatus::Connected {

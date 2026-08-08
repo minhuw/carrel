@@ -105,14 +105,6 @@ export const cacheWarmingJobs: Readonly<Record<string, ICacheWarmingJob>> = {
 		wslInstaller: true,
 		playwright: { arch: 'X64', browsers: '--only-shell chromium' },
 	},
-	'copilot-linux': {
-		os: 'Linux',
-		pnpmStore: { prefix: 'pnpm-store-copilot-linux', args: ['linux', 'x64'] },
-	},
-	'copilot-windows': {
-		os: 'Windows',
-		pnpmStore: { prefix: 'pnpm-store-copilot-windows', args: ['win32', 'x64'] },
-	},
 };
 
 /**

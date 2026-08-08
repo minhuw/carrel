@@ -57,7 +57,6 @@ export const NATIVE_BUILD_INPUTS: { readonly files: readonly string[]; readonly 
 		'remote/.pnpmfile.mjs',
 		'build/npm/pnpm/nativeBuildEnv.ts',
 		'.nvmrc',
-		'extensions/copilot/.nvmrc',
 		'pnpm-workspace.yaml',
 		'build/pnpm-workspace.yaml',
 		'remote/pnpm-workspace.yaml',

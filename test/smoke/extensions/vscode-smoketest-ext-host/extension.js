@@ -75,31 +75,6 @@ function activate(context) {
 	);
 }
 
-/** @type {Promise<void> | undefined} */
-let openingAgentHostChat;
-
-/**
- * Open an Agent Host Copilot session in a chat editor. The command is not in
- * the palette, hence this wrapper. It waits up to 30 seconds for the agent
- * host, which may still be starting or run on the remote, to register its
- * Copilot agent, and then fails; retry only that failure, until it has
- * registered.
- */
-async function openAgentHostChat() {
-	await vscode.commands.executeCommand('workbench.action.closeAllEditors');
-	const deadline = Date.now() + 5 * 60_000;
-	for (; ;) {
-		try {
-			await vscode.commands.executeCommand('workbench.action.chat.openNewSessionEditor.agent-host-copilotcli');
-			return;
-		} catch (error) {
-			if (Date.now() >= deadline || !/did not register a copilotcli agent/.test(error instanceof Error ? error.message : String(error))) {
-				throw error;
-			}
-		}
-	}
-}
-
 function deactivate() {
 	// Write marker file to indicate deactivation was called
 	if (deactivateMarkerFile) {

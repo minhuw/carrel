@@ -8,20 +8,6 @@
 #
 # Lines starting with `#` are comments. Blank lines are ignored.
 
-# Agent Host platform (89 files)
-
-# Copilot extension (90 files)
-
-# Workbench chat and agents (40 files)
-
-# Agents Window (11 files)
-src/vs/workbench/services/github/browser/githubApiClient.ts
-src/vs/workbench/contrib/sessions/common/github/utils.ts
-src/vs/workbench/contrib/sessions/providers/agentHost/browser/agentHostAutomationStore.ts
-src/vs/workbench/contrib/sessions/providers/agentHost/test/browser/agentHostSettingsFileSystemProvider.test.ts
-src/vs/workbench/contrib/sessions/providers/agentHost/test/browser/agentSessionSettingsFileSystemProvider.test.ts
-src/vs/workbench/contrib/sessions/providers/copilotChatSessions/test/browser/permissionPicker.test.ts
-
 # Build, CI, and scripts (48 files)
 build/azure-pipelines/common/createBuild.ts
 build/azure-pipelines/common/downloadNotice.ts
@@ -65,7 +51,6 @@ build/npm/update-localization-extension.ts
 build/rspack/rspack.serve-out.config.mts
 build/win32/explorer-dll-fetcher.ts
 scripts/code-server.js
-scripts/code-sessions-web.js
 scripts/code-web.js
 
 # Application bootstrap, server, and environment (41 files)

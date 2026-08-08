@@ -35,12 +35,9 @@ const lintFullCheckPaths = [
 	'.eslint-allowed-javascript-files',
 	'.eslint-allowed-bracket-notation-files',
 	'.eslint-plugin-local/',
-	'extensions/copilot/.eslintplugin/',
 	// The plugin and parser versions. local/code-amd-node-module also reads package.json.
 	'package.json',
 	'pnpm-lock.yaml',
-	// The packages that the Copilot rules in extensions/copilot/.eslintplugin/ import.
-	'extensions/copilot/package.json',
 	// Read by local/code-translation-remind.
 	'build/lib/i18n.resources.json',
 	'build/filters.ts',

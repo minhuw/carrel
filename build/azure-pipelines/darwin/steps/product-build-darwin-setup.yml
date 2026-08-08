@@ -4,9 +4,6 @@ parameters:
   - name: VSCODE_TEST_IDS
     type: object
     default: []
-  - name: VSCODE_SKIP_FOUNDRY_LOCAL_INSTALL
-    type: boolean
-    default: false
   # Workspace images (see build/azure-pipelines/common/workspaceImage.ts): use, for the CI test jobs,
   # which mount an image over their checkout when the cache has one, and install on top of it; build,
   # for the image job, which installs into an image when the cache has no current one.
@@ -58,8 +55,6 @@ steps:
     condition: and(succeeded(), ne(variables['NPM_REGISTRY'], 'none'))
     displayName: Setup NPM Registry
 
-  - template: ../../common/apply-sdk-canary.yml@self
-
   # An image holds its own pnpm store, which the image job installs into without the cache
   - ${{ if ne(parameters.VSCODE_WORKSPACE_IMAGE, 'build') }}:
     - template: ../../common/restore-pnpm-store.yml@self
@@ -87,10 +82,6 @@ steps:
 
   - template: ../../common/install-pnpm.yml@self
 
-  - ${{ if and(eq(parameters.VSCODE_CIBUILD, false), eq(parameters.VSCODE_SKIP_FOUNDRY_LOCAL_INSTALL, false)) }}:
-    - task: NuGetAuthenticate@1
-      displayName: Setup NuGet Authentication
-
   - task: PipAuthenticate@1
     inputs:
       artifactFeeds: Monaco/vscode
@@ -115,11 +106,6 @@ steps:
       ELECTRON_SKIP_BINARY_DOWNLOAD: 1
       PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
       GITHUB_TOKEN: "$(github-token-code-oss)"
-      ${{ if or(eq(parameters.VSCODE_CIBUILD, true), eq(parameters.VSCODE_SKIP_FOUNDRY_LOCAL_INSTALL, true)) }}:
-        FOUNDRY_LOCAL_SKIP_INSTALL: "1"
-      ${{ else }}:
-        FOUNDRY_LOCAL_NUGET_MODE: dotnet
-        FOUNDRY_LOCAL_NUGET_FEEDS: "https://pkgs.dev.azure.com/monacotools/Monaco/_packaging/vscode/nuget/v3/index.json"
       # Avoid using dlopen to load Kerberos on macOS which can cause missing libraries
       # https://github.com/mongodb-js/kerberos/commit/04044d2814ad1d01e77f1ce87f26b03d86692cf2
       # flipped the default to support legacy linux distros which shouldn't happen
@@ -140,10 +126,6 @@ steps:
     displayName: Clear package feed credentials
     condition: always()
 
-  - script: node build/azure-pipelines/common/checkNativeOptionalDeps.ts
-    displayName: Verify native optional dependency binaries
-    ${{ if eq(parameters.VSCODE_WORKSPACE_IMAGE, 'build') }}:
-      condition: and(succeeded(), eq(variables['WORKSPACE_IMAGE_USED'], 'true'))
 
   - ${{ if ne(parameters.VSCODE_WORKSPACE_IMAGE, 'build') }}:
     - script: node build/azure-pipelines/distro/mixin-npm.ts

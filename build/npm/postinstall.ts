@@ -9,7 +9,6 @@ import * as os from 'os';
 import * as child_process from 'child_process';
 import { separateRoots, distroRoots } from './dirs.ts';
 import { ensureElectronTypes } from './electronTypes.ts';
-import { finishCloudSandbox } from './cloudSandbox.ts';
 import { getNativeBuildEnv, nativeBuildKeys } from './pnpm/nativeBuildEnv.ts';
 import { getPinnedPnpmVersion, getPnpmCommand } from '../lib/pnpm.ts';
 
@@ -270,8 +269,6 @@ async function main() {
 
 	child_process.execSync('git config pull.rebase merges');
 	child_process.execSync('git config blame.ignoreRevsFile .git-blame-ignore-revs');
-
-	finishCloudSandbox();
 
 	// Symlink .claude/ files to their canonical locations to test Claude agent harness
 	const claudeDir = path.join(root, '.claude');

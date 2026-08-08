@@ -160,29 +160,10 @@ stages:
                 parameters:
                   VSCODE_CIBUILD: ${{ variables.VSCODE_CIBUILD }}
                   VSCODE_QUALITY: ${{ variables.VSCODE_QUALITY }}
-                  VSCODE_JOB_NAME: AgentHostE2E
-                  VSCODE_JOB_DISPLAY_NAME: Agent Host E2E Tests (Electron)
-                  VSCODE_TEST_IDS:
-                    - integration-agent-host-e2e
-              - template: win32/product-build-win32-ci.yml@self
-                parameters:
-                  VSCODE_CIBUILD: ${{ variables.VSCODE_CIBUILD }}
-                  VSCODE_QUALITY: ${{ variables.VSCODE_QUALITY }}
                   VSCODE_JOB_NAME: Smoke
                   VSCODE_JOB_DISPLAY_NAME: Smoke Tests (Electron)
                   VSCODE_TEST_IDS:
                     - smoke-electron
-                    - smoke-wsl-kerberos-proxy
-                    - smoke-wsl-basic-proxy
-                    - smoke-wsl-basic-pac-proxy
-              - template: win32/product-build-win32-ci.yml@self
-                parameters:
-                  VSCODE_CIBUILD: ${{ variables.VSCODE_CIBUILD }}
-                  VSCODE_QUALITY: ${{ variables.VSCODE_QUALITY }}
-                  VSCODE_JOB_NAME: Copilot
-                  VSCODE_JOB_DISPLAY_NAME: Copilot Tests
-                  VSCODE_TEST_IDS:
-                    - copilot
 
             - ${{ if and(eq(variables['VSCODE_CIBUILD'], false), eq(parameters.VSCODE_BUILD_WIN32, true)) }}:
               - template: win32/product-build-win32.yml@self
@@ -233,30 +214,10 @@ stages:
                   parameters:
                     VSCODE_ARCH: x64
                     VSCODE_CIBUILD: ${{ variables.VSCODE_CIBUILD }}
-                    VSCODE_JOB_NAME: AgentHostE2E
-                    VSCODE_JOB_DISPLAY_NAME: Agent Host E2E Tests (Electron)
-                    VSCODE_TEST_IDS:
-                      - integration-agent-host-e2e
-                - template: win32/product-build-win32-test.yml@self
-                  parameters:
-                    VSCODE_ARCH: x64
-                    VSCODE_CIBUILD: ${{ variables.VSCODE_CIBUILD }}
                     VSCODE_JOB_NAME: Smoke
                     VSCODE_JOB_DISPLAY_NAME: Smoke Tests (Electron)
                     VSCODE_TEST_IDS:
                       - smoke-electron
-                      - smoke-wsl-kerberos-proxy
-                      - smoke-wsl-basic-proxy
-                      - smoke-wsl-basic-pac-proxy
-                    VSCODE_LINUX_X64_COMPILATION_ARTIFACT: ${{ eq(variables['VSCODE_BUILD_STAGE_LINUX_X64'], true) }}
-                - template: win32/product-build-win32-test.yml@self
-                  parameters:
-                    VSCODE_ARCH: x64
-                    VSCODE_CIBUILD: ${{ variables.VSCODE_CIBUILD }}
-                    VSCODE_JOB_NAME: Copilot
-                    VSCODE_JOB_DISPLAY_NAME: Copilot Tests
-                    VSCODE_TEST_IDS:
-                      - copilot
 
       - ${{ if eq(variables['VSCODE_BUILD_STAGE_WINDOWS_ARM64'], true) }}:
         - stage: WindowsARM64
@@ -339,27 +300,10 @@ stages:
                 parameters:
                   NPM_ARCH: x64
                   VSCODE_ARCH: x64
-                  VSCODE_JOB_NAME: AgentHostE2E
-                  VSCODE_JOB_DISPLAY_NAME: Agent Host E2E Tests (Electron)
-                  VSCODE_TEST_IDS:
-                    - integration-agent-host-e2e
-              - template: linux/product-build-linux-test.yml@self
-                parameters:
-                  NPM_ARCH: x64
-                  VSCODE_ARCH: x64
                   VSCODE_JOB_NAME: Smoke
                   VSCODE_JOB_DISPLAY_NAME: Smoke Tests (Electron)
                   VSCODE_TEST_IDS:
                     - smoke-electron
-              - template: linux/product-build-linux-test.yml@self
-                parameters:
-                  NPM_ARCH: x64
-                  VSCODE_ARCH: x64
-                  VSCODE_JOB_NAME: Copilot
-                  VSCODE_JOB_DISPLAY_NAME: Copilot Tests
-                  VSCODE_TEST_IDS:
-                    - copilot
-
       - ${{ if eq(variables['VSCODE_BUILD_STAGE_LINUX_ARM64'], true) }}:
         - stage: LinuxARM64
           displayName: Linux ARM64
@@ -454,27 +398,10 @@ stages:
                 parameters:
                   VSCODE_CIBUILD: ${{ variables.VSCODE_CIBUILD }}
                   VSCODE_QUALITY: ${{ variables.VSCODE_QUALITY }}
-                  VSCODE_JOB_NAME: AgentHostE2E
-                  VSCODE_JOB_DISPLAY_NAME: Agent Host E2E Tests (Electron)
-                  VSCODE_TEST_IDS:
-                    - integration-agent-host-e2e
-              - template: linux/product-build-linux-ci.yml@self
-                parameters:
-                  VSCODE_CIBUILD: ${{ variables.VSCODE_CIBUILD }}
-                  VSCODE_QUALITY: ${{ variables.VSCODE_QUALITY }}
                   VSCODE_JOB_NAME: Smoke
                   VSCODE_JOB_DISPLAY_NAME: Smoke Tests (Electron)
                   VSCODE_TEST_IDS:
                     - smoke-electron
-              - template: linux/product-build-linux-ci.yml@self
-                parameters:
-                  VSCODE_CIBUILD: ${{ variables.VSCODE_CIBUILD }}
-                  VSCODE_QUALITY: ${{ variables.VSCODE_QUALITY }}
-                  VSCODE_JOB_NAME: Copilot
-                  VSCODE_JOB_DISPLAY_NAME: Copilot Tests
-                  VSCODE_TEST_IDS:
-                    - copilot
-
       - ${{ if and(eq(variables['VSCODE_CIBUILD'], false), eq(variables['VSCODE_BUILD_STAGE_ALPINE'], true)) }}:
         - stage: Alpine
           dependsOn: []
@@ -550,20 +477,10 @@ stages:
             - template: darwin/product-build-darwin-ci.yml@self
               parameters:
                 VSCODE_CIBUILD: ${{ variables.VSCODE_CIBUILD }}
-                VSCODE_JOB_NAME: AgentHostE2E
-                VSCODE_JOB_DISPLAY_NAME: Agent Host E2E Tests (Electron)
-                VSCODE_TEST_IDS:
-                  - integration-agent-host-e2e
-            - template: darwin/product-build-darwin-ci.yml@self
-              parameters:
-                VSCODE_CIBUILD: ${{ variables.VSCODE_CIBUILD }}
                 VSCODE_JOB_NAME: Smoke
                 VSCODE_JOB_DISPLAY_NAME: Smoke Tests (Electron)
                 VSCODE_TEST_IDS:
                   - smoke-electron
-                  - smoke-agents-pac-proxy
-                  - smoke-agents-kerberos-pac-proxy
-                  - smoke-agents-basic-proxy
 
       - ${{ if eq(variables['VSCODE_BUILD_STAGE_MACOS_X64'], true) }}:
         - stage: macOSX64
@@ -652,21 +569,10 @@ stages:
                 parameters:
                   VSCODE_ARCH: arm64
                   VSCODE_CIBUILD: ${{ variables.VSCODE_CIBUILD }}
-                  VSCODE_JOB_NAME: AgentHostE2E
-                  VSCODE_JOB_DISPLAY_NAME: Agent Host E2E Tests (Electron)
-                  VSCODE_TEST_IDS:
-                    - integration-agent-host-e2e
-              - template: darwin/product-build-darwin-test.yml@self
-                parameters:
-                  VSCODE_ARCH: arm64
-                  VSCODE_CIBUILD: ${{ variables.VSCODE_CIBUILD }}
                   VSCODE_JOB_NAME: Smoke
                   VSCODE_JOB_DISPLAY_NAME: Smoke Tests (Electron)
                   VSCODE_TEST_IDS:
                     - smoke-electron
-                    - smoke-agents-pac-proxy
-                    - smoke-agents-kerberos-pac-proxy
-                    - smoke-agents-basic-proxy
 
       # The universal job waits for the unsigned x64 and arm64 client artifacts
       # instead of depending on their stages, so that it runs in parallel.

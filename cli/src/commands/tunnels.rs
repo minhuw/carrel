@@ -30,8 +30,7 @@ use crate::{
 	async_pipe::{get_socket_name, listen_socket_rw_stream, AsyncRWAccepter},
 	auth::Auth,
 	constants::{
-		AGENT_HOST_PORT, APPLICATION_NAME, CONTROL_PORT, IS_A_TTY, TUNNEL_CLI_LOCK_NAME,
-		TUNNEL_SERVICE_LOCK_NAME,
+		APPLICATION_NAME, CONTROL_PORT, IS_A_TTY, TUNNEL_CLI_LOCK_NAME, TUNNEL_SERVICE_LOCK_NAME,
 	},
 	log,
 	state::LauncherPaths,
@@ -147,10 +146,6 @@ pub async fn command_shell(ctx: CommandContext, args: CommandShellArgs) -> Resul
 		shutdown_reqs.push(ShutdownRequest::ParentProcessKilled(p));
 	}
 
-	// No agent host supervisor here: the spawned VS Code server is the client's
-	// own commit, so it uses a live shared agent host from the endpoint registry
-	// or starts and publishes its own, and stays alive while that agent host
-	// has sessions or clients.
 	let mut params = ServeStreamParams {
 		log: ctx.log,
 		launcher_paths: ctx.paths,
@@ -161,7 +156,6 @@ pub async fn command_shell(ctx: CommandContext, args: CommandShellArgs) -> Resul
 			.unwrap_or(AuthRequired::VSDA),
 		exit_barrier: ShutdownRequest::create_rx(shutdown_reqs),
 		code_server_args: (&ctx.args).into(),
-		active_agent_host: None,
 	};
 
 	args.server_args.apply_to(&mut params.code_server_args);
@@ -657,7 +651,7 @@ async fn serve_with_csa(
 			dt.start_existing_tunnel(t).await
 		} else {
 			tokio::select! {
-				t = dt.start_new_launcher_tunnel(gateway_args.name.as_deref(), gateway_args.random_name, &[CONTROL_PORT, AGENT_HOST_PORT]) => t,
+				t = dt.start_new_launcher_tunnel(gateway_args.name.as_deref(), gateway_args.random_name, &[CONTROL_PORT]) => t,
 				_ = shutdown.wait() => return Ok(1),
 			}
 		}?;
@@ -670,8 +664,6 @@ async fn serve_with_csa(
 			paths: &paths,
 			code_server_args: &csa,
 			platform,
-			user_data_dir: gateway_args.user_data_dir.clone(),
-			delegate_to_editor: gateway_args.delegate_to_editor,
 			log_broadcast: &log_broadcast,
 			shutdown: shutdown.clone(),
 			server: &mut server,

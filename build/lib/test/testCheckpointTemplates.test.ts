@@ -54,13 +54,8 @@ function calls(value: unknown): CheckpointParameters[] {
 	).map(record => record.parameters as CheckpointParameters);
 }
 
-function copilotCalls(os: 'darwin' | 'linux' | 'win32'): CheckpointParameters[] {
-	const steps = readTemplate('copilot/product-test-steps.yml').steps;
-	return calls(steps.filter(step => Object.hasOwn(step, `\${{ if eq(parameters.OS, '${os}') }}`)));
-}
-
-function allCalls(testFile: string, os: 'darwin' | 'linux' | 'win32'): CheckpointParameters[] {
-	return [...calls(readTemplate(testFile)), ...copilotCalls(os)];
+function allCalls(testFile: string): CheckpointParameters[] {
+	return calls(readTemplate(testFile));
 }
 
 function selectedTestIds(testFile: string): { selectedId: string; testId: string }[] {
@@ -73,7 +68,6 @@ function selectedTestIds(testFile: string): { selectedId: string; testId: string
 			}
 			return [
 				...calls(branch).map(call => ({ selectedId, testId: call.testId })),
-				...records(branch).filter(record => record.template === '../../copilot/product-test-steps.yml@self').map(() => ({ selectedId, testId: 'copilot' })),
 			];
 		})
 	);
@@ -100,17 +94,11 @@ suite('Product test checkpoint templates', () => {
 				}
 			}
 		}
-		const copilot = readTemplate('copilot/product-test-steps.yml').steps;
 		assert.deepStrictEqual({
 			users: [...new Set(users)],
-			unsupportedCopilotCalls: calls(copilot.filter(step =>
-				!Object.hasOwn(step, '${{ if eq(parameters.OS, \'linux\') }}')
-				&& !Object.hasOwn(step, '${{ if eq(parameters.OS, \'win32\') }}')
-			)).length,
 		}, {
 			users: [
 				'common/run-test-with-checkpoint.yml -> publish-test-checkpoint.yml',
-				'copilot/product-test-steps.yml -> run-test-with-checkpoint.yml',
 				`${darwinTestFile} -> restore-test-checkpoints.yml`,
 				`${darwinTestFile} -> run-test-with-checkpoint.yml`,
 				`${linuxTestFile} -> restore-test-checkpoints.yml`,
@@ -118,7 +106,6 @@ suite('Product test checkpoint templates', () => {
 				`${windowsTestFile} -> restore-test-checkpoints.yml`,
 				`${windowsTestFile} -> run-test-with-checkpoint.yml`,
 			],
-			unsupportedCopilotCalls: 0,
 		});
 	});
 
@@ -202,26 +189,23 @@ suite('Product test checkpoint templates', () => {
 	test('every test task is registered, independently recorded and gated', async () => {
 		const windowsExpected = [
 			'unit-electron', 'unit-node', 'unit-browser-chromium',
-			'integration-agent-host-e2e', 'integration-electron', 'integration-browser-firefox', 'integration-remote',
-			'smoke-electron', 'smoke-wsl-kerberos-proxy', 'smoke-wsl-basic-proxy', 'smoke-wsl-basic-pac-proxy', 'smoke-browser-chromium', 'smoke-remote',
-			'copilot-unit', 'copilot-simulation', 'copilot-prompt', 'copilot-extension', 'copilot-completions-core', 'copilot-sanity',
+			'integration-electron', 'integration-browser-firefox', 'integration-remote',
+			'smoke-electron', 'smoke-browser-chromium', 'smoke-remote',
 		];
 		const linuxExpected = [
 			'unit-electron', 'unit-node', 'unit-browser-chromium',
-			'integration-agent-host-e2e', 'integration-electron', 'integration-browser-chromium', 'integration-remote',
+			'integration-electron', 'integration-browser-chromium', 'integration-remote',
 			'smoke-electron', 'smoke-browser-chromium', 'smoke-remote',
-			'copilot-unit', 'copilot-simulation', 'copilot-prompt', 'copilot-extension', 'copilot-completions-core', 'copilot-sanity',
 		];
 		const darwinExpected = [
 			'unit-electron', 'unit-node', 'unit-browser-webkit',
-			'integration-agent-host-e2e', 'integration-electron', 'integration-browser-webkit', 'integration-remote',
-			'smoke-electron', 'smoke-agents-pac-proxy', 'smoke-agents-kerberos-pac-proxy', 'smoke-agents-basic-proxy', 'smoke-browser-chromium', 'smoke-remote',
+			'integration-electron', 'integration-browser-webkit', 'integration-remote',
+			'smoke-electron', 'smoke-browser-chromium', 'smoke-remote',
 		];
 		const allExpected = [
 			'unit-electron', 'unit-node', 'unit-browser-chromium', 'unit-browser-webkit',
-			'integration-agent-host-e2e', 'integration-electron', 'integration-browser-chromium', 'integration-browser-firefox', 'integration-browser-webkit', 'integration-remote',
-			'smoke-electron', 'smoke-agents-pac-proxy', 'smoke-agents-kerberos-pac-proxy', 'smoke-agents-basic-proxy', 'smoke-wsl-kerberos-proxy', 'smoke-wsl-basic-proxy', 'smoke-wsl-basic-pac-proxy', 'smoke-browser-chromium', 'smoke-remote',
-			'copilot-unit', 'copilot-simulation', 'copilot-prompt', 'copilot-extension', 'copilot-completions-core', 'copilot-sanity',
+			'integration-electron', 'integration-browser-chromium', 'integration-browser-firefox', 'integration-browser-webkit', 'integration-remote',
+			'smoke-electron', 'smoke-browser-chromium', 'smoke-remote',
 		];
 		const targets = [
 			{ file: windowsTestFile, os: 'win32' as const, expected: windowsExpected, target: 'win32-x64' },
@@ -234,10 +218,9 @@ suite('Product test checkpoint templates', () => {
 				const steps = readTemplate(target.file).steps;
 				return {
 					file: target.file,
-					calls: allCalls(target.file, target.os).map(call => call.testId),
+					calls: allCalls(target.file).map(call => call.testId),
 					firstStep: steps[0],
 					restores: records(steps).filter(step => step.template?.toString().endsWith('/restore-test-checkpoints.yml@self')).length,
-					copilot: records(steps).find(step => step.template === '../../copilot/product-test-steps.yml@self')?.parameters,
 				};
 			}),
 			publishedIds,
@@ -248,19 +231,16 @@ suite('Product test checkpoint templates', () => {
 				calls: windowsExpected,
 				firstStep: { template: '../../common/restore-test-checkpoints.yml@self' },
 				restores: 1,
-				copilot: { OS: 'win32' },
 			}, {
 				file: linuxTestFile,
 				calls: linuxExpected,
 				firstStep: { template: '../../common/restore-test-checkpoints.yml@self' },
 				restores: 1,
-				copilot: { OS: 'linux' },
 			}, {
 				file: darwinTestFile,
 				calls: darwinExpected,
 				firstStep: { template: '../../common/restore-test-checkpoints.yml@self' },
 				restores: 1,
-				copilot: undefined,
 			}],
 			publishedIds: allExpected,
 			scriptIds: allExpected,
@@ -308,7 +288,7 @@ suite('Product test checkpoint templates', () => {
 		const productTestJob = records(productTestTemplate).find(record => record.job === 'Windows_${{ parameters.VSCODE_ARCH }}_Test_${{ parameters.VSCODE_JOB_NAME }}');
 		const productSteps = records(productTestTemplate).filter(record => record.template === './steps/product-build-win32-test.yml@self' || record.template === './steps/product-build-win32-setup.yml@self');
 		const compileSteps = records(compileTemplate).filter(record => record.template === 'product-build-win32-test.yml@self' || record.template === 'product-build-win32-setup.yml@self');
-		const pipelineFiles = ['product-build-ci.yml', 'product-build-ado-ci.yml', 'product-build-template.yml'];
+		const pipelineFiles = ['product-build-ado-ci.yml', 'product-build-template.yml'];
 		const jobsByPipeline = pipelineFiles.map(file => ciJobs(file, 'win32'));
 		const jobs = jobsByPipeline[0];
 		const productJobsByPipeline = ['product-build.yml', 'product-build-template.yml'].map(file => {
@@ -324,16 +304,12 @@ suite('Product test checkpoint templates', () => {
 			};
 		});
 		const assignedIds = jobs.flatMap(job => job.ids).sort();
-		const copilotCheckpoints = copilotCalls('win32').map(call => call.testId);
-		const availableIds = [
-			...allCalls(windowsTestFile, 'win32').map(call => call.testId).filter(id => !copilotCheckpoints.includes(id)),
-			'copilot',
-		].sort();
+		const availableIds = allCalls(windowsTestFile).map(call => call.testId).sort();
 
 		assert.deepStrictEqual({
 			testIdsType: ci.parameters?.find(parameter => parameter.name === 'VSCODE_TEST_IDS')?.type,
 			jobDisplayName: job?.displayName,
-			displayNames: jobs.filter(job => ['Smoke', 'Integration', 'AgentHostE2E', 'Unit', 'UnitElectron', 'Copilot', 'BrowserRemote'].includes(job.name))
+			displayNames: jobs.filter(job => ['Smoke', 'Integration', 'Unit', 'UnitElectron', 'BrowserRemote'].includes(job.name))
 				.map(job => ({ name: job.name, displayName: job.displayName })),
 			sameJobsInEachPipeline: jobsByPipeline.every(pipelineJobs => JSON.stringify(pipelineJobs) === JSON.stringify(jobs)),
 			uniqueJobNames: new Set(jobs.map(job => job.name)).size === jobs.length,
@@ -346,12 +322,8 @@ suite('Product test checkpoint templates', () => {
 			productTestIds: productSteps.map(step => (step.parameters as Record<string, string>).VSCODE_TEST_IDS).filter(value => value !== undefined),
 			productTestJob: { dependsOn: productTestJob?.dependsOn, displayName: productTestJob?.displayName },
 			productJobsByPipeline,
-			copilotSetup: Object.keys(setup.steps.find(step => records(step).some(record => record.template === '../../copilot/pull-test-cache.yml@self')) ?? {}),
-			copilotTests: Object.keys(steps.find(step => records(step).some(record => record.template === '../../copilot/product-test-steps.yml@self')) ?? {}),
-			agentHostSmoke: Object.keys(compileTemplate.steps.find(step => records(step).some(record => record.displayName === '🧪 Smoke test packaged Agent Host')) ?? {}),
 			selectedIds: selectedIds.map(selection => selection.selectedId).sort(),
 			selectionsMatchTests: selectedIds.every(selection => selection.selectedId === selection.testId),
-			copilotCheckpoints,
 			// Tests are only selected by test ID
 			testEnvironmentParameters: [compileTemplate, setup, readTemplate(windowsTestFile)].flatMap(template => template.parameters ?? [])
 				.map(parameter => parameter.name).filter(name => /^VSCODE_RUN_\w+_TESTS$/.test(name)),
@@ -363,9 +335,7 @@ suite('Product test checkpoint templates', () => {
 				{ name: 'Unit', displayName: 'Unit Tests (Node.js & Browser)' },
 				{ name: 'BrowserRemote', displayName: 'Browser & Remote Tests' },
 				{ name: 'Integration', displayName: 'Integration Tests (Electron)' },
-				{ name: 'AgentHostE2E', displayName: 'Agent Host E2E Tests (Electron)' },
 				{ name: 'Smoke', displayName: 'Smoke Tests (Electron)' },
-				{ name: 'Copilot', displayName: 'Copilot Tests' },
 			],
 			sameJobsInEachPipeline: true,
 			uniqueJobNames: true,
@@ -385,12 +355,8 @@ suite('Product test checkpoint templates', () => {
 				runTests: ['${{ eq(parameters.VSCODE_STEP_ON_IT, false) }}', undefined],
 				jobs: jobs.map(job => ({ arch: 'x64', ...job })),
 			})),
-			copilotSetup: ['${{ if containsValue(parameters.VSCODE_TEST_IDS, \'copilot\') }}'],
-			copilotTests: ['${{ if containsValue(parameters.VSCODE_TEST_IDS, \'copilot\') }}'],
-			agentHostSmoke: ['${{ if and(eq(parameters.VSCODE_ARCH, \'x64\'), or(ne(parameters.VSCODE_CIBUILD, true), eq(length(parameters.VSCODE_TEST_IDS), 0), containsValue(parameters.VSCODE_TEST_IDS, \'smoke-electron\'))) }}'],
 			selectedIds: availableIds,
 			selectionsMatchTests: true,
-			copilotCheckpoints: ['copilot-unit', 'copilot-simulation', 'copilot-prompt', 'copilot-extension', 'copilot-completions-core', 'copilot-sanity'],
 			testEnvironmentParameters: [],
 		});
 	});
@@ -411,7 +377,7 @@ suite('Product test checkpoint templates', () => {
 	});
 
 	test('Linux and macOS CI assign every test ID to one job', () => {
-		const pipelineFiles = ['product-build-ci.yml', 'product-build-ado-ci.yml', 'product-build-template.yml'];
+		const pipelineFiles = ['product-build-ado-ci.yml', 'product-build-template.yml'];
 		const observed = ([
 			{ platform: 'linux', testFile: linuxTestFile, jobPrefix: 'Linux' },
 			{ platform: 'darwin', testFile: darwinTestFile, jobPrefix: 'macOS' },
@@ -440,11 +406,7 @@ suite('Product test checkpoint templates', () => {
 			const compileSteps = records(compileTemplate).filter(record => record.template === `product-build-${platform}-test.yml@self` || record.template === `product-build-${platform}-setup.yml@self`);
 			const jobsByPipeline = pipelineFiles.map(file => ciJobs(file, platform));
 			const jobs = jobsByPipeline[0];
-			const copilotCheckpoints = copilotCalls(platform).map(call => call.testId);
-			const availableIds = [
-				...allCalls(testFile, platform).map(call => call.testId).filter(id => !copilotCheckpoints.includes(id)),
-				...(copilotCheckpoints.length > 0 ? ['copilot'] : []),
-			].sort();
+			const availableIds = allCalls(testFile).map(call => call.testId).sort();
 			return {
 				platform,
 				jobName: job?.job,
@@ -461,12 +423,6 @@ suite('Product test checkpoint templates', () => {
 				forwardedTestIds: compileSteps.map(step => (step.parameters as Record<string, string>).VSCODE_TEST_IDS),
 				selectedIds: selectedIds.map(({ selectedId }) => selectedId).sort(),
 				selectionsMatchTests: selectedIds.every(({ selectedId, testId }) => selectedId === testId),
-				agentHostSmokeFollowsTest: records(compileTemplate).some(record => Object.keys(record).some(key =>
-					key.includes('containsValue(parameters.VSCODE_TEST_IDS, \'smoke-electron\')')
-					&& key.includes('eq(length(parameters.VSCODE_TEST_IDS), 0)')
-					&& key.includes('ne(parameters.VSCODE_CIBUILD, true)'))),
-				copilotSetup: Object.keys(setup.steps.find(step => records(step).some(record => record.template === '../../copilot/pull-test-cache.yml@self')) ?? {}),
-				copilotTests: Object.keys(steps.find(step => records(step).some(record => record.template === '../../copilot/product-test-steps.yml@self')) ?? {}),
 				remoteNode: Object.keys(steps.find(step => records(step).some(record => record.displayName === 'Download Node.js')) ?? {}),
 				productTestJob: { job: productTestJob?.job, dependsOn: productTestJob?.dependsOn, displayName: productTestJob?.displayName },
 				// The product build runs the same test jobs as CI
@@ -477,10 +433,9 @@ suite('Product test checkpoint templates', () => {
 					.map(parameter => parameter.name).filter(name => /^VSCODE_RUN_\w+_TESTS$/.test(name)),
 			};
 		});
-		const jobDisplayNames = ['Unit Tests (Electron)', 'Unit Tests (Node.js & Browser)', 'Browser & Remote Tests', 'Integration Tests (Electron)', 'Agent Host E2E Tests (Electron)', 'Smoke Tests (Electron)', 'Copilot Tests'];
+		const jobDisplayNames = ['Unit Tests (Electron)', 'Unit Tests (Node.js & Browser)', 'Browser & Remote Tests', 'Integration Tests (Electron)', 'Smoke Tests (Electron)'];
 		// The Copilot tests run on Windows and Linux only
 		const darwinJobDisplayNames = jobDisplayNames.filter(displayName => displayName !== 'Copilot Tests');
-		const copilotCondition = '${{ if containsValue(parameters.VSCODE_TEST_IDS, \'copilot\') }}';
 		const remoteNodeCondition = '${{ if or(containsValue(parameters.VSCODE_TEST_IDS, \'integration-remote\'), containsValue(parameters.VSCODE_TEST_IDS, \'smoke-remote\')) }}';
 		const runTests = '${{ eq(parameters.VSCODE_STEP_ON_IT, false) }}';
 		assert.deepStrictEqual(observed, [
@@ -499,9 +454,6 @@ suite('Product test checkpoint templates', () => {
 				forwardedTestIds: ['${{ parameters.VSCODE_TEST_IDS }}', '${{ parameters.VSCODE_TEST_IDS }}'],
 				selectedIds: observed[0].availableIds,
 				selectionsMatchTests: true,
-				agentHostSmokeFollowsTest: true,
-				copilotSetup: [copilotCondition],
-				copilotTests: [copilotCondition],
 				remoteNode: [remoteNodeCondition],
 				productTestJob: {
 					job: 'Linux_${{ parameters.VSCODE_ARCH }}_Test_${{ parameters.VSCODE_JOB_NAME }}',
@@ -528,9 +480,6 @@ suite('Product test checkpoint templates', () => {
 				forwardedTestIds: ['${{ parameters.VSCODE_TEST_IDS }}', '${{ parameters.VSCODE_TEST_IDS }}'],
 				selectedIds: observed[1].availableIds,
 				selectionsMatchTests: true,
-				agentHostSmokeFollowsTest: true,
-				copilotSetup: [],
-				copilotTests: [],
 				remoteNode: [remoteNodeCondition],
 				productTestJob: {
 					job: 'macOS_${{ parameters.VSCODE_ARCH }}_Test_${{ parameters.VSCODE_JOB_NAME }}',
@@ -546,7 +495,7 @@ suite('Product test checkpoint templates', () => {
 	});
 
 	test('Linux and macOS CI stage labels include the architecture', () => {
-		const pipelineFiles = ['product-build-ci.yml', 'product-build-ado-ci.yml', 'product-build-template.yml'];
+		const pipelineFiles = ['product-build-ado-ci.yml', 'product-build-template.yml'];
 		assert.deepStrictEqual(pipelineFiles.map(file => ({
 			file,
 			stages: records(readTemplate(file))
@@ -591,17 +540,13 @@ suite('Product test checkpoint templates', () => {
 		}));
 	});
 
-	test('flaky-smoke builds keep the packaged Agent Host check without running product test steps', () => {
+	test('flaky-smoke builds run no product test steps', () => {
 		const platforms = ['win32', 'linux', 'darwin'] as const;
 		const observed = platforms.map(platform => {
 			const flaky = readTemplate(`${platform}/product-smoke-flaky-${platform}.yml`);
 			const compileCall = records(flaky).find(record => record.template === `./steps/product-build-${platform}-compile.yml@self`);
 			const compileParameters = compileCall?.parameters as Record<string, unknown> | undefined;
 			const compile = readTemplate(`${platform}/steps/product-build-${platform}-compile.yml`);
-			const packagedHostGuards = records(compile.steps).flatMap(record => Object.entries(record)
-				.filter(([key, branch]) => key.includes('containsValue(parameters.VSCODE_TEST_IDS, \'smoke-electron\')')
-					&& records(branch).some(step => step.displayName === '🧪 Smoke test packaged Agent Host'))
-				.map(([key]) => key));
 			const productTestGuards = compile.steps.flatMap(step => Object.entries(step)
 				.filter(([, branch]) => records(branch).some(record => record.template === `product-build-${platform}-test.yml@self`))
 				.map(([key]) => key));
@@ -610,7 +555,6 @@ suite('Product test checkpoint templates', () => {
 				ciBuild: compileParameters?.VSCODE_CIBUILD,
 				noProductTestSelection: ['VSCODE_TEST_IDS'].every(name => !Object.hasOwn(compileParameters ?? {}, name)),
 				defaultTestIds: compile.parameters?.find(parameter => parameter.name === 'VSCODE_TEST_IDS')?.default,
-				packagedHostGuards,
 				productTestGuards,
 				repeatedTestJobs: records(flaky).filter(record => record.template === '../common/product-smoke-flaky-test.yml@self').length,
 			};
@@ -620,7 +564,6 @@ suite('Product test checkpoint templates', () => {
 			ciBuild: true,
 			noProductTestSelection: true,
 			defaultTestIds: [],
-			packagedHostGuards: [`\${{ if and(eq(parameters.VSCODE_ARCH, '${platform === 'darwin' ? 'arm64' : 'x64'}'), or(ne(parameters.VSCODE_CIBUILD, true), eq(length(parameters.VSCODE_TEST_IDS), 0), containsValue(parameters.VSCODE_TEST_IDS, 'smoke-electron'))) }}`],
 			productTestGuards: ['${{ if gt(length(parameters.VSCODE_TEST_IDS), 0) }}'],
 			repeatedTestJobs: 3,
 		})));
@@ -644,70 +587,23 @@ suite('Product test checkpoint templates', () => {
 		}]);
 	});
 
-	test('macOS Squid setup runs with any proxy smoke test', () => {
-		const steps = readTemplate(darwinTestFile).steps;
-		const squid = steps.find(step => records(step).some(record => record.displayName === 'Install Squid for network-isolated smoke tests'));
-		assert.deepStrictEqual({
-			setup: Object.keys(squid ?? {}),
-			tests: steps.flatMap(step => Object.entries(step)
-				.filter(([key]) => key.includes('containsValue(parameters.VSCODE_TEST_IDS, \'smoke-agents-'))
-				.flatMap(([, branch]) => calls(branch).map(call => call.testId))),
-		}, {
-			setup: ['${{ if or(containsValue(parameters.VSCODE_TEST_IDS, \'smoke-agents-pac-proxy\'), containsValue(parameters.VSCODE_TEST_IDS, \'smoke-agents-kerberos-pac-proxy\'), containsValue(parameters.VSCODE_TEST_IDS, \'smoke-agents-basic-proxy\')) }}'],
-			tests: ['smoke-agents-pac-proxy', 'smoke-agents-kerberos-pac-proxy', 'smoke-agents-basic-proxy'],
-		});
-	});
-
-	test('the WSL Dev Container setup is skipped together with the smoke tests that use it', () => {
-		const wslKey = '${{ if and(eq(parameters.VSCODE_ARCH, \'x64\'), or(containsValue(parameters.VSCODE_TEST_IDS, \'smoke-electron\'), containsValue(parameters.VSCODE_TEST_IDS, \'smoke-wsl-kerberos-proxy\'), containsValue(parameters.VSCODE_TEST_IDS, \'smoke-wsl-basic-proxy\'), containsValue(parameters.VSCODE_TEST_IDS, \'smoke-wsl-basic-pac-proxy\'))) }}';
-		const wslTestKeys = [
-			wslKey,
-			'${{ if containsValue(parameters.VSCODE_TEST_IDS, \'smoke-electron\') }}',
-			'${{ if and(eq(parameters.VSCODE_ARCH, \'x64\'), eq(parameters.VSCODE_LINUX_X64_COMPILATION_ARTIFACT, true), or(containsValue(parameters.VSCODE_TEST_IDS, \'smoke-wsl-kerberos-proxy\'), containsValue(parameters.VSCODE_TEST_IDS, \'smoke-wsl-basic-proxy\'), containsValue(parameters.VSCODE_TEST_IDS, \'smoke-wsl-basic-pac-proxy\'))) }}',
-			'${{ if and(eq(parameters.VSCODE_ARCH, \'x64\'), containsValue(parameters.VSCODE_TEST_IDS, \'smoke-wsl-kerberos-proxy\')) }}',
-			'${{ if and(eq(parameters.VSCODE_ARCH, \'x64\'), eq(parameters.VSCODE_LINUX_X64_COMPILATION_ARTIFACT, true), containsValue(parameters.VSCODE_TEST_IDS, \'smoke-wsl-basic-proxy\')) }}',
-			'${{ if and(eq(parameters.VSCODE_ARCH, \'x64\'), containsValue(parameters.VSCODE_TEST_IDS, \'smoke-wsl-basic-pac-proxy\')) }}',
-		];
-		type SequenceEntry = { displayName?: string; condition?: string } | { testId: string };
-		const sequence = (items: unknown): SequenceEntry[] => (Array.isArray(items) ? items : [items]).flatMap((item: Record<string, unknown>) => {
-			if (typeof item.template === 'string' && item.template.endsWith('/run-test-with-checkpoint.yml@self')) {
-				return [{ testId: (item.parameters as CheckpointParameters).testId }];
-			}
-			if (typeof item.displayName === 'string') {
-				return [{ displayName: item.displayName, condition: item.condition as string | undefined }];
-			}
-			return Object.entries(item).filter(([key]) => key.startsWith('${{ ')).flatMap(([, branch]) => sequence(branch));
-		});
-		const steps = readTemplate(windowsTestFile).steps.flatMap(step => Object.entries(step).filter(([key]) => wslTestKeys.includes(key)).flatMap(([, branch]) => branch as unknown[]));
-		const linuxServerFlags = ['product-build.yml', 'product-build-template.yml'].map(file => records(readTemplate(file))
-			.filter(record => typeof record.template === 'string' && record.template.endsWith('win32/product-build-win32-test.yml@self'))
-			.flatMap(record => {
-				const parameters = record.parameters as { VSCODE_JOB_NAME: string; VSCODE_LINUX_X64_COMPILATION_ARTIFACT?: string };
-				return parameters.VSCODE_LINUX_X64_COMPILATION_ARTIFACT ? [`${parameters.VSCODE_JOB_NAME}: ${parameters.VSCODE_LINUX_X64_COMPILATION_ARTIFACT}`] : [];
-			}));
-		// The Basic run is compiled out without this run's Linux server, so its checkpoint only counts with one. The Basic
-		// PAC run's checkpoint only counts when the job runs it.
-		const pacGated = 'and(${{ containsValue(parameters.VSCODE_TEST_IDS, \'smoke-wsl-basic-pac-proxy\') }}, ne(variables[\'TEST_CHECKPOINT_SMOKE_WSL_BASIC_PAC_PROXY_HIT\'], \'true\'))';
-		const gated = 'and(succeeded(), or(ne(variables[\'TEST_CHECKPOINT_SMOKE_ELECTRON_HIT\'], \'true\'), ne(variables[\'TEST_CHECKPOINT_SMOKE_WSL_KERBEROS_PROXY_HIT\'], \'true\'), and(${{ and(eq(parameters.VSCODE_LINUX_X64_COMPILATION_ARTIFACT, true), containsValue(parameters.VSCODE_TEST_IDS, \'smoke-wsl-basic-proxy\')) }}, ne(variables[\'TEST_CHECKPOINT_SMOKE_WSL_BASIC_PROXY_HIT\'], \'true\')), ' + pacGated + '))';
-		const proxyGated = 'and(succeeded(), or(ne(variables[\'TEST_CHECKPOINT_SMOKE_WSL_KERBEROS_PROXY_HIT\'], \'true\'), ne(variables[\'TEST_CHECKPOINT_SMOKE_WSL_BASIC_PROXY_HIT\'], \'true\'), ' + pacGated + '))';
-		assert.deepStrictEqual({ sequence: sequence(steps), linuxServerFlags }, {
-			sequence: [
-				{ displayName: 'Restore WSL installer cache', condition: gated },
-				{ displayName: 'Compute WSL distribution cache key', condition: gated },
-				{ displayName: 'Restore WSL distribution cache', condition: gated },
-				{ displayName: 'Build WSL distribution if not cached', condition: gated },
-				{ displayName: 'Prepare WSL Dev Container smoke tests', condition: gated },
-				{ testId: 'smoke-electron' },
-				{ displayName: 'Wait for the Linux x64 compilation artifact', condition: proxyGated },
-				{ displayName: 'Download the Linux x64 compilation artifact', condition: proxyGated },
-				{ displayName: 'Add the Linux x64 server to the WSL distribution', condition: proxyGated },
-				{ testId: 'smoke-wsl-kerberos-proxy' },
-				{ testId: 'smoke-wsl-basic-proxy' },
-				{ testId: 'smoke-wsl-basic-pac-proxy' },
-				{ displayName: 'Clean up WSL Dev Container smoke tests', condition: 'and(always(), ne(variables[\'WSL_SMOKE_ROOT\'], \'\'))' },
-			],
-			// Only the product build's smoke job opens an editor window with the server of this run's Linux x64 compile job
-			linuxServerFlags: [0, 1].map(() => ['Smoke: ${{ eq(variables[\'VSCODE_BUILD_STAGE_LINUX_X64\'], true) }}']),
-		});
+	test('the WSL Dev Container setup is skipped together with the Electron smoke tests', () => {
+		const steps = (key: string) => readTemplate(windowsTestFile).steps.flatMap(step =>
+			Object.entries(step)
+				.filter(([name]) => name === key)
+				.flatMap(([, branch]) => branch as ScriptStep[])
+		);
+		const electron = '${{ if containsValue(parameters.VSCODE_TEST_IDS, \'smoke-electron\') }}';
+		const wsl = '${{ if and(eq(parameters.VSCODE_ARCH, \'x64\'), containsValue(parameters.VSCODE_TEST_IDS, \'smoke-electron\')) }}';
+		const gated = 'and(succeeded(), ne(variables[\'TEST_CHECKPOINT_SMOKE_ELECTRON_HIT\'], \'true\'))';
+		assert.deepStrictEqual(steps(wsl).map(step => ({ displayName: step.displayName, condition: step.condition })), [
+			{ displayName: 'Restore WSL installer cache', condition: gated },
+			{ displayName: 'Compute WSL distribution cache key', condition: gated },
+			{ displayName: 'Restore WSL distribution cache', condition: gated },
+			{ displayName: 'Build WSL distribution if not cached', condition: gated },
+			{ displayName: 'Prepare WSL Dev Container smoke tests', condition: gated },
+			{ displayName: 'Clean up WSL Dev Container smoke tests', condition: 'and(always(), ne(variables[\'WSL_SMOKE_ROOT\'], \'\'))' },
+		]);
+		assert.deepStrictEqual(calls(steps(electron)).map(call => call.testId), ['smoke-electron']);
 	});
 });

@@ -75,7 +75,7 @@
     "pretypecheck": "pnpm run copy-policy-dto",
     "typecheck": "cd .. && pnpm exec tsc --project build/tsconfig.json",
     "watch": "pnpm run typecheck --watch",
-    "test": "node --test '{lib,next,agent-sdk,codex,npm}/**/*.test.ts' '../.eslint-plugin-local/tests/*.test.ts'"
+    "test": "node --test '{lib,next,npm}/**/*.test.ts' '../.eslint-plugin-local/tests/*.test.ts'"
   },
   "optionalDependencies": {
     "vscode-gulp-watch": "^5.0.3"

@@ -67,7 +67,18 @@ function fromLocal(extensionPath: string, forWeb: boolean): Stream {
 		? 'esbuild.browser.mts'
 		: 'esbuild.mts';
 
-	const hasEsbuild = fs.existsSync(path.join(extensionPath, esbuildConfigFileName));
+	let hasEsbuild = fs.existsSync(path.join(extensionPath, esbuildConfigFileName));
+
+	// Fallback: check for .esbuild.mts/.esbuild.ts (used by extensions with their own build system)
+	if (!hasEsbuild && !forWeb) {
+		for (const fallback of ['.esbuild.mts', '.esbuild.ts']) {
+			if (fs.existsSync(path.join(extensionPath, fallback))) {
+				esbuildConfigFileName = fallback;
+				hasEsbuild = true;
+				break;
+			}
+		}
+	}
 
 	let input: Stream;
 	let isBundled = false;
@@ -323,7 +334,6 @@ const nativeExtensions = [
 ];
 
 const excludedExtensions = [
-	'copilot',
 	'vscode-api-tests',
 	'vscode-colorize-tests',
 	'vscode-colorize-perf-tests',
@@ -538,69 +548,6 @@ export function getSharedExtensionDependencyStream(folder: string, destination: 
 			file.path = path.join(file.cwd, destination, relative);
 			return file;
 		}));
-}
-
-/**
- * Where {@link packageCopilotExtensionStream} packages the built-in Copilot extension before
- * extracting it.
- */
-const copilotVsixPath = path.join(root, '.build', 'copilot-vsix', 'copilot-chat.vsix');
-
-/**
- * Packages the built-in Copilot extension with the files of its VSIX: builds the extension, packages
- * it with its own `package` script and extracts the extension from the VSIX. The VSIX holds the parts
- * of `node_modules` that Copilot loads at runtime (see its `.vscodeignore`), with the native files of
- * the build machine, which packaging the product replaces with those of the target platform (see
- * `prepareBuiltInCopilotRipgrepShim` in `copilot.ts`).
- */
-export function packageCopilotExtensionStream(): Stream {
-	const extensionPath = path.join(root, 'extensions', 'copilot');
-	if (!fs.existsSync(extensionPath)) {
-		return es.readArray([]);
-	}
-
-	const result = es.through();
-	buildCopilotVsix(extensionPath).then(() => {
-		const extracted = gulp.src(copilotVsixPath)
-			.pipe(buffer())
-			.pipe(vinylZip.src());
-		extracted.on('error', err => result.emit('error', err));
-		extracted
-			.pipe(filter('extension/**'))
-			.pipe(rename(p => p.dirname = path.join('extensions', 'copilot', p.dirname!.replace(/^extension(?:[\\/]|$)/, ''))))
-			.pipe(result);
-	}, err => result.emit('error', err));
-
-	// Like the VSIX, which is packaged before the JSON files at the root of the extension get minified.
-	return minifyExtensionResources(result, ['extensions/copilot/*.json']);
-}
-
-/**
- * Builds the Copilot extension and packages it into {@link copilotVsixPath}. Its `package` script
- * packages the extension from a staging folder that `pnpm deploy` creates, because `vsce` can't list
- * the production dependencies in pnpm's layout (see `extensions/copilot/script/build/packageVsix.ts`).
- * The build writes the source maps of the bundles to `dist-sourcemaps`, which the VSIX excludes; the
- * product build uploads them (see `build/azure-pipelines/copilot/upload-sourcemaps-steps.yml`). It
- * only builds the bundles that ship: with a test bundle in `dist`, the integration tests would also
- * run the extension tests, which need the Copilot test cache that only the Copilot Tests job pulls.
- */
-async function buildCopilotVsix(extensionPath: string): Promise<void> {
-	fs.rmSync(path.join(extensionPath, 'dist-sourcemaps'), { recursive: true, force: true });
-	await spawnAsync(process.execPath, ['.esbuild.mts', '--sourcemaps', '--shipped-bundles-only'], extensionPath, false);
-
-	fs.rmSync(path.dirname(copilotVsixPath), { recursive: true, force: true });
-	fs.mkdirSync(path.dirname(copilotVsixPath), { recursive: true });
-	const pnpm = getPnpmCommand();
-	// `vsce` takes strings of `ora` in the bundle for SendGrid secrets.
-	await spawnAsync(pnpm.command, [...pnpm.args, 'run', 'package', '--out', path.relative(extensionPath, copilotVsixPath), '--allow-package-secrets', 'sendgrid'], extensionPath, pnpm.shell);
-}
-
-function spawnAsync(command: string, args: string[], cwd: string, shell: boolean): Promise<void> {
-	return new Promise((resolve, reject) => {
-		const child = cp.spawn(command, args, { cwd, stdio: 'inherit', shell });
-		child.on('error', reject);
-		child.on('exit', code => code === 0 ? resolve() : reject(new Error(`${command} ${args.join(' ')} failed in ${cwd} with exit code ${code}.`)));
-	});
 }
 
 export function packageMarketplaceExtensionsStream(forWeb: boolean): Stream {

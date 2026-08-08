@@ -5,8 +5,6 @@ packages:
   - .vscode/extensions/vscode-pr-pinger
   - extensions
   - extensions/configuration-editing
-  - extensions/copilot
-  - extensions/copilot/chat-lib
   - extensions/css-language-features
   - extensions/css-language-features/server
   - extensions/debug-auto-launch
@@ -45,7 +43,6 @@ packages:
   - extensions/vscode-colorize-tests
   - extensions/vscode-test-resolver
   - scripts
-  - src/vs/sessions/test/e2e
   - test/automation
   - test/componentFixtures/playwright
   - test/integration/browser
@@ -66,9 +63,6 @@ fetchTimeout: 180000
 engineStrict: false
 minimumReleaseAge: 10080
 minimumReleaseAgeExclude:
-  - '@anthropic-ai/*'
-  - '@github/copilot*'
-  - '@openai/codex*'
   - '@playwright/*'
   - '@typescript/*'
   - '@vscode/*'
@@ -101,7 +95,7 @@ allowBuilds:
   '@vscode/deviceid@0.1.5': true
   '@vscode/fs-copyfile@2.0.0': true
   '@vscode/native-watchdog@1.4.6': true
-  '@vscode/policy-watcher@1.7.0': true
+  '@vscode/policy-watcher@1.4.0': true
   '@vscode/ripgrep@1.17.1': true
   '@vscode/spdlog@0.15.8': true
   '@vscode/sqlite3@5.1.12-vscode': true
@@ -115,7 +109,6 @@ allowBuilds:
   es5-ext: false
   esbuild@0.27.2: true
   esbuild@0.28.1: true
-  foundry-local-sdk@2.2.1: true
   fsevents@1.2.13: true
   fsevents@2.3.2: true
   fsevents@2.3.3: true
@@ -149,5 +142,3 @@ packageExtensions:
   '@vscode/extension-telemetry':
     dependencies:
       '@microsoft/applicationinsights-common': ^3.3.4
-patchedDependencies:
-  foundry-local-sdk: build/npm/patches/foundry-local-sdk.patch

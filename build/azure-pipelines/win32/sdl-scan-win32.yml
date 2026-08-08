@@ -122,8 +122,6 @@ steps:
       ELECTRON_SKIP_BINARY_DOWNLOAD: 1
       PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
       GITHUB_TOKEN: "$(github-token-code-oss)"
-      FOUNDRY_LOCAL_NUGET_MODE: dotnet
-      FOUNDRY_LOCAL_NUGET_FEEDS: "https://pkgs.dev.azure.com/monacotools/Monaco/_packaging/vscode/nuget/v3/index.json"
     retryCountOnTaskFailure: 5
     displayName: Install dependencies
 
@@ -133,9 +131,6 @@ steps:
   - powershell: echo "##vso[task.setvariable variable=VSS_NUGET_ACCESSTOKEN]"
     displayName: Clear package feed credentials
     condition: always()
-
-  - powershell: node build/azure-pipelines/common/checkNativeOptionalDeps.ts
-    displayName: Verify native optional dependency binaries
 
   - script: node build/azure-pipelines/distro/mixin-npm.ts
     displayName: Mixin distro node modules

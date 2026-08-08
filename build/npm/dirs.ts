@@ -21,8 +21,6 @@ export const workspaceMembers = [
 	'.vscode/extensions/vscode-pr-pinger',
 	'extensions',
 	'extensions/configuration-editing',
-	'extensions/copilot',
-	'extensions/copilot/chat-lib',
 	'extensions/css-language-features',
 	'extensions/css-language-features/server',
 	'extensions/debug-auto-launch',
@@ -61,7 +59,6 @@ export const workspaceMembers = [
 	'extensions/vscode-colorize-tests',
 	'extensions/vscode-test-resolver',
 	'scripts',
-	'src/vs/sessions/test/e2e',
 	'test/automation',
 	'test/componentFixtures/playwright',
 	'test/integration/browser',
@@ -83,7 +80,6 @@ export const workspaceMembers = [
  */
 export const layoutRoots = [
 	'extensions',
-	'extensions/copilot',
 ];
 
 /**

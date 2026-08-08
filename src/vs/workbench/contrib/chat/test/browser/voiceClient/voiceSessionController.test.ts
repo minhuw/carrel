@@ -26,7 +26,6 @@ import { NullTelemetryService, NullTelemetryServiceShape } from '../../../../../
 import { IAuthenticationService } from '../../../../../services/authentication/common/authentication.js';
 import { IWorkbenchEnvironmentService } from '../../../../../services/environment/common/environmentService.js';
 import { workbenchInstantiationService } from '../../../../../test/browser/workbenchTestServices.js';
-import { IVoiceTranscriptStore, IVoiceTranscriptTurn } from '../../../../agentsVoice/common/voiceTranscriptStore.js';
 import { AgentSessionStatus, IAgentSessionsModel } from '../../../browser/agentSessions/agentSessionsModel.js';
 import { IAgentSessionsService } from '../../../browser/agentSessions/agentSessionsService.js';
 import { IChatWidgetService } from '../../../browser/chat.js';
@@ -496,9 +495,6 @@ suite('VoiceSessionController', () => {
 			commandService,
 			new class extends mock<IAuthenticationService>() {
 				override async getSessions(): Promise<[]> { return []; }
-			}(),
-			new class extends mock<IVoiceTranscriptStore>() {
-				override async loadTurns(): Promise<[]> { return []; }
 			}(),
 			new NullLogService(),
 			new class extends mock<IWorkbenchEnvironmentService>() { }(),
@@ -4455,10 +4451,9 @@ suite('VoiceSessionController', () => {
 suite('VoiceSessionController live transcription', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
-	function createController(options: { liveTranscript?: boolean } = {}): { controller: VoiceSessionController; persisted: IVoiceTranscriptTurn[] } {
+	function createController(options: { liveTranscript?: boolean } = {}): { controller: VoiceSessionController } {
 		const liveTranscript = options.liveTranscript ?? true;
 		const instantiationService = store.add(workbenchInstantiationService(undefined, store));
-		const persisted: IVoiceTranscriptTurn[] = [];
 
 		instantiationService.stub(IVoiceClientService, {
 			disconnect: () => { },
@@ -4495,11 +4490,6 @@ suite('VoiceSessionController live transcription', () => {
 		};
 		instantiationService.stub(IAgentSessionsService, { model: agentSessionsModel });
 		instantiationService.stub(IChatService, new MockChatService());
-		instantiationService.stub(IVoiceTranscriptStore, {
-			appendTurn: async (_userId, turn) => {
-				persisted.push(turn);
-			},
-		});
 		instantiationService.stub(IConfigurationService, new TestConfigurationService({
 			'agents.voice.liveTranscript': liveTranscript,
 		}));
@@ -4517,7 +4507,7 @@ suite('VoiceSessionController live transcription', () => {
 		const controller = store.add(instantiationService.createInstance(VoiceSessionController));
 		controller['_isConnected'].set(true, undefined);
 		controller['_userLogin'] = 'test-user';
-		return { controller, persisted };
+		return { controller };
 	}
 
 	function beginTurn(controller: VoiceSessionController): string {
@@ -4534,7 +4524,7 @@ suite('VoiceSessionController live transcription', () => {
 	}
 
 	test('replaces cumulative partials and final exactly once', () => {
-		const { controller, persisted } = createController();
+		const { controller } = createController();
 		const turnId = beginTurn(controller);
 
 		transcribe(controller, { text: 'open', committed: 'op', status: 'partial', turnId, revision: 1 });
@@ -4546,51 +4536,33 @@ suite('VoiceSessionController live transcription', () => {
 		transcribe(controller, { text: 'late partial', status: 'partial', turnId, revision: 4 });
 		transcribe(controller, { text: 'duplicate final', status: 'final', turnId, revision: 5 });
 
-		assert.deepStrictEqual({
-			turns: controller.transcriptTurns.get(),
-			persisted: persisted.map(turn => turn.text),
-		}, {
-			turns: [{
-				speaker: 'user',
-				text: 'delete the file instead',
-				committed: '',
-				isPartial: false,
-			}],
-			persisted: ['delete the file instead'],
-		});
+		assert.deepStrictEqual(controller.transcriptTurns.get(), [{
+			speaker: 'user',
+			text: 'delete the file instead',
+			committed: '',
+			isPartial: false,
+		}]);
 	});
 
 	test('ignores a scoped event for another turn', () => {
-		const { controller, persisted } = createController();
+		const { controller } = createController();
 		const turnId = beginTurn(controller);
 
 		transcribe(controller, { text: 'wrong turn', status: 'final', turnId: `${turnId}-other`, revision: 1 });
 		finishTurn(controller);
 
-		assert.deepStrictEqual({
-			turns: controller.transcriptTurns.get(),
-			persisted,
-		}, {
-			turns: [{ speaker: 'user', text: '', committed: '', isPartial: true }],
-			persisted: [],
-		});
+		assert.deepStrictEqual(controller.transcriptTurns.get(), [{ speaker: 'user', text: '', committed: '', isPartial: true }]);
 	});
 
 	test('accepts the final after auto-end', () => {
-		const { controller, persisted } = createController();
+		const { controller } = createController();
 		const turnId = beginTurn(controller);
 
 		transcribe(controller, { text: 'run the tests', committed: 'run ', status: 'partial', turnId, revision: 1 });
 		controller['_handleTurnAutoEnded']({ reason: 'vad_silence', turnId });
 		transcribe(controller, { text: 'run the focused tests', status: 'final', turnId, revision: 2 });
 
-		assert.deepStrictEqual({
-			turns: controller.transcriptTurns.get(),
-			persisted: persisted.map(turn => turn.text),
-		}, {
-			turns: [{ speaker: 'user', text: 'run the focused tests', committed: '', isPartial: false }],
-			persisted: ['run the focused tests'],
-		});
+		assert.deepStrictEqual(controller.transcriptTurns.get(), [{ speaker: 'user', text: 'run the focused tests', committed: '', isPartial: false }]);
 	});
 
 	test('a new turn resets revision tracking', () => {
@@ -4609,23 +4581,17 @@ suite('VoiceSessionController live transcription', () => {
 		]);
 	});
 
-	test('unscoped legacy events retain replacement and persistence behavior', () => {
-		const { controller, persisted } = createController();
+	test('unscoped legacy events retain replacement behavior', () => {
+		const { controller } = createController();
 
 		transcribe(controller, { text: 'legacy partial', committed: 'legacy ', status: 'partial' });
 		transcribe(controller, { text: 'legacy final corrected', status: 'final' });
 
-		assert.deepStrictEqual({
-			turns: controller.transcriptTurns.get(),
-			persisted: persisted.map(turn => turn.text),
-		}, {
-			turns: [{ speaker: 'user', text: 'legacy final corrected', committed: '', isPartial: false }],
-			persisted: ['legacy final corrected'],
-		});
+		assert.deepStrictEqual(controller.transcriptTurns.get(), [{ speaker: 'user', text: 'legacy final corrected', committed: '', isPartial: false }]);
 	});
 
 	test('barge-in and reconnect clear scoped turn tracking', () => {
-		const { controller, persisted } = createController();
+		const { controller } = createController();
 		const bargeInTurnId = beginTurn(controller);
 		finishTurn(controller);
 		controller['_handleBargeIn']({ turnId: 'new-turn', interruptedTurnId: bargeInTurnId });
@@ -4636,12 +4602,10 @@ suite('VoiceSessionController live transcription', () => {
 		finishTurn(controller);
 		controller['_onConnectionLost']();
 		transcribe(controller, { text: 'after reconnect', status: 'final', turnId: reconnectTurnId, revision: 1 });
-
-		assert.deepStrictEqual(persisted, []);
 	});
 
 	test('skips live partials when live transcript is disabled but keeps the final', () => {
-		const { controller, persisted } = createController({ liveTranscript: false });
+		const { controller } = createController({ liveTranscript: false });
 		const turnId = beginTurn(controller);
 
 		transcribe(controller, { text: 'open', committed: 'op', status: 'partial', turnId, revision: 1 });
@@ -4649,12 +4613,6 @@ suite('VoiceSessionController live transcription', () => {
 		finishTurn(controller);
 		transcribe(controller, { text: 'open the file', status: 'final', turnId, revision: 3 });
 
-		assert.deepStrictEqual({
-			turns: controller.transcriptTurns.get(),
-			persisted: persisted.map(turn => turn.text),
-		}, {
-			turns: [{ speaker: 'user', text: 'open the file', committed: '', isPartial: false }],
-			persisted: ['open the file'],
-		});
+		assert.deepStrictEqual(controller.transcriptTurns.get(), [{ speaker: 'user', text: 'open the file', committed: '', isPartial: false }]);
 	});
 });

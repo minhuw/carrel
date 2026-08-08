@@ -21,9 +21,36 @@ import { InstantiationType, registerSingleton } from '../../../../../platform/in
 import { CommandsRegistry, ICommandService } from '../../../../../platform/commands/common/commands.js';
 import { ILogService } from '../../../../../platform/log/common/log.js';
 import { IAuthenticationService } from '../../../../services/authentication/common/authentication.js';
-import { IVoiceTranscriptEntryMetadata, IVoiceTranscriptStore, IVoiceTranscriptTurn, VoiceTranscriptKind } from '../../../agentsVoice/common/voiceTranscriptStore.js';
 import { IVoiceAudioResponse, IVoiceBargeIn, IVoiceCheckpointNarrationMetadata, IVoiceClientService, IVoicePriorTimelineEntry, IVoiceSessionContext, IVoiceFeedbackPayload, IVoiceFeedbackTranscriptTurn, IVoiceTranscription, IVoiceTurnAutoEnded, IVoiceNarrationAck, IVoiceNarrationSignal, isVoiceCheckpointId, VoiceCheckpointId, VoiceConfirmationType, VoiceNarrationKind, IVoiceSessionPending, IVoicePendingQuestion, derivePendingId, VOICE_AGENT_PROGRESS_SETTING } from '../../common/voiceClient/voiceClientService.js';
 import { getVoiceConfirmationType, isPendingVoiceQuestionnaireInvocation, isVoiceQuestionnaireInvocation } from '../../common/voiceClient/voiceConfirmation.js';
+
+// Local copies of the transcript types formerly provided by the removed
+// agentsVoice contrib's voiceTranscriptStore. Voice transcript persistence is
+// gone with that contrib; these remain only so the timeline/context plumbing
+// below keeps its shape.
+type VoiceTranscriptKind =
+	| 'user_voice'
+	| 'agent_voice'
+	| 'agent_tool_call'
+	| 'coding_event';
+
+interface IVoiceTranscriptEntryMetadata {
+	readonly toolName?: string;
+	readonly toolArgs?: Record<string, unknown>;
+	readonly codingSessionId?: string;
+	readonly codingStatus?: string;
+	readonly codingSessionLabel?: string;
+}
+
+interface IVoiceTranscriptTurn {
+	readonly turnId: string;
+	readonly ancestorIds: readonly string[];
+	readonly kind: VoiceTranscriptKind;
+	readonly role: 'user' | 'assistant';
+	readonly text: string;
+	readonly timestamp: string;
+	readonly metadata?: IVoiceTranscriptEntryMetadata;
+}
 import { IMicCaptureService, IPttDiagnostic, isMicrophonePermissionDeniedError } from './micCaptureService.js';
 import { ITtsPlaybackService } from './ttsPlaybackService.js';
 import { IVoiceToolDispatchService, VoiceToolDispatchService } from './voiceToolDispatchService.js';
@@ -728,20 +755,11 @@ export class VoiceSessionController extends Disposable implements IVoiceSessionC
 	// --- Transcript persistence (local-only) ---
 	/** Cached GitHub login resolved on connect; used as transcript partition key. */
 	private _userLogin: string | undefined;
-	/** Locally-persisted turn id of the last assistant turn we appended.
-	 * Used as the ancestor of the next user turn we persist. */
-	private _lastPersistedTurnId: string | undefined;
 	/** Last-N cross-session timeline entries — voice turns, voice tool
 	 * calls, coding-session events, plus a synthesized first-2-sentences
 	 * summary of the latest Copilot reply per active session. Sent to the
 	 * BE on the next start_session and then cleared — single-shot recall. */
 	private _pendingPriorTimeline: IVoicePriorTimelineEntry[] = [];
-	/**
-	 * How many of the most recent persisted timeline entries we forward
-	 * to the BE (across all kinds). Coding-agent reply synthesis happens
-	 * on top of this — we add one entry per active coding session.
-	 */
-	private static readonly PRIOR_TIMELINE_ENTRY_LIMIT = 30;
 	/**
 	 * Max sentences of Copilot's last reply we include per active coding
 	 * session when synthesizing ``coding_agent_reply`` entries. Bounded
@@ -759,7 +777,6 @@ export class VoiceSessionController extends Disposable implements IVoiceSessionC
 		@IChatService private readonly chatService: IChatService,
 		@ICommandService private readonly commandService: ICommandService,
 		@IAuthenticationService private readonly authenticationService: IAuthenticationService,
-		@IVoiceTranscriptStore private readonly voiceTranscriptStore: IVoiceTranscriptStore,
 		@ILogService private readonly logService: ILogService,
 		@IWorkbenchEnvironmentService private readonly environmentService: IWorkbenchEnvironmentService,
 		@ITelemetryService private readonly telemetryService: ITelemetryService,
@@ -996,33 +1013,9 @@ export class VoiceSessionController extends Disposable implements IVoiceSessionC
 			if (!this._userLogin) {
 				this.logService.warn('[voice] no GitHub session found; transcripts will not be persisted');
 			} else {
-				// Pick up the most recent prior turn id so the new chain
-				// continues off the existing one (cosmetic — we only ever
-				// chain locally).
-				const lastTurn = (await this.voiceTranscriptStore.loadTurns(this._userLogin, { limit: 1 }))[0];
-				if (connectAttemptGeneration !== this._connectAttemptGeneration) {
-					return;
-				}
-				this._lastPersistedTurnId = lastTurn?.turnId;
-
-				// Pull the last few persisted timeline entries (voice turns,
-				// voice tool calls, coding events) and synthesize one
-				// coding_agent_reply per active session. The BE consumes
-				// this once on the first command after reconnect so the
-				// model can answer "what were we doing?" / "remember xyz?".
-				try {
-					const recent = await this.voiceTranscriptStore.loadTurns(
-						this._userLogin,
-						{ limit: VoiceSessionController.PRIOR_TIMELINE_ENTRY_LIMIT }
-					);
-					if (connectAttemptGeneration !== this._connectAttemptGeneration) {
-						return;
-					}
-					this._pendingPriorTimeline = this._buildPriorTimeline(recent);
-				} catch (err) {
-					this.logService.warn('[voice] failed to load prior timeline entries for context', err);
-					this._pendingPriorTimeline = [];
-				}
+				// Transcript persistence was removed with the agentsVoice contrib,
+				// so there is no prior on-disk timeline to replay.
+				this._pendingPriorTimeline = this._buildPriorTimeline([]);
 			}
 		} catch (err) {
 			this.logService.warn('[voice] failed to resolve GitHub session', err);
@@ -2118,7 +2111,6 @@ export class VoiceSessionController extends Disposable implements IVoiceSessionC
 		this._deferredNarrations.clear();
 		this._narratedPending.clear();
 		this._userLogin = undefined;
-		this._lastPersistedTurnId = undefined;
 		this._pendingPriorTimeline = [];
 		this._stopReplay();
 		this._sessionAudioCache.clear();
@@ -3184,8 +3176,6 @@ export class VoiceSessionController extends Disposable implements IVoiceSessionC
 				if (result && result.kind !== 'rejected') {
 					// Surface response in floating window
 					this._watchResponseForFloatingWindow(target);
-					// Open the floating window so user can see the response
-					this.commandService.executeCommand('_agentsVoice.openWindow').catch(() => { /* ignore */ });
 					// Keep the session model loaded until the response completes
 					// so the autorun can observe state transitions and trigger narration.
 					const model = this.chatService.getSession(target);
@@ -3402,19 +3392,8 @@ export class VoiceSessionController extends Disposable implements IVoiceSessionC
 		if (!userId || !text) {
 			return;
 		}
-		const entry: IVoiceTranscriptTurn = {
-			turnId: generateUuid(),
-			ancestorIds: this._lastPersistedTurnId ? [this._lastPersistedTurnId] : [],
-			kind,
-			role: kind === 'user_voice' ? 'user' : 'assistant',
-			text,
-			timestamp: new Date().toISOString(),
-			...(metadata ? { metadata } : {}),
-		};
-		this._lastPersistedTurnId = entry.turnId;
-		this.voiceTranscriptStore.appendTurn(userId, entry).catch(err => {
-			this.logService.warn('[voice] failed to persist transcript entry', err);
-		});
+		// The on-disk transcript store was removed with the agentsVoice
+		// contrib; nothing is persisted anymore.
 	}
 
 	/** Back-compat thin shim for the two existing voice call sites. */
@@ -6524,17 +6503,9 @@ export class VoiceSessionController extends Disposable implements IVoiceSessionC
 				userId = 'unknown';
 			}
 		}
-		let transcriptHistory: IVoiceFeedbackTranscriptTurn[] = [];
-		try {
-			const turns = await this.voiceTranscriptStore.loadTurns(userId);
-			transcriptHistory = turns.map(t => ({
-				role: t.role,
-				text: t.text,
-				timestamp: t.timestamp,
-			}));
-		} catch (err) {
-			this.logService.warn('[voice] failed to load transcript history for feedback', err);
-		}
+		// Transcript persistence was removed with the agentsVoice contrib, so
+		// there is no persisted history to attach to feedback.
+		const transcriptHistory: IVoiceFeedbackTranscriptTurn[] = [];
 
 		const sessions = this.agentSessionsService.model.sessions.filter(s => !s.isArchived());
 		const clientSessionState: Record<string, unknown> = {

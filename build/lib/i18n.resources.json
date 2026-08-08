@@ -179,10 +179,6 @@
 			"project": "vscode-workbench"
 		},
 		{
-			"name": "vs/workbench/contrib/agentsVoice",
-			"project": "vscode-workbench"
-		},
-		{
 			"name": "vs/workbench/contrib/chat",
 			"project": "vscode-workbench"
 		},
@@ -619,15 +615,7 @@
 			"project": "vscode-workbench"
 		},
 		{
-			"name": "vs/workbench/contrib/remoteCodingAgents",
-			"project": "vscode-workbench"
-		},
-		{
 			"name": "vs/workbench/contrib/telemetry",
-			"project": "vscode-workbench"
-		},
-		{
-			"name": "vs/workbench/contrib/welcomeAgentSessions",
 			"project": "vscode-workbench"
 		},
 		{

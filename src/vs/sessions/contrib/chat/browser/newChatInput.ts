@@ -98,7 +98,6 @@ import { ChatContextKeys } from '../../../../workbench/contrib/chat/common/actio
 import { DictationDownloadRing, getDictationDownloadHoverMarkdown, getDictationPreparingLabel } from '../../../../workbench/contrib/chat/browser/speechToText/dictationDownloadRing.js';
 import { IVoiceSessionController } from '../../../../workbench/contrib/chat/browser/voiceClient/voiceSessionController.js';
 import { ChatPetWidget } from '../../../../workbench/contrib/chat/browser/widget/chatPetWidget.js';
-import { IVoiceModeOnboardingService } from '../../../../workbench/contrib/agentsVoice/browser/voiceModeOnboarding.js';
 
 
 const OPEN_OTEL_SETTINGS_COMMAND = 'github.copilot.chat.otel.openSettings';
@@ -127,17 +126,6 @@ KeybindingsRegistry.registerCommandAndKeybindingRule({
 	),
 	primary: KeyMod.CtrlCmd | KeyCode.KeyI,
 	handler: () => activeDictationComposer?.toggleDictation(),
-});
-
-// Preserve the command id so push-to-talk hold mode can track this chord.
-KeybindingsRegistry.registerKeybindingRule({
-	id: 'agentsVoice.startVoiceInChat',
-	weight: KeybindingWeight.WorkbenchContrib + 1,
-	when: ContextKeyExpr.and(
-		SessionsChatInputHasDictationFocus,
-		ContextKeyExpr.equals('config.agents.voice.enabled', true),
-	),
-	primary: KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.Space,
 });
 
 interface IDraftState {
@@ -388,7 +376,6 @@ export class NewChatInputWidget extends Disposable implements IHistoryNavigation
 		@IVoiceSessionController private readonly voiceSessionController: IVoiceSessionController,
 		@IVoiceInputModeService private readonly voiceInputModeService: IVoiceInputModeService,
 		@IAccessibilityService private readonly accessibilityService: IAccessibilityService,
-		@IVoiceModeOnboardingService private readonly voiceModeOnboardingService: IVoiceModeOnboardingService,
 		@INewChatVoiceTargetService private readonly newChatVoiceTargetService: INewChatVoiceTargetService,
 		@IThemeService private readonly themeService: IThemeService,
 	) {
@@ -466,13 +453,10 @@ export class NewChatInputWidget extends Disposable implements IHistoryNavigation
 		));
 		notificationContainer.appendChild(notificationWidget.domNode);
 
-		// First-run Voice Mode introduction, docked above the input area
-		const voiceOnboardingContainer = dom.append(chatInputContainer, dom.$('.voice-mode-onboarding-container'));
 		const onDidChangeInputOnboardingVisible = () => this.options.onDidChangeInputOnboardingVisible?.(
-			this.voiceModeOnboardingService.isVisible || this.dictationOnboardingService.isVisible
+			this.dictationOnboardingService.isVisible
 		);
 		const tipContainer = this.options.getInputOnboardingTipContainer?.();
-		this._register(this.voiceModeOnboardingService.registerHost(voiceOnboardingContainer, chatInputContainer, () => this.focus(), tipContainer, onDidChangeInputOnboardingVisible));
 
 		// First-run dictation introduction, docked directly above the input area
 		// so it reads as one stack with it - the same slot the chat view uses.

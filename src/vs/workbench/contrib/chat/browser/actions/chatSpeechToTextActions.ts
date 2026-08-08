@@ -19,7 +19,6 @@ import { ILogService } from '../../../../../platform/log/common/log.js';
 import { INotificationService } from '../../../../../platform/notification/common/notification.js';
 import { IQuickInputService } from '../../../../../platform/quickinput/common/quickInput.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../../../../platform/storage/common/storage.js';
-import { AgentsVoiceStorageKeys, AGENTS_VOICE_CONNECTED } from '../../../agentsVoice/common/agentsVoice.js';
 import { NOTEBOOK_EDITOR_FOCUSED } from '../../../notebook/common/notebookContextKeys.js';
 import { SegmentedVoiceInputModePillInactive } from '../voiceInputMode/voiceInputModeContextKeys.js';
 import { ChatContextKeys } from '../../common/actions/chatContextKeys.js';
@@ -33,6 +32,10 @@ import { cancelDictation, isDictating, startDictation, stopDictation } from '../
 // Gate on `ChatContextKeys.enabled` so the dictation UI and its commands are
 // hidden (not just disabled) when the user has turned AI features off; without
 // it the F1 "Dictate: Select Microphone" command stays discoverable.
+/** Storage key and context key formerly exported by the removed agentsVoice contrib. */
+const MICROPHONE_DEVICE_STORAGE_KEY = 'agentsVoice.microphoneDevice';
+const AGENTS_VOICE_CONNECTED = ContextKeyExpr.has('agentsVoiceConnected');
+
 export const ChatSpeechToTextConfigured = ContextKeyExpr.and(ChatContextKeys.enabled, ContextKeyExpr.has(ChatContextKeys.speechToTextConfigured.key));
 /** True while the selected dictation backend is preparing. */
 export const ChatSpeechToTextPreparing = ContextKeyExpr.has(ChatContextKeys.speechToTextPreparing.key);
@@ -311,7 +314,7 @@ class SelectSpeechToTextMicrophoneAction extends Action2 {
 		}
 
 		// Shares the Voice Mode microphone selection so both features use the same device.
-		const currentDeviceId = storageService.get(AgentsVoiceStorageKeys.MicrophoneDevice, StorageScope.APPLICATION, '');
+		const currentDeviceId = storageService.get(MICROPHONE_DEVICE_STORAGE_KEY, StorageScope.APPLICATION, '');
 
 		type DevicePickItem = { label: string; description?: string; deviceId: string };
 		const items: DevicePickItem[] = buildMicrophoneOptions(devices).map(device => ({
@@ -327,9 +330,9 @@ class SelectSpeechToTextMicrophoneAction extends Action2 {
 		if (picked) {
 			const selection = picked as DevicePickItem;
 			if (selection.deviceId) {
-				storageService.store(AgentsVoiceStorageKeys.MicrophoneDevice, selection.deviceId, StorageScope.APPLICATION, StorageTarget.MACHINE);
+				storageService.store(MICROPHONE_DEVICE_STORAGE_KEY, selection.deviceId, StorageScope.APPLICATION, StorageTarget.MACHINE);
 			} else {
-				storageService.remove(AgentsVoiceStorageKeys.MicrophoneDevice, StorageScope.APPLICATION);
+				storageService.remove(MICROPHONE_DEVICE_STORAGE_KEY, StorageScope.APPLICATION);
 			}
 		}
 	}

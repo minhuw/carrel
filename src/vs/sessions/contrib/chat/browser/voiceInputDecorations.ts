@@ -162,7 +162,7 @@ export function setupVoiceInputDecorations(services: IVoiceInputDecorationsServi
 				transcriptOverlayNode.classList.remove('has-transcript');
 				transcriptOverlay.replaceChildren();
 				const hint = dom.$('span.partial');
-				const kb = keybindingService.lookupKeybinding('agentsVoice.pushToTalk');
+				const kb = keybindingService.lookupKeybinding('workbench.action.chat.voiceInputMode.holdToTalk');
 				const kbLabel = kb?.getLabel();
 				hint.textContent = kbLabel
 					? localize('voiceMode.bargeInHint', "Speak or use {0}", kbLabel)
@@ -174,7 +174,7 @@ export function setupVoiceInputDecorations(services: IVoiceInputDecorationsServi
 				transcriptOverlayNode.classList.remove('has-transcript');
 				transcriptOverlay.replaceChildren();
 				const hint = dom.$('span.partial');
-				const kb = keybindingService.lookupKeybinding('agentsVoice.pushToTalk');
+				const kb = keybindingService.lookupKeybinding('workbench.action.chat.voiceInputMode.holdToTalk');
 				const kbLabel = kb?.getLabel();
 				hint.textContent = kbLabel
 					? localize('voiceMode.pttOrBargeInHint', "Press {0} to talk or barge in", kbLabel)

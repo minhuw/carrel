@@ -554,7 +554,7 @@ function collectPackagesInNodeModules(nmDir: string): string[] {
  *               @napi-rs/canvas-linux-arm-gnueabihf, @parcel/watcher-linux-x64-glibc,
  *               @esbuild/linux-x64, @esbuild/darwin-arm64.
  * DOES NOT match the arch-independent parents: sharp, @napi-rs/canvas,
- *               @parcel/watcher, @github/copilot, esbuild.
+ *               @parcel/watcher, esbuild.
  */
 export const ARCH_SUFFIX_RE = /[/-](?:darwin|linux|linuxmusl|win32|android|freebsd|openbsd|netbsd|sunos|aix)-(?:x64|arm64|arm|ia32|ppc64|ppc64le|s390x|riscv64|loong64|mips64el|universal)(?:-(?:gnu|musl|msvc|glibc|gnueabihf|eabihf|androideabi))?$/;
 
@@ -1112,8 +1112,7 @@ async function main(): Promise<void> {
 
 	// TODO(future): expand the scanner to walk EVERY node_modules folder in the
 	// repo (e.g. remote/node_modules, remote/web/node_modules, and nested
-	// node_modules), not just the extension + root roots below. The copilot
-	// extension folder has no node_modules, so it is naturally excluded. Walking
+	// node_modules), not just the extension + root roots below. Walking
 	// all node_modules would make the presence index complete; until then the
 	// presence index is best-effort and the stale-override signal is warn-only.
 
@@ -1627,7 +1626,7 @@ async function main(): Promise<void> {
 
 	// Index every on-disk package (lowercased name -> dir) and, in the same pass,
 	// collect the SEED PARENTS: packages whose optionalDependencies have >=1
-	// arch-bearing key (this naturally finds sharp / canvas / parcel-watcher / copilot).
+	// arch-bearing key (this naturally finds sharp / canvas / parcel-watcher).
 	const pbOnDisk = new Map<string, string>();
 	const pbSeedKeys = new Set<string>();
 	const pbSeedParents: Array<{ key: string; dir: string; optDeps: Record<string, unknown> }> = [];

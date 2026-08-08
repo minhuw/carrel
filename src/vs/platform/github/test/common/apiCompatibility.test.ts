@@ -11,7 +11,6 @@ import { CoreClient } from '../../common/core/coreClient.js';
 import { PullRequestsClient } from '../../common/core/pullRequestsClient.js';
 import { ReviewsClient } from '../../common/core/reviewsClient.js';
 import { SearchClient } from '../../common/core/searchClient.js';
-import { parseActivationContext } from '../../common/missionControl/missionControlClient.js';
 import { createTestPullRequestResponse, FixtureApiRequestProvider } from './githubClientTestUtils.js';
 
 suite('GitHub API compatibility', () => {
@@ -121,18 +120,4 @@ suite('GitHub API compatibility', () => {
 		});
 	}
 
-	test('preserves canonical activation sequences across the uint64 range', () => {
-		for (const sequence of ['1', '9007199254740993', '18446744073709551615']) {
-			const context = { version: 2, sequence, traceparent: '00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01' };
-			assert.deepStrictEqual(parseActivationContext(context), context);
-		}
-	});
-
-	test('rejects noncanonical or overflowing activation sequences', () => {
-		for (const sequence of ['0', '01', '18446744073709551616', '-1', '1.0', 1]) {
-			assert.throws(() => parseActivationContext({
-				version: 2, sequence, traceparent: '00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01',
-			}), SchemaError);
-		}
-	});
 });

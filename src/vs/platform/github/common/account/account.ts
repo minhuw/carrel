@@ -17,9 +17,6 @@ import { ISearchClient } from '../core/search.js';
 import { IUsersClient } from '../core/users.js';
 import { IGistsClient } from '../gists/gists.js';
 import { GitHubAuthorizationContext } from '../githubTypes.js';
-import { IAutomationsClient } from '../missionControl/automations.js';
-import { IEnvironmentsClient } from '../missionControl/environments.js';
-import { ITasksClient } from '../missionControl/tasks.js';
 
 /** A disposable GitHub client bound to a fixed authorization grant. */
 export interface IGitHubAccountClient extends IGitHubAnonymousClient {
@@ -29,12 +26,6 @@ export interface IGitHubAccountClient extends IGitHubAnonymousClient {
 	readonly onDidInvalidate: Event<void>;
 	/** Fires when credentials for the selected grant are replaced or invalidated. */
 	readonly onDidChangeCredentials: Event<void>;
-	/** Mission Control automation management and run requests. */
-	readonly automations: IAutomationsClient;
-	/** Mission Control environment discovery and connection credentials. */
-	readonly environments: IEnvironmentsClient;
-	/** Mission Control task management, steering, and history. */
-	readonly tasks: ITasksClient;
 	/** Gist retrieval and creation. */
 	readonly gist: IGistsClient;
 	/** Repository, issue, and pull request search. */

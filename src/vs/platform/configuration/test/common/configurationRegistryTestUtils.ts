@@ -23,7 +23,7 @@ function emptyConfigurationRegistry(registry: IConfigurationRegistry): void {
 
 /**
  * Registering a configuration node removes its hidden settings from the node, and deregistering the node forgets the
- * ones that it mirrors to Agent Hosts or that experiments use.
+ * ones that experiments use.
  * @returns those hidden settings, with the node that registered them
  */
 function getForgettableHiddenSettings(registry: IConfigurationRegistry, configurations: readonly IConfigurationNode[]): IHiddenSetting[] {
@@ -35,10 +35,9 @@ function getForgettableHiddenSettings(registry: IConfigurationRegistry, configur
 	configurations.forEach(addNodes);
 
 	const visible = registry.getConfigurationProperties();
-	const mirrored = registry.getAgentHostSyncConfigurations();
 	const result: IHiddenSetting[] = [];
 	for (const [key, property] of Object.entries(registry.getExcludedConfigurationProperties())) {
-		if (visible[key] || !(property.experiment || property.agentHost && mirrored.has(key))) {
+		if (visible[key] || !property.experiment) {
 			continue;
 		}
 		// The registry does not expose which node registered a setting, but it records the node's section on the setting.

@@ -60,13 +60,6 @@ export interface ApiRequest {
 	readonly redirect?: 'manual';
 	/** Caller-owned execution options for this request. */
 	readonly options?: ApiRequestOptions;
-	/** The request's cache and retry policy. */
-	readonly policy?: {
-		readonly retry?: false;
-		readonly credential?: boolean;
-		readonly sensitive?: boolean;
-		readonly rateLimitResource?: 'agents:sandbox';
-	};
 }
 
 /** Semantic response hints, not a transport header collection. */
@@ -162,7 +155,6 @@ export const parseRequest = parse.object<Omit<ApiRequest, 'body'>>({
 	expectedStatus: value => typeof value === 'number' ? parseStatus(value) : parseStatuses(value),
 	accept: parse.optional(parse.oneOf<ContentType>(
 		'application/json',
-		'application/vnd.github.ahp+json',
 		'application/vnd.github+json',
 		'application/vnd.github.object+json',
 		'application/vnd.github.raw+json',
@@ -170,7 +162,6 @@ export const parseRequest = parse.object<Omit<ApiRequest, 'body'>>({
 		'application/vnd.github.diff',
 		'application/vnd.github.patch',
 		'text/plain, application/octet-stream',
-		'text/event-stream, application/json',
 	)),
 	responseBody: parse.optional(parse.oneOf('json', 'text', 'none')),
 	redirect: parse.optional(parse.exact('manual')),
@@ -179,12 +170,6 @@ export const parseRequest = parse.object<Omit<ApiRequest, 'body'>>({
 		deadline: parse.optional(parse.finiteNumber),
 		priority: parse.optional(parse.oneOf<RequestPriority>('mutationReconciliation', 'mutation', 'interactive', 'mergeGate', 'visible', 'background', 'enrichment')),
 		noCache: parse.optional(parse.boolean),
-	})),
-	policy: parse.optional(parse.object({
-		retry: parse.optional(parse.exact(false)),
-		credential: parse.optional(parse.boolean),
-		sensitive: parse.optional(parse.boolean),
-		rateLimitResource: parse.optional(parse.exact('agents:sandbox')),
 	})),
 });
 

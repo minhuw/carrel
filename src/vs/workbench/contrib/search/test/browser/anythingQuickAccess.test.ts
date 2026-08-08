@@ -26,7 +26,6 @@ import { IEditorGroup, IEditorGroupsService } from '../../../../services/editor/
 import { IOutlineService } from '../../../../services/outline/browser/outline.js';
 import { ISearchService } from '../../../../services/search/common/search.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
-import { IQuickChatService } from '../../../chat/browser/chat.js';
 import { AnythingQuickAccessProvider, IAnythingQuickPickItem } from '../../browser/anythingQuickAccess.js';
 import { IAnythingQuickAccessProviderRunOptions } from '../../common/search.js';
 
@@ -98,7 +97,6 @@ suite('AnythingQuickAccess - links', () => {
 			fileSearch: async () => ({ results: [], messages: [] }),
 			clearCache: async () => { }
 		});
-		instantiationService.stub(IQuickChatService, {});
 		instantiationService.stub(IOutlineService, {});
 		instantiationService.stub(IOutlineModelService, {});
 		configurationService = new TestConfigurationService({

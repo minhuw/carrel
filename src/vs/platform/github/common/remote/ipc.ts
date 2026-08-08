@@ -7,7 +7,6 @@ import { createDecorator } from '../../../instantiation/common/instantiation.js'
 import { IGitHubAccountClient } from '../account/account.js';
 import { IGitHubAnonymousClient } from '../anonymous/anonymous.js';
 import { ApiRequest, ApiResponseMetadata, parseRequest } from '../client/request.js';
-import { ApiErrorResponse, CodedApiErrorResponse } from '../missionControl/missionControl.js';
 import { parse } from '../client/schema.js';
 import { GitHubAuthorizationContext, GitHubClientOptions, GitHubGraphQLError, GitHubResponseMetadata, IGitHubCredentialProvider } from '../githubTypes.js';
 import { RequestErrorKind } from '../types.js';
@@ -42,7 +41,7 @@ export interface AcquireClientRequest extends ClientRequest {
 }
 
 /** Endpoint profiles, not domain names: content and gist REST methods use the REST target. */
-export type ApiRequestTarget = 'rest' | 'graphql' | 'rawContent' | 'missionControl';
+export type ApiRequestTarget = 'rest' | 'graphql' | 'rawContent';
 
 export interface ApiRequestEnvelope extends ClientRequest {
 	readonly target: ApiRequestTarget;
@@ -68,25 +67,21 @@ export type SerializedGitHubError =
 	| { readonly type: 'timeout'; readonly requestDispatched: boolean }
 	| { readonly type: 'rateLimit'; readonly retryAfterMs: number }
 	| { readonly type: 'cancelled' };
-export type SerializedMissionControlError =
-	| { readonly type: 'missionControl'; readonly statusCode: number; readonly kind: RequestErrorKind; readonly response?: ApiErrorResponse | CodedApiErrorResponse; readonly requestId?: string; readonly code?: string; readonly limitedResource?: string; readonly retryAfterSeconds?: number; readonly outcome?: 'indeterminate' }
-	| { readonly type: 'mutationUncertain'; readonly kind: RequestErrorKind; readonly statusCode?: number };
-
-export type GitHubErrorResponse = readonly [metadata: { readonly type: 'error'; readonly error: SerializedGitHubError | SerializedMissionControlError }, bodyText: string | undefined];
+export type GitHubErrorResponse = readonly [metadata: { readonly type: 'error'; readonly error: SerializedGitHubError }, bodyText: string | undefined];
 
 /** Small control-plane results; HTTP request and response bodies use their own text slots. */
 export type ClientResponse<T> = readonly [metadata: { readonly type: 'success'; readonly value: T }, bodyText: undefined] | GitHubErrorResponse;
 
 export type ApiResponseEnvelope =
 	| { readonly type: 'success'; readonly status: number; readonly metadata?: ApiResponseMetadata }
-	| { readonly type: 'error'; readonly error: SerializedGitHubError | SerializedMissionControlError };
+	| { readonly type: 'error'; readonly error: SerializedGitHubError };
 
 /** Error response bodies also remain text; no response header collection crosses this boundary. */
 export type ApiResponseMessage = readonly [metadata: ApiResponseEnvelope, bodyText: string | undefined];
 
 export const parseRequestEnvelope = parse.object<ApiRequestEnvelope>({
 	clientId: parse.nonEmptyString,
-	target: parse.oneOf('rest', 'graphql', 'rawContent', 'missionControl'),
+	target: parse.oneOf('rest', 'graphql', 'rawContent'),
 	request: parseRequest,
 	requestId: parse.optional(parse.nonEmptyString),
 });

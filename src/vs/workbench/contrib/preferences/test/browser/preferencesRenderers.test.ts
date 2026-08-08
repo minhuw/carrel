@@ -19,7 +19,6 @@ import { MarkerService } from '../../../../../platform/markers/common/markerServ
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { SettingsEditorModel } from '../../../../services/preferences/common/preferencesModels.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
-import { getDefaultModelPolicyDescription } from '../../../chat/common/modelSelection.js';
 import { UserSettingsRenderer } from '../../browser/preferencesRenderers.js';
 
 suite('Settings JSON policy descriptions', () => {
@@ -27,6 +26,7 @@ suite('Settings JSON policy descriptions', () => {
 
 	for (const customDescription of [true, false]) {
 		test(`explains overridden JSON values with ${customDescription ? 'setting-specific' : 'generic'} policy text`, async () => {
+			const describePolicyValue = (policyValue: unknown) => `This setting is managed by policy: ${policyValue}`;
 			const key = 'test.policyDescription';
 			const registry = Registry.as<IConfigurationRegistry>(Extensions.Configuration);
 			const configurationNode: IConfigurationNode = {
@@ -35,7 +35,7 @@ suite('Settings JSON policy descriptions', () => {
 					[key]: {
 						type: 'string',
 						default: '',
-						policyValueDescription: customDescription ? getDefaultModelPolicyDescription : undefined,
+						policyValueDescription: customDescription ? describePolicyValue : undefined,
 						policy: {
 							name: 'TestPolicyDescription',
 							category: PolicyCategory.InteractiveSession,
@@ -75,7 +75,7 @@ suite('Settings JSON policy descriptions', () => {
 			renderer.render();
 			assert.deepStrictEqual({ managed, removed: markers.read({ resource: textModel.uri, owner: 'UnsupportedSettingsRenderer' }), saved: textModel.getValue() }, {
 				managed: [{
-					message: customDescription ? getDefaultModelPolicyDescription('opus', 'gemini') : 'This setting cannot be applied because it is configured in the system policy.',
+					message: customDescription ? describePolicyValue('opus') : 'This setting cannot be applied because it is configured in the system policy.',
 					severity: MarkerSeverity.Hint,
 					tags: [MarkerTag.Unnecessary],
 				}],

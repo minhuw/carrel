@@ -85,7 +85,7 @@ suite('GitHubTransport', () => {
 			}, { onDidChange: Event.None, getApiBaseUri: () => origin, getGraphQlUri: () => `${origin}/graphql` }),
 		}));
 		const account = { host: 'api.github.com', accountId: '1' };
-		const request = { method: 'GET' as const, url: originalUrl, caller: 'github.query', integrationId: 'private-integration' };
+		const request = { method: 'GET' as const, url: originalUrl, caller: 'github.query' };
 		const values: (number | undefined)[] = [];
 		for (let index = 0; index < 3; index++) {
 			values.push((await transport.rest<{ value: number }>(account, 'private-token', request, signal())).data?.value);
@@ -117,9 +117,6 @@ suite('GitHubTransport', () => {
 		{ name: 'mutation', enabled: true, request: { method: 'POST', bodyText: '{}' } },
 		{ name: 'read with a body', enabled: true, request: { bodyText: '{}' } },
 		{ name: 'dispatch-sensitive operation', enabled: true, request: { onDidDispatch: () => { } } },
-		{ name: 'Agents operation', enabled: true, request: { rateLimitResource: 'agents' } },
-		{ name: 'Agents sandbox operation', enabled: true, request: { rateLimitResource: 'agents:sandbox' } },
-		{ name: 'Agents token-minting operation', enabled: true, request: { rateLimitResource: 'agents:token_mint' } },
 	];
 	for (const { name, enabled, request } of excludedBrowserRedirects) {
 		test(`does not use browser-native redirects for ${name}`, async () => {
@@ -755,7 +752,6 @@ suite('GitHubTransport', () => {
 	});
 
 	for (const variant of [
-		{ name: 'rate-limit resource', options: { rateLimitResource: 'agents' }, expectedData: { value: 2 } },
 		{ name: 'response body mode', options: { responseBody: 'none' }, expectedData: undefined },
 	] as const) {
 		test(`isolates concurrent reads and cached validators by ${variant.name}`, async () => {
@@ -811,43 +807,6 @@ suite('GitHubTransport', () => {
 		await Promise.all([first, last, rejected]);
 		assert.deepStrictEqual({ calls, dispatched }, { calls: 2, dispatched: ['first', 'last'] });
 	});
-
-	for (const [field, code, retryable] of [
-		['error_code', 'not_implemented', false],
-		['code', 'not_implemented', false],
-		['error_code', 'internal_error', true],
-		['error_code', 'future_server_error', true],
-	] as const) {
-		test(`Mission Control transport classifies ${field}=${code} before retrying a 500`, () => runWithFakedTimers({}, async () => {
-			const times: number[] = [];
-			const transport = disposables.add(new GitHubTransport(async () => {
-				times.push(Date.now());
-				return Response.json({ [field]: code }, { status: 500 });
-			}));
-			await assert.rejects(transport.restText(accountA, 'token', {
-				method: 'GET', url: 'https://github.example.test/agents/tasks', rateLimitResource: 'agents',
-			}, signal()), { statusCode: 500 });
-			assert.deepStrictEqual({
-				attempts: times.length, paced: times.length < 2 || times[1] - times[0] >= 1000 && times[1] - times[0] < 1250,
-			}, { attempts: retryable ? 2 : 1, paced: true });
-		}));
-	}
-
-	for (const header of ['45', 'Thu, 01 Jan 2026 00:00:45 GMT']) {
-		test(`Mission Control timeout retries honor Retry-After: ${header}`, () => runWithFakedTimers({ startTime: Date.UTC(2026, 0, 1) }, async () => {
-			const times: number[] = [];
-			const transport = disposables.add(new GitHubTransport(async () => {
-				times.push(Date.now());
-				return times.length === 1
-					? Response.json({ error_code: 'request_timeout' }, { status: 408, headers: { 'Retry-After': header } })
-					: Response.json({ value: 1 });
-			}, undefined, undefined, undefined, { requestTimeout: 60_000 }));
-			const result = await transport.restText(accountA, 'token', {
-				method: 'GET', url: 'https://github.example.test/agents/tasks', rateLimitResource: 'agents',
-			}, signal());
-			assert.deepStrictEqual({ times: times.map(time => time - times[0]), data: result.data }, { times: [0, 45_000], data: '{"value":1}' });
-		}));
-	}
 
 	for (const api of ['REST', 'GraphQL'] as const) {
 		for (const firstFailure of ['fetch', 'server', 'body'] as const) {
@@ -959,9 +918,9 @@ suite('GitHubTransport', () => {
 			});
 		}, scheduler));
 		await assert.rejects(transport.rest(accountA, 'token-a', {
-			method: 'GET', url: 'https://github.example.test/agents/tasks', rateLimitResource: 'agents',
+			method: 'GET', url: 'https://github.example.test/repos/o/r',
 		}, signal()), { kind: 'network' });
-		assert.deepStrictEqual({ attempts, delay: transport.rateLimits.getRequestDelay(accountA, 'agents'), timers: scheduler.pendingCount }, {
+		assert.deepStrictEqual({ attempts, delay: transport.rateLimits.getRequestDelay(accountA, 'core'), timers: scheduler.pendingCount }, {
 			attempts: 1, delay: 2_000, timers: 0,
 		});
 	});

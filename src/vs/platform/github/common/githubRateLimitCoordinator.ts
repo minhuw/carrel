@@ -7,7 +7,6 @@ import { parseHeaderNumber, parseRetryAfter } from './client/headers.js';
 import { CooldownState } from './cooldownState.js';
 import { RequestQueue } from './requestQueue.js';
 import { RequestAccount } from './types.js';
-import { isRetryableMissionControlError, parseMissionControlError } from './missionControl/missionControlError.js';
 
 /** GitHub's documented floor for retrying a rate limit it gave no reset hint for. */
 const unhintedRateLimitCooldown = 60_000;
@@ -19,9 +18,7 @@ export class GitHubRateLimitCoordinator extends CooldownState {
 	/** Adds REST admission waits without changing the bucket-specific identity cooldown checks. */
 	getRequestDelay(account: RequestAccount, resource: string): number {
 		let delay = super.getDelay(account, resource);
-		if (resource.startsWith('agents:')) {
-			delay = Math.max(delay, super.getDelay(account, 'agents'));
-		} else if (resource !== 'graphql' && resource !== 'agents') {
+		if (resource !== 'graphql') {
 			delay = Math.max(delay, super.getDelay(account, unclassifiedRestResource));
 			for (const alias of restResourceAliases(resource)) {
 				delay = Math.max(delay, super.getDelay(account, alias));
@@ -78,19 +75,6 @@ export class GitHubRateLimitCoordinator extends CooldownState {
 				? Math.max(previousBlockedUntil, blockedUntil ?? 0) : blockedUntil,
 		});
 		this._onDidChange.fire();
-	}
-
-	/** Mission Control uses refusal/service hints, not GitHub REST counters or successful polling hints. */
-	updateFromAgentsResponse(account: RequestAccount, response: Response, responseBody?: string): void {
-		const retryAfter = parseRetryAfter(response.headers.get('retry-after'), this._scheduler.now());
-		const metadata = parseMissionControlError(responseBody);
-		if (metadata.code === 'rate_limit_exceeded'
-			|| (metadata.code === undefined || isRetryableMissionControlError(response.status, metadata.code)) && classifyGitHubHttpRateLimit(response, responseBody)) {
-			const resource = metadata.limitedResource === 'sandbox' || metadata.limitedResource === 'token_mint' ? `agents:${metadata.limitedResource}` : 'agents';
-			this.updateCooldown(account, resource, retryAfter !== undefined && retryAfter > 0 ? retryAfter * 1000 : 5_000);
-		} else if (response.status >= 500 && retryAfter !== undefined && isRetryableMissionControlError(response.status, metadata.code)) {
-			this.updateCooldown(account, 'agents', retryAfter * 1000);
-		}
 	}
 
 	updateFromGraphQL(account: RequestAccount, rateLimit: { readonly limit?: number; readonly remaining?: number; readonly used?: number; readonly resetAt?: string } | undefined): void {

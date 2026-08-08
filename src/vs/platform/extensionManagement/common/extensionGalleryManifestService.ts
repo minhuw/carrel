@@ -15,6 +15,7 @@ type ExtensionGalleryConfig = {
 	readonly publisherUrl: string;
 	readonly resourceUrlTemplate: string;
 	readonly extensionUrlTemplate: string;
+	readonly latestUrlTemplate?: string;
 	readonly controlUrl: string;
 	readonly nlsBaseUrl: string;
 };
@@ -47,7 +48,10 @@ export class ExtensionGalleryManifestService extends Disposable implements IExte
 				type: ExtensionGalleryResourceType.ExtensionQueryService
 			},
 			{
-				id: `${extensionsGallery.serviceUrl}/vscode/{publisher}/{name}/latest`,
+				// Carrel: Open VSX uses a different latest-version path than the
+				// MS gallery; honor latestUrlTemplate when the product config
+				// provides one (VSCodium-style override).
+				id: extensionsGallery.latestUrlTemplate ?? `${extensionsGallery.serviceUrl}/vscode/{publisher}/{name}/latest`,
 				type: ExtensionGalleryResourceType.ExtensionLatestVersionUri
 			},
 			{

@@ -13,7 +13,7 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 import { IFileContent, IFileService } from '../../../../../platform/files/common/files.js';
 import { IFileDialogService } from '../../../../../platform/dialogs/common/dialogs.js';
 import { INotificationService } from '../../../../../platform/notification/common/notification.js';
-import { ISharedWebContentExtractorService } from '../../../../../platform/webContentExtractor/common/webContentExtractor.js';
+import { IDownloadService } from '../../../../../platform/download/common/download.js';
 import { upcastPartial } from '../../../../../base/test/common/mock.js';
 import { ImageCarouselEditor } from '../../browser/imageCarouselEditor.js';
 import { ICarouselImage } from '../../browser/imageCarouselTypes.js';
@@ -99,39 +99,48 @@ suite('ImageCarouselEditor', () => {
 		assert.deepStrictEqual(error.args, [['Failed to download image.png: Image unavailable']]);
 	});
 
-	for (const available of [true, false]) {
-		(isWeb ? test.skip : test)(`downloads URL attachments from the image reader, not the buffered preview (available: ${available})`, async () => {
+	for (const outcome of ['success', 'error', 'cancelled'] as const) {
+		(isWeb ? test.skip : test)(`downloads original URL attachments without using the buffered preview (outcome: ${outcome})`, async () => {
 			const source = URI.parse('https://example.com/image.jpg');
-			const original = VSBuffer.fromString('original JPEG bytes');
 			const readFile = sandbox.stub().rejects(new Error('ENOPRO'));
-			const readImage = sandbox.stub().resolves(available ? original : undefined);
+			const downloadImage = sandbox.stub().resolves();
+			if (outcome === 'error') {
+				downloadImage.rejects(new Error('Download failed'));
+			}
+			const saveResult = new DeferredPromise<URI | undefined>();
 			const writeFile = sandbox.stub().resolves();
 			const error = sandbox.stub();
 			const target = URI.file('/downloads/image.jpg');
 			const editor = Object.assign(Object.create(ImageCarouselEditor.prototype), {
 				_currentIndex: 0,
-				_flatImages: [{ image: { id: 'image', name: 'image.jpg', mimeType: 'image/jpeg', uri: source, data: VSBuffer.fromString('resized PNG preview') } }],
+				_flatImages: [
+					{ image: { id: 'image', name: 'image.jpg', mimeType: 'image/jpeg', uri: source, data: VSBuffer.fromString('resized PNG preview') } },
+					{ image: { id: 'other', name: 'other.png', mimeType: 'image/png', data: VSBuffer.fromString('other image') } },
+				],
 				_fileService: upcastPartial<IFileService>({ readFile, writeFile }),
 				_fileDialogService: upcastPartial<IFileDialogService>({
 					defaultFilePath: async () => URI.file('/downloads'),
-					showSaveDialog: async () => target,
+					showSaveDialog: () => saveResult.p,
 				}),
-				_webContentExtractorService: upcastPartial<ISharedWebContentExtractorService>({ readImage }),
+				_downloadService: upcastPartial<IDownloadService>({ download: downloadImage }),
 				_notificationService: upcastPartial<INotificationService>({ error }),
 			}) as ImageCarouselEditorTestAccessor;
 
-			await editor.downloadCurrentImage();
+			const download = editor.downloadCurrentImage();
+			editor._currentIndex = 1;
+			await saveResult.complete(outcome === 'cancelled' ? undefined : target);
+			await download;
 
 			assert.deepStrictEqual({
 				fileReads: readFile.args,
-				imageReads: readImage.args.map(([resource]) => resource),
+				downloads: downloadImage.args,
 				writes: writeFile.args,
 				errors: error.args,
 			}, {
 				fileReads: [],
-				imageReads: [source],
-				writes: available ? [[target, original]] : [],
-				errors: available ? [] : [['Failed to download image.jpg: Unable to read image data from the URL.']],
+				downloads: outcome === 'cancelled' ? [] : [[source, target, 'workbench.downloadFile']],
+				writes: [],
+				errors: outcome === 'error' ? [['Failed to download image.jpg: Download failed']] : [],
 			});
 		});
 	}

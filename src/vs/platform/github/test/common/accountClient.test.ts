@@ -37,8 +37,8 @@ suite('GitHub account client', () => {
 		}, {
 			authorization,
 			domains: [
-				'actions', 'authorization', 'automations', 'checks', 'content', 'environments', 'gist', 'issues', 'notifications',
-				'onDidChangeCredentials', 'onDidInvalidate', 'organizations', 'pullRequests', 'repositories', 'reviews', 'search', 'tasks', 'users',
+				'actions', 'authorization', 'checks', 'content', 'gist', 'issues', 'notifications',
+				'onDidChangeCredentials', 'onDidInvalidate', 'organizations', 'pullRequests', 'repositories', 'reviews', 'search', 'users',
 			],
 			runs: { total_count: 0, workflow_runs: [] },
 			cancelled: undefined,
@@ -60,7 +60,7 @@ suite('GitHub account client', () => {
 			},
 		};
 		const client = store.add(new AccountClient(authorization, {
-			rest: provider, graphql: provider, rawContent: provider, missionControl: provider,
+			rest: provider, graphql: provider, rawContent: provider,
 		}, toDisposable(() => { })));
 		const repository = { owner: 'o', name: 'r' };
 		const options: ApiRequestOptions = { caller: 'same.caller', priority: 'background' };
@@ -77,9 +77,6 @@ suite('GitHub account client', () => {
 			{ domain: 'reviews', run: () => client.reviews.list(repository, 1, signal(), options) },
 			{ domain: 'search', run: () => client.search.repositories('query', signal(), options) },
 			{ domain: 'users', run: () => client.users.getAuthenticated(signal(), options) },
-			{ domain: 'automations', run: () => client.automations.list(repository, signal(), options) },
-			{ domain: 'environments', run: () => client.environments.list(signal(), options) },
-			{ domain: 'tasks', run: () => client.tasks.list(signal(), options) },
 			{ domain: 'reviews', run: () => client.reviews.listThreadSummaries('PR_1', signal(), options) },
 			{ domain: 'content', run: () => client.content.getRawFile('o', 'r', 'a'.repeat(40), 'README.md', signal(), options) },
 		];
@@ -100,7 +97,7 @@ suite('GitHub account client', () => {
 				throw dispatched;
 			},
 		};
-		const client = store.add(new AccountClient(authorization, { rest: provider, graphql: provider, missionControl: provider }, toDisposable(() => { })));
+		const client = store.add(new AccountClient(authorization, { rest: provider, graphql: provider }, toDisposable(() => { })));
 		const repository = { owner: 'o', name: 'r' };
 		const options: ApiRequestOptions = { caller: 'test.options', deadline: Date.now() + 10_000, priority: 'background' };
 		await assert.rejects(client.content.getContent('o', 'r', 'folder/file name.json', signal(), { ...options, query: { ref: 'feature/branch' } }), dispatched);
@@ -112,8 +109,6 @@ suite('GitHub account client', () => {
 		await assert.rejects(client.reviews.listThreads('PR_1', signal(), { ...options, query: { first: 2, commentsFirst: 1 } }), dispatched);
 		await assert.rejects(client.search.pullRequests('repo:o/r assignee:@me', signal(), { ...options, query: { first: 2, after: 'next' } }), dispatched);
 		await assert.rejects(client.issues.getClosingPullRequestCounts(repository, [7], signal(), options), dispatched);
-		await assert.rejects(client.tasks.list(signal(), { ...options, query: { page: 2, q: 'work', artifact_state: ['open', 'draft'] } }), dispatched);
-		await assert.rejects(client.environments.reconnect('environment', 'client', signal(), { ...options, query: { session_id: 'session' } }), dispatched);
 		await assert.rejects(client.issues.createLabel(repository, { name: 'label' }, signal(), options), dispatched);
 		const parseVariables = parse.object({ variables: parse.jsonObject });
 		assert.deepStrictEqual(requests.map(request => ({
@@ -130,13 +125,11 @@ suite('GitHub account client', () => {
 			{ path: '/', body: { pullRequestId: 'PR_1', first: 2, commentsFirst: 1 }, options },
 			{ path: '/', body: { first: 2, after: 'next', query: 'is:pr repo:o/r assignee:@me' }, options },
 			{ path: '/', body: { owner: 'o', name: 'r' }, options },
-			{ path: '/tasks?page=2&q=work&artifact_state=open&artifact_state=draft', body: undefined, options },
-			{ path: '/environments/environment/reconnect?session_id=session&client_id=client', body: undefined, options },
 			{ path: '/repos/o/r/labels', body: { name: 'label' }, options },
 		]);
 	});
 
-	test('single-page REST, GraphQL, and Mission Control reads preserve results and request options', async () => {
+	test('single-page REST and GraphQL reads preserve results and request options', async () => {
 		const connection = { nodes: [null], pageInfo: { endCursor: null, hasNextPage: false } };
 		const requestOptions: ApiRequestOptions = { caller: 'test.single-page', deadline: Date.now() + 10_000, priority: 'background' };
 		for (const maxPages of [undefined, 1]) {
@@ -144,24 +137,21 @@ suite('GitHub account client', () => {
 			const provider: IApiRequestProvider = {
 				request: async <T>(request: ApiRequest, _signal: AbortSignal, parser?: parse.Parser<T>): Promise<ApiResponse<T | void>> => {
 					requests.push(request);
-					const data = request.path === '/' ? { data: { node: { reviewThreads: connection } } }
-						: request.path === '/tasks' ? '{"tasks":[]}' : [];
+					const data = request.path === '/' ? { data: { node: { reviewThreads: connection } } } : [];
 					return { data: parser?.(data), status: 200 };
 				},
 			};
-			const client = store.add(new AccountClient(authorization, { rest: provider, graphql: provider, missionControl: provider }, toDisposable(() => { })));
+			const client = store.add(new AccountClient(authorization, { rest: provider, graphql: provider }, toDisposable(() => { })));
 			const options = { ...requestOptions, maxPages };
 			const results = [
 				await client.users.listEmails(signal(), options),
 				await client.reviews.listThreadSummaries('PR_1', signal(), options),
-				await client.tasks.list(signal(), options),
 			];
 			assert.deepStrictEqual({ results, requests: requests.map(request => ({ path: request.path, domain: request.domain, options: request.options })) }, {
-				results: [[], connection, { data: { tasks: [] }, nextLink: undefined, serverDate: undefined }],
+				results: [[], connection],
 				requests: [
 					{ path: '/user/emails', domain: 'users', options: requestOptions },
 					{ path: '/', domain: 'reviews', options: requestOptions },
-					{ path: '/tasks', domain: 'tasks', options: requestOptions },
 				],
 			});
 		}
@@ -170,14 +160,13 @@ suite('GitHub account client', () => {
 	test('validates limit behavior only when maxPages is supplied', async () => {
 		const dispatched = new Error('Request reached the provider');
 		const provider: IApiRequestProvider = { request: async () => { throw dispatched; } };
-		const client = store.add(new AccountClient(authorization, { rest: provider, graphql: provider, missionControl: provider }, toDisposable(() => { })));
+		const client = store.add(new AccountClient(authorization, { rest: provider, graphql: provider }, toDisposable(() => { })));
 		for (const maxPages of [undefined, 1, 2]) {
 			const options: PaginationOptions = { maxPages };
 			Object.assign(options, { pageLimitBehavior: 'invalid' });
 			const expected = maxPages === undefined ? dispatched : { kind: 'validation' };
 			await assert.rejects(client.users.listEmails(signal(), options), expected);
 			await assert.rejects(client.reviews.listThreadSummaries('PR_1', signal(), options), expected);
-			await assert.rejects(client.tasks.list(signal(), options), expected);
 		}
 	});
 });

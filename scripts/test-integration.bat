@@ -37,7 +37,6 @@ if defined SHOW_HELP (
 	echo.
 	echo Runs integration tests. When no filters are given, all integration tests
 	echo ^(node.js integration tests + extension host tests^) are run.
-	echo Agent Host E2E suites are not included; run them with scripts\test-agent-host-e2e.bat.
 	echo.
 	echo --run and --runGlob select which node.js integration test files to load.
 	echo Extension host tests are skipped when these options are used.
@@ -60,8 +59,8 @@ if defined SHOW_HELP (
 	echo.
 	echo Available suites:
 	echo   api-folder, api-workspace, colorize, terminal-suggest, typescript,
-	echo   markdown, emmet, git, git-base, ipynb, notebook-renderers,
-	echo   configuration-editing, github-authentication, copilot, css, html, json
+	echo   markdown, emmet, git, git-base, configuration-editing,
+	echo   github-authentication, css, html, json
 	echo.
 	echo All other options are forwarded to the node.js test runner ^(see scripts\test.bat --help^).
 	echo Note: extra options are not forwarded to extension host suites ^(--suite mode^).
@@ -111,12 +110,12 @@ echo Storing log files into '%VSCODELOGSDIR%'.
 :: Validate --suite filter matches at least one known suite
 if defined SUITE_FILTER (
 	set "_any_match="
-	for %%s in (api-folder api-workspace colorize terminal-suggest typescript markdown emmet git git-base ipynb notebook-renderers configuration-editing github-authentication copilot css html json) do (
+	for %%s in (api-folder api-workspace colorize terminal-suggest typescript markdown emmet git git-base configuration-editing github-authentication css html json) do (
 		call :should_run_suite %%s && set "_any_match=1"
 	)
 	if not defined _any_match (
 		echo Error: no suites match filter '%SUITE_FILTER%'
-		echo Available suites: api-folder api-workspace colorize terminal-suggest typescript markdown emmet git git-base ipynb notebook-renderers configuration-editing github-authentication copilot css html json
+		echo Available suites: api-folder api-workspace colorize terminal-suggest typescript markdown emmet git git-base configuration-editing github-authentication css html json
 		goto :failed
 	)
 )
@@ -127,15 +126,13 @@ if defined SUITE_FILTER (
 if defined SUITE_FILTER goto skip_nodejs_tests
 echo.
 echo ### node.js integration tests
-call node --input-type=module -e "import { getAgentHostTestProfile } from './src/vs/platform/agentHost/test/node/agentHostTestProfile.ts'; console.log('Agent Host test profile:', getAgentHostTestProfile(), '(' + (process.env.AGENT_HOST_TEST_PROFILE_REASON ?? 'default') + ')');"
-if errorlevel 1 goto :failed
 if defined RUN_GLOB (
 	call .\scripts\test.bat %*
 ) else if defined RUN_FILE (
 	call .\scripts\test.bat %*
 ) else (
-	rem Agent Host E2E runs separately, in parallel isolated processes: scripts\test-agent-host-e2e.bat
-	call .\scripts\test.bat --runGlob **\*.integrationTest.js --excludeRunGlob "**/agentHost/test/node/e2e/{providers/*AgentHostE2E,conformance/*}.integrationTest.js" %*
+	set VSCODE_SKIP_PRELAUNCH=1
+	call .\scripts\test.bat --runGlob **\*.integrationTest.js %*
 )
 if %errorlevel% neq 0 exit /b %errorlevel%
 :skip_nodejs_tests
@@ -238,28 +235,6 @@ if defined GREP_PATTERN (
 if %errorlevel% neq 0 exit /b %errorlevel%
 :skip_git_base
 
-call :should_run_suite ipynb || goto skip_ipynb
-echo.
-echo ### Ipynb tests
-if defined GREP_PATTERN (
-	call npm run test-extension -- -l ipynb --grep "%GREP_PATTERN%"
-) else (
-	call npm run test-extension -- -l ipynb
-)
-if %errorlevel% neq 0 exit /b %errorlevel%
-:skip_ipynb
-
-call :should_run_suite notebook-renderers || goto skip_notebook_renderers
-echo.
-echo ### Notebook Output tests
-if defined GREP_PATTERN (
-	call npm run test-extension -- -l notebook-renderers --grep "%GREP_PATTERN%"
-) else (
-	call npm run test-extension -- -l notebook-renderers
-)
-if %errorlevel% neq 0 exit /b %errorlevel%
-:skip_notebook_renderers
-
 call :should_run_suite configuration-editing || goto skip_configuration_editing
 echo.
 echo ### Configuration editing tests
@@ -281,17 +256,6 @@ if defined GREP_PATTERN (
 )
 if %errorlevel% neq 0 exit /b %errorlevel%
 :skip_github_authentication
-
-call :should_run_suite copilot || goto skip_copilot
-echo.
-echo ### Copilot tests
-if defined GREP_PATTERN (
-	call npm run test-extension -- -l copilot --grep "%GREP_PATTERN%"
-) else (
-	call npm run test-extension -- -l copilot
-)
-if %errorlevel% neq 0 exit /b %errorlevel%
-:skip_copilot
 
 :: Tests standalone (CommonJS)
 

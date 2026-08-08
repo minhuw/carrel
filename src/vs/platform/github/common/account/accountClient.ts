@@ -20,17 +20,12 @@ import { SearchClient } from '../core/searchClient.js';
 import { UsersClient } from '../core/usersClient.js';
 import { GistsClient } from '../gists/gistsClient.js';
 import { GitHubAuthorizationContext } from '../githubTypes.js';
-import { AutomationsClient } from '../missionControl/automationsClient.js';
-import { EnvironmentsClient } from '../missionControl/environmentsClient.js';
-import { MissionControlClient } from '../missionControl/missionControlClient.js';
-import { TasksClient } from '../missionControl/tasksClient.js';
 import { IGitHubAccountClient } from './account.js';
 
 interface AccountClientProviders {
 	readonly rest: IApiRequestProvider;
 	readonly graphql: IApiRequestProvider;
 	readonly rawContent?: IApiRequestProvider;
-	readonly missionControl?: IApiRequestProvider;
 	readonly onDidInvalidate?: Event<void>;
 	readonly onDidChangeCredentials?: Event<void>;
 }
@@ -42,9 +37,6 @@ export class AccountClient extends Disposable implements IGitHubAccountClient {
 	readonly onDidInvalidate = this._onDidInvalidate.event;
 	private readonly _onDidChangeCredentials = this._register(new Emitter<void>());
 	readonly onDidChangeCredentials = this._onDidChangeCredentials.event;
-	readonly automations: IGitHubAccountClient['automations'];
-	readonly environments: IGitHubAccountClient['environments'];
-	readonly tasks: IGitHubAccountClient['tasks'];
 	readonly content: IGitHubAccountClient['content'];
 	readonly gist: IGitHubAccountClient['gist'];
 	readonly search: IGitHubAccountClient['search'];
@@ -73,10 +65,6 @@ export class AccountClient extends Disposable implements IGitHubAccountClient {
 		}
 		this.authorization = Object.freeze({ ...authorization, scopes: Object.freeze([...authorization.scopes]) });
 		const core = new CoreClient(providers.rest, providers.graphql);
-		const missionControl = new MissionControlClient(providers.missionControl);
-		this.automations = new AutomationsClient(missionControl);
-		this.environments = new EnvironmentsClient(missionControl);
-		this.tasks = new TasksClient(missionControl);
 		this.content = new ContentClient(providers.rest, providers.rawContent);
 		this.gist = new GistsClient(providers.rest);
 		this.search = new SearchClient(core);

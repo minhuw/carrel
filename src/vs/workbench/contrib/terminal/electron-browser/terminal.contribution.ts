@@ -15,7 +15,7 @@ import { LifecyclePhase } from '../../../services/lifecycle/common/lifecycle.js'
 import { LocalTerminalBackendContribution } from './localTerminalBackend.js';
 import { registerAction2 } from '../../../../platform/actions/common/actions.js';
 import { isMacintosh } from '../../../../base/common/platform.js';
-import { InstallShellScriptWithCopilotAction, registerInstallShellScriptWithCopilotMenu } from './terminalInstallActions.js';
+import { InstallShellScriptAction } from '../../../electron-browser/actions/installActions.js';
 
 // Register services
 registerMainProcessRemoteService(ILocalPtyService, TerminalIpcChannels.LocalPty);
@@ -30,6 +30,5 @@ registerWorkbenchContribution2(LocalTerminalBackendContribution.ID, LocalTermina
 workbenchRegistry.registerWorkbenchContribution(TerminalNativeContribution, LifecyclePhase.Restored);
 
 if (isMacintosh) {
-	registerAction2(InstallShellScriptWithCopilotAction);
-	registerInstallShellScriptWithCopilotMenu();
+	registerAction2(InstallShellScriptAction);
 }

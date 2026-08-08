@@ -26,7 +26,6 @@ import { ReviewThread, ReviewThreadSummary, ThreadComment } from '../../common/c
 import { PullRequestSearchItem } from '../../common/core/search.js';
 import { ApiRequestProviders, GitHubService, IGitHubRequestProviderScope } from '../../common/githubService.js';
 import { GitHubAuthorizationContext, GitHubClientOptions, GitHubCredentialChange, GitHubRequestError, GitHubRequestRateLimitError, GitHubRequestTimeoutError, IGitHubCredentialProvider, MissingCommitError } from '../../common/githubTypes.js';
-import { ApiRequestError, MutationUncertainError } from '../../common/missionControl/missionControlClient.js';
 import { ApiRequestMessage, ApiResponseMessage, IGitHubCredentialBroker, parseAuthorization } from '../../common/remote/ipc.js';
 import { GitHubChannelClient, RemoteApiRequestProvider } from '../../common/remote/ipcClient.js';
 import { registerGitHubChannel } from '../../common/remote/ipcServer.js';
@@ -824,9 +823,6 @@ suite('GitHub authenticated IPC clients', () => {
 			if (url.pathname === '/graphql') {
 				return Response.json({ data: { node: { reviewThreads: { nodes: [], pageInfo: { hasNextPage: false, endCursor: null } } } } });
 			}
-			if (url.pathname === '/agents/tasks') {
-				return Response.json({ tasks: [] });
-			}
 			if (init?.method === 'PATCH') {
 				return new Response(null, { status: 205 });
 			}
@@ -834,15 +830,12 @@ suite('GitHub authenticated IPC clients', () => {
 		}, logService, telemetry);
 		const { remote, connection } = connect();
 		const broker = store.add(new TestCredentialBroker());
-		broker.options = { ...broker.options, missionControl: { endpoint: { apiBaseUri: 'https://api.githubcopilot.com/agents', integrationId: 'test-integration' } } };
 		connection.registerCredentials(broker);
 		const client = store.add(await remote.acquireClient(authorization, signal()));
 
 		await client.notifications.list(signal(), { priority: 'background' });
 		await client.reviews.listThreadSummaries('PR_1', signal(), { priority: 'visible' });
-		await client.tasks.list(signal(), { priority: 'enrichment' });
 		await client.content.getRawFile('o', 'r', 'a'.repeat(40), 'README.md', signal(), { priority: 'mergeGate' });
-		await client.tasks.list(signal());
 		await client.notifications.markRead('42', signal());
 		const released = Event.toPromise(service.onDidReleaseClient.event);
 		client.dispose();
@@ -854,12 +847,11 @@ suite('GitHub authenticated IPC clients', () => {
 				/\(priority: (?<priority>[^)]+)\)$/.exec(message)?.groups?.priority),
 			domains: domainSummaries.map(summary => ({ domain: summary.domain, source: summary.source, completed: summary.admittedCompleted })),
 		}, {
-			priorities: ['interactive', 'background', 'visible', 'enrichment', 'mergeGate', 'interactive', 'mutation'],
+			priorities: ['interactive', 'background', 'visible', 'mergeGate', 'mutation'],
 			domains: [
 				{ domain: 'credentials', source: 'sharedProcess', completed: 1 },
 				{ domain: 'notifications', source: 'sharedProcess', completed: 2 },
 				{ domain: 'reviews', source: 'sharedProcess', completed: 1 },
-				{ domain: 'tasks', source: 'sharedProcess', completed: 2 },
 				{ domain: 'content', source: 'sharedProcess', completed: 1 },
 			],
 		});
@@ -2198,285 +2190,6 @@ suite('GitHub authenticated IPC clients', () => {
 			});
 		});
 	}
-
-	suite('Mission Control', () => {
-		const repository = { owner: 'o', name: 'r' };
-		const date = '2026-01-01T00:00:00Z';
-		const definition = { id: 'automation-1', name: 'Test', description: '', prompt: 'Do work', created_by: { id: 101 }, created_at: date, updated_at: date };
-		const task = { id: 'task-1', automation_id: definition.id, state: 'queued', created_at: date, remote_steerable: true };
-		const options = {
-			endpoint: { apiBaseUri: 'https://api.githubcopilot.com/agents', integrationId: 'test-integration' },
-		};
-
-		async function acquire(fetch: RequestFetch) {
-			const server = setup((input, init) => new URL(String(input)).host === 'api.github.com'
-				? Promise.resolve(Response.json({ id: 101 })) : fetch(input, init));
-			const peer = server.connect();
-			peer.broker.options = { ...peer.broker.options, missionControl: options };
-			const client = store.add(await peer.remote.acquireClient(authorization, signal()));
-			return { ...server, ...peer, client };
-		}
-
-		test('executes automation, task, and environment operations through the approved Mission Control IPC profile', async () => {
-			const paths: string[] = [];
-			const headers: { integration: string | null; apiVersion: string | null; credentials: RequestCredentials | undefined }[] = [];
-			const responses = [
-				Response.json({ automations: [definition], total_count: 1 }, { headers: { link: '<https://api.githubcopilot.com/agents/repos/o/r/automations/v2?page=2>; rel="next"', date: 'Thu, 01 Jan 2026 00:00:00 GMT' } }),
-				Response.json(definition), Response.json(definition, { status: 201 }), Response.json(definition),
-				new Response(null, { status: 204 }), Response.json({ automation_id: definition.id }, { status: 202 }),
-				Response.json({ tasks: [task] }), Response.json([]), Response.json([]),
-				Response.json({ tasks: [task] }), Response.json(task), Response.json(task, { status: 201 }), Response.json(task),
-				Response.json(task), Response.json(task), new Response(null, { status: 204 }),
-				new Response(null, { status: 202 }), Response.json({ events: [], total: 0 }), Response.json({ events: [], total: 0 }),
-				Response.json([]), Response.json({ id: 'env', name: 'Environment', kind: 'managed-sandbox', status: 'online' }),
-				Response.json({ environment_status: 'waking' }, { status: 202, headers: { 'Retry-After': '2' } }),
-				Response.json({ environment_status: 'waking' }, { status: 202 }),
-			];
-			const { client } = await acquire(async (input, init) => {
-				paths.push(`${init?.method} ${new URL(String(input)).pathname}`);
-				const values = new Headers(init?.headers);
-				headers.push({ integration: values.get('Copilot-Integration-Id'), apiVersion: values.get('X-GitHub-Api-Version'), credentials: init?.credentials });
-				const response = responses.shift();
-				assert.ok(response);
-				return response;
-			});
-			const page = await client.automations.list(repository, signal());
-			await client.automations.get(repository, definition.id, signal());
-			await client.automations.create(repository, definition, signal());
-			await client.automations.update(repository, definition.id, { disabled: true }, signal());
-			await client.automations.delete(repository, definition.id, signal());
-			await client.automations.dispatch(repository, definition.id, { event: 'manual' }, signal());
-			await client.automations.listRuns(definition.id, signal());
-			await client.automations.listTools(signal());
-			await client.automations.listTriggers(signal());
-			await client.tasks.list(signal());
-			await client.tasks.get(task.id, signal());
-			await client.tasks.create({ prompt: 'Work' }, signal());
-			await client.tasks.update(task.id, { name: 'Renamed' }, signal());
-			await client.tasks.archive(task.id, signal());
-			await client.tasks.unarchive(task.id, signal());
-			await client.tasks.delete(task.id, signal());
-			await client.tasks.abort(task.id, signal());
-			await client.tasks.getEvents(task.id, signal());
-			await client.tasks.getAhpEvents(task.id, signal());
-			await client.environments.list(signal());
-			await client.environments.get('env', signal());
-			const waking = await client.environments.connect('env', signal());
-			await client.environments.reconnect('env', 'client', signal());
-			assert.deepStrictEqual({ paths, metadata: { nextLink: page.nextLink, serverDate: page.serverDate }, waking, headers, remaining: responses.length }, {
-				paths: [
-					'GET /agents/repos/o/r/automations/v2', 'GET /agents/repos/o/r/automations/automation-1', 'POST /agents/repos/o/r/automations',
-					'PATCH /agents/repos/o/r/automations/automation-1', 'DELETE /agents/repos/o/r/automations/automation-1', 'POST /agents/repos/o/r/automations/automation-1/tasks',
-					'GET /agents/automations/automation-1/tasks', 'GET /agents/automations/tools', 'GET /agents/automations/triggers',
-					'GET /agents/tasks', 'GET /agents/tasks/task-1', 'POST /agents/tasks', 'PATCH /agents/tasks/task-1',
-					'POST /agents/tasks/task-1/archive', 'POST /agents/tasks/task-1/unarchive', 'DELETE /agents/tasks/task-1', 'POST /agents/tasks/task-1/steer',
-					'GET /agents/tasks/task-1/events', 'GET /agents/tasks/task-1/events', 'GET /agents/environments', 'GET /agents/environments/env',
-					'GET /agents/environments/env/connect', 'GET /agents/environments/env/reconnect',
-				],
-				metadata: { nextLink: 'https://api.githubcopilot.com/agents/repos/o/r/automations/v2?page=2', serverDate: 'Thu, 01 Jan 2026 00:00:00 GMT' },
-				waking: { status: 202, data: { environment_status: 'waking' }, retryAfterSeconds: 2 },
-				headers: Array.from({ length: 23 }, () => ({ integration: 'test-integration', apiVersion: null, credentials: 'omit' })),
-				remaining: 0,
-			});
-		});
-
-		test('serializes mutation bodies once before IPC and parses responses at the caller', async () => {
-			const bodies: RequestInit['body'][] = [];
-			const { client } = await acquire(async (_input, init) => { bodies.push(init?.body); return Response.json(definition, { status: 201 }); });
-			let serialized = 0;
-			const request = { ...definition, toJSON() { serialized++; return { name: 'N', description: '', prompt: 'P', tools: [] }; } };
-			await client.automations.create(repository, request, signal());
-			assert.deepStrictEqual({ serialized, bodies }, { serialized: 1, bodies: ['{"name":"N","description":"","prompt":"P","tools":[]}'] });
-		});
-
-		test('preserves documented API diagnostics and indeterminate HTTP failures without raw bodies', async () => {
-			const details = { message: 'Unavailable', documentation_url: 'https://docs.example.test', errors: [{ code: 'custom', message: 'Retry later' }] };
-			const { client } = await acquire(async () => Response.json({ ...details, secret: 'not-retained' }, {
-				status: 503, headers: { 'X-GitHub-Request-Id': 'ABCD:1234:5678:90AB:CDEF', 'Retry-After': '2' },
-			}));
-			await assert.rejects(client.automations.create(repository, definition, signal()), (error: unknown) => {
-				assert.ok(error instanceof ApiRequestError);
-				assert.deepStrictEqual({
-					status: error.statusCode, response: error.response, requestId: error.requestId, retry: error.retryAfterSeconds, outcome: error.outcome, raw: error.responseBody,
-				}, { status: 503, response: details, requestId: 'ABCD:1234:5678:90AB:CDEF', retry: 2, outcome: 'indeterminate', raw: undefined });
-				return true;
-			});
-		});
-
-		for (const failure of [
-			{ status: 403, body: { error_code: 'rate_limit_exceeded', limited_resource: 'token_mint' }, code: 'rate_limit_exceeded', limitedResource: 'token_mint' },
-			{ status: 409, body: { code: 'environment_compute_terminal' }, code: 'environment_compute_terminal', limitedResource: undefined },
-			{ status: 409, body: { error_code: 'future_code' }, code: 'future_code', limitedResource: undefined },
-		]) {
-			test(`preserves credential-free ${failure.code} diagnostics across IPC`, async () => {
-				const { client } = await acquire(async () => Response.json({
-					...failure.body, message: 'private credential', access_token: 'private credential',
-				}, { status: failure.status, headers: { 'X-GitHub-Request-Id': 'ABCD:1234:5678:90AB:CDEF', 'Retry-After': '5' } }));
-				await assert.rejects(client.environments.connect('env', signal()), error => {
-					assert.ok(error instanceof ApiRequestError);
-					assert.deepStrictEqual({
-						code: error.code, limitedResource: error.limitedResource, status: error.statusCode,
-						requestId: error.requestId, retryAfterSeconds: error.retryAfterSeconds,
-						response: error.response, raw: error.responseBody, privateContent: JSON.stringify(error).includes('private credential'),
-					}, {
-						code: failure.code, limitedResource: failure.limitedResource, status: failure.status,
-						requestId: 'ABCD:1234:5678:90AB:CDEF', retryAfterSeconds: 5,
-						response: undefined, raw: undefined, privateContent: false,
-					});
-					return true;
-				});
-			});
-		}
-
-		test('honors noCache for Mission Control reads through IPC', async () => {
-			const validators: (string | null)[] = [];
-			const { client } = await acquire(async (_input, init) => {
-				const etag = new Headers(init?.headers).get('If-None-Match');
-				validators.push(etag);
-				return etag ? new Response(null, { status: 304 }) : Response.json({ tasks: [] }, { headers: { etag: '"tasks"' } });
-			});
-			for (const noCache of [true, undefined, false, true, undefined]) {
-				await client.tasks.list(signal(), { noCache });
-			}
-			assert.deepStrictEqual(validators, [null, null, '"tasks"', null, '"tasks"']);
-		});
-
-		test('sandbox rate-limit policy survives IPC without blocking task reads', () => runWithFakedTimers({}, async () => {
-			const times: number[] = [];
-			const { client } = await acquire(async (_input, init) => {
-				times.push(Date.now());
-				return init?.method === 'POST'
-					? Response.json({ error_code: 'rate_limit_exceeded', limited_resource: 'sandbox' }, { status: 429, headers: { 'Retry-After': '2' } })
-					: Response.json({ tasks: [] });
-			});
-			const request = { prompt: 'test', environment_id: 'github-sandbox' };
-			await assert.rejects(client.tasks.create(request, signal()), { code: 'rate_limit_exceeded' });
-			await client.tasks.list(signal());
-			await assert.rejects(client.tasks.create(request, signal()), { code: 'rate_limit_exceeded' });
-			assert.deepStrictEqual(times.map(time => time - times[0]), [0, 0, 2000]);
-		}));
-
-		test('malformed dispatched write responses remain indeterminate', async () => {
-			const { client } = await acquire(async () => new Response('not JSON', { status: 201 }));
-			await assert.rejects(client.automations.create(repository, definition, signal()), error => error instanceof MutationUncertainError);
-		});
-
-		for (const ending of ['cancel', 'dispose', 'disconnect', 'renewal'] as const) {
-			test(`preserves mutation uncertainty on ${ending} after dispatch`, async () => {
-				const response = new DeferredPromise<Response>();
-				const started = new DeferredPromise<AbortSignal>();
-				let calls = 0;
-				const { client, connection, broker } = await acquire(async (_input, init) => {
-					calls++;
-					assert.ok(init?.signal);
-					void started.complete(init.signal);
-					return response.p;
-				});
-				const controller = new AbortController();
-				const rejected = assert.rejects(client.automations.create(repository, definition, controller.signal), error => error instanceof MutationUncertainError);
-				const fetchSignal = await started.p;
-				if (ending === 'cancel') {
-					controller.abort(new CancellationError());
-				} else if (ending === 'dispose') {
-					client.dispose();
-				} else if (ending === 'disconnect') {
-					connection.dispose();
-				} else {
-					broker.token = 'renewed-token';
-					broker.tokens.fire(grantChange);
-				}
-				await rejected;
-				await response.complete(Response.json(definition, { status: 201 }));
-				assert.deepStrictEqual({ calls, aborted: fetchSignal.aborted }, { calls: 1, aborted: true });
-			});
-		}
-
-		test('cancelling an undispatched mutation does not report an uncertain outcome', async () => {
-			const response = new DeferredPromise<Response>();
-			const started = new DeferredPromise<void>();
-			let writes = 0;
-			const { client, connection } = await acquire(async (_input, init) => {
-				if (init?.method === 'POST') {
-					writes++;
-					return Response.json(definition, { status: 201 });
-				}
-				void started.complete();
-				return response.p;
-			});
-			const read = client.automations.get(repository, definition.id, signal());
-			await started.p;
-			const controller = new AbortController();
-			const rejected = assert.rejects(client.automations.create(repository, definition, controller.signal), isCancellationError);
-			await connection.flush();
-			controller.abort(new CancellationError());
-			await rejected;
-			await response.complete(Response.json(definition));
-			await read;
-			assert.strictEqual(writes, 0);
-		});
-
-		test('does not allow wire flags to bypass credential-response privacy', async () => {
-			let calls = 0;
-			const { connection } = await acquire(async () => { calls++; return Response.json({ message: 'secret-token', documentation_url: 'https://docs.example.test', access_token: 'secret-token' }, { status: 403 }); });
-			parseClientResponse(await connection.channel.call('acquireClient', { clientId: 'forged', authorization }), parseAuthorization);
-			const mc = new RemoteApiRequestProvider(connection.channel, 'forged', 'missionControl', signal());
-			const request: ApiRequest = {
-				method: 'GET', path: '/environments/env/connect', expectedStatus: [200], responseBody: 'text',
-				policy: { sensitive: false, credential: false },
-			};
-			await assert.rejects(mc.requestText(request, signal()), (error: unknown) => {
-				assert.ok(error instanceof ApiRequestError);
-				assert.deepStrictEqual({ response: error.response, raw: error.responseBody, containsSecret: error.message.includes('secret-token') }, {
-					response: undefined, raw: undefined, containsSecret: false,
-				});
-				return true;
-			});
-			assert.strictEqual(calls, 1);
-		});
-
-		test('sensitive environment lists are neither shared nor cached across IPC requests', async () => {
-			const validators: (string | null)[] = [];
-			const { client } = await acquire(async (_input, init) => {
-				validators.push(new Headers(init?.headers).get('If-None-Match'));
-				return Response.json([], { headers: { etag: '"sensitive"' } });
-			});
-			await Promise.all([client.environments.list(signal()), client.environments.list(signal())]);
-			await client.environments.list(signal());
-			assert.deepStrictEqual(validators, [null, null, null]);
-		});
-
-		test('enforces credential-GET and event-read no-retry semantics even without caller policy flags', async () => {
-			await runWithFakedTimers({}, async () => {
-				let calls = 0;
-				const { connection } = await acquire(async () => { calls++; throw new TypeError('Network failed'); });
-				parseClientResponse(await connection.channel.call('acquireClient', { clientId: 'policy', authorization }), parseAuthorization);
-				const provider = new RemoteApiRequestProvider(connection.channel, 'policy', 'missionControl', signal());
-				const request: ApiRequest = { method: 'GET', path: '/environments/env/connect', expectedStatus: [200], responseBody: 'text' };
-				try {
-					await assert.rejects(provider.requestText(request, signal()), error => error instanceof MutationUncertainError);
-					await assert.rejects(provider.requestText({ ...request, path: '/tasks/task-1/events' }, signal()), { kind: 'network' });
-					assert.strictEqual(calls, 2);
-				} finally {
-					connection.dispose();
-				}
-			});
-		});
-
-		test('retains safe-read coalescing and internal validators without exposing ETags', async () => {
-			const validators: (string | null)[] = [];
-			const { client } = await acquire(async (_input, init) => {
-				const etag = new Headers(init?.headers).get('If-None-Match');
-				validators.push(etag);
-				return etag ? new Response(null, { status: 304 }) : Response.json({ automations: [], total_count: 0 }, { headers: { etag: '"list"' } });
-			});
-			const results = await Promise.all([client.automations.list(repository, signal()), client.automations.list(repository, signal())]);
-			const next = await client.automations.list(repository, signal());
-			assert.deepStrictEqual({ validators, results: [...results, next] }, {
-				validators: [null, '"list"'],
-				results: Array.from({ length: 3 }, () => ({ data: { automations: [], total_count: 0 }, nextLink: undefined, serverDate: undefined })),
-			});
-		});
-	});
 
 	test('does not fall back to anonymous requests when the pinned grant loses its token', async () => {
 		let calls = 0;

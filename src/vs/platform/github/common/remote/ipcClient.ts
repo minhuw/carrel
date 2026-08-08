@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { CancellationToken } from '../../../../base/common/cancellation.js';
-import { CancellationError, isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';
+import { CancellationError, isCancellationError } from '../../../../base/common/errors.js';
 import { Event } from '../../../../base/common/event.js';
 import { Disposable, DisposableStore, toDisposable } from '../../../../base/common/lifecycle.js';
 import { generateUuid } from '../../../../base/common/uuid.js';
@@ -19,8 +19,6 @@ import { withGitHubCredentialDeadline } from '../githubCredentialService.js';
 import { GitHubAuthorizationContext, GitHubRequestError } from '../githubTypes.js';
 import { ApiRequestMessage, ApiRequestTarget, ClientResponse, IGitHubCredentialBroker, ISharedProcessGitHubService, parseAuthorization, parseBodyText, parseRequestEnvelope } from './ipc.js';
 import { deserializeGitHubError, parseApiResponse, parseClientResponse, serializeGitHubError } from './serialization.js';
-import { MutationUncertainError, missionControlRequestPolicy } from '../missionControl/missionControlClient.js';
-import { RequestError } from '../types.js';
 
 /** GitHub IPC channel client implementation. */
 export class GitHubChannelClient implements ISharedProcessGitHubService {
@@ -64,7 +62,6 @@ export class GitHubChannelClient implements ISharedProcessGitHubService {
 			});
 			const client = resolved ? new AccountClient(resolved, {
 				rest: provider, graphql, rawContent,
-				missionControl: new RemoteApiRequestProvider(this.channel, clientId, 'missionControl', controller.signal),
 				onDidInvalidate: this.channel.listen('onDidInvalidate', { clientId }),
 				onDidChangeCredentials: this.channel.listen('onDidChangeCredentials', { clientId }),
 			}, lease) : new AnonymousClient(provider, rawContent, lease);
@@ -139,47 +136,17 @@ export class RemoteApiRequestProvider extends BufferedApiRequestProvider {
 		super(clientSignal);
 	}
 
-	protected override checkResponseCancellation(request: Omit<ApiRequest, 'body'>, signal: AbortSignal): void {
-		if (signal.aborted && this.tracksOutcome && missionControlRequestPolicy(request).mutation) {
-			throw new MutationUncertainError('unknown');
-		}
-		signal.throwIfAborted();
-	}
-
-	private get tracksOutcome(): boolean {
-		return this.target === 'missionControl';
-	}
-
 	protected async execute(request: Omit<ApiRequest, 'body'>, signal: AbortSignal, bodyText?: string): Promise<ApiResponse<string | undefined>> {
 		const lifetime = new DisposableStore();
-		let sent = false;
-		let received = false;
 		try {
 			const token = CancellationToken.fromAbortSignal(signal, lifetime);
-			const requestId = this.tracksOutcome ? generateUuid() : undefined;
-			const message: ApiRequestMessage = [parseRequestEnvelope({ clientId: this.clientId, target: this.target, request, requestId }), parseBodyText(bodyText)];
-			if (requestId) {
-				lifetime.add(token.onCancellationRequested(() => {
-					void this.channel.call('cancelRequest', { clientId: this.clientId, requestId }).catch(error => {
-						if (!isCancellationError(error)) {
-							onUnexpectedError(error);
-						}
-					});
-				}));
-			}
-			sent = true;
-			const [metadata, responseText] = parseApiResponse(await this.channel.call('request', message, requestId ? CancellationToken.None : token));
-			received = true;
+			const message: ApiRequestMessage = [parseRequestEnvelope({ clientId: this.clientId, target: this.target, request }), parseBodyText(bodyText)];
+			const [metadata, responseText] = parseApiResponse(await this.channel.call('request', message, token));
 			if (metadata.type === 'error') {
 				throw deserializeGitHubError(metadata.error, responseText);
 			}
 			this.checkResponseCancellation(request, signal);
 			return { data: responseText, status: metadata.status, ...(metadata.metadata ? { metadata: metadata.metadata } : {}) };
-		} catch (error) {
-			if (this.tracksOutcome && sent && !received && missionControlRequestPolicy(request).mutation) {
-				throw new MutationUncertainError(error instanceof RequestError ? error.kind : 'unknown');
-			}
-			throw error;
 		} finally {
 			lifetime.dispose();
 		}

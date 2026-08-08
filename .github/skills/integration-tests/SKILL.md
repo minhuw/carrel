@@ -15,7 +15,7 @@ Integration tests in VS Code are split into two categories:
 - **macOS / Linux:** `./scripts/test-integration.sh [options]`
 - **Windows:** `.\scripts\test-integration.bat [options]`
 
-When run **without filters**, both scripts execute all node.js integration tests followed by all extension host tests. They do **not** run the deterministic Agent Host E2E suites: those run with `./scripts/test-agent-host-e2e.sh` (or `.\scripts\test-agent-host-e2e.bat`, or `npm run test-agent-host-e2e`), which runs each suite in its own isolated test process, in parallel. CI runs them as a separate step (`🧪 Run Agent Host E2E tests (Electron)`) and ADO test ID (`integration-agent-host-e2e`), alongside `🧪 Run integration tests (Electron)` (`integration-electron`). See `src/vs/platform/agentHost/test/node/e2e/README.md`. `--run` still accepts a single Agent Host E2E file.
+When run **without filters**, both scripts execute all node.js integration tests followed by all extension host tests.
 
 When run **with `--run` or `--runGlob`** (without `--suite`), only the node.js integration tests are run and the filter is applied. Extension host tests are skipped since these filters are node.js-specific.
 
@@ -61,7 +61,7 @@ Filters which **test cases** run by matching against their test titles (e.g. `de
 
 Runs only the extension host test suites whose name matches the pattern. Supports comma-separated values and shell glob patterns (on macOS/Linux). Node.js integration tests are skipped.
 
-Available suite names: `api-folder`, `api-workspace`, `colorize`, `terminal-suggest`, `typescript`, `markdown`, `emmet`, `git`, `git-base`, `ipynb`, `notebook-renderers`, `configuration-editing`, `github-authentication`, `copilot`, `css`, `html`, `json`.
+Available suite names: `api-folder`, `api-workspace`, `colorize`, `terminal-suggest`, `typescript`, `markdown`, `emmet`, `git`, `git-base`, `configuration-editing`, `github-authentication`, `css`, `html`, `json`.
 
 The `css`, `html`, and `json` suites are standalone extension tests that run in Electron's Node.js mode without opening a workbench. They share the same suite selection and grep filtering as extension host tests.
 

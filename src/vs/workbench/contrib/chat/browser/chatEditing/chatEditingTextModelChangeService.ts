@@ -31,7 +31,6 @@ import { editorSelectionBackground } from '../../../../../platform/theme/common/
 import { ICellEditOperation } from '../../../notebook/common/notebookCommon.js';
 import { ModifiedFileEntryState } from '../../common/editing/chatEditingService.js';
 import { IChatResponseModel } from '../../common/model/chatModel.js';
-import { ChatAgentLocation } from '../../common/constants.js';
 import { IDocumentDiff2 } from './chatEditingCodeEditorIntegration.js';
 import { pendingRewriteMinimap } from './chatEditingModifiedFileEntry.js';
 import { chatSessionResourceToId } from '../../common/model/chatUri.js';
@@ -266,17 +265,6 @@ export class ChatEditingTextModelChangeService extends Disposable {
 		const languageId = this.modifiedModel.getLanguageId();
 		const agent = responseModel.agent;
 		const extensionId = VersionedExtensionId.tryCreate(agent?.extensionId.value, agent?.extensionVersion);
-
-		if (responseModel.request?.locationData?.type === ChatAgentLocation.EditorInline) {
-
-			return EditSources.inlineChatApplyEdit({
-				modelId: request?.modelId,
-				requestId: request?.id,
-				sessionId,
-				languageId,
-				extensionId,
-			});
-		}
 
 		return EditSources.chatApplyEdits({
 			modelId: request?.modelId,

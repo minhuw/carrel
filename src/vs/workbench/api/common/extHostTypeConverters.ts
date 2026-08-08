@@ -3838,8 +3838,6 @@ export namespace ChatAgentUserActionEvent {
 		} else if (event.action.kind === 'followUp') {
 			const followupAction: vscode.ChatFollowupAction = { kind: 'followUp', followup: ChatFollowup.to(event.action.followup) };
 			return { action: followupAction, result: ehResult };
-		} else if (event.action.kind === 'inlineChat') {
-			return { action: { kind: 'editor', accepted: event.action.action === 'accepted' }, result: ehResult };
 		} else if (event.action.kind === 'chatEditingSessionAction') {
 
 			const outcomes = new Map([

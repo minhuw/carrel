@@ -124,8 +124,6 @@ export abstract class EditSourceBase {
 				return '$origin' in data && data.$origin === 'agentHost'
 					? this._cache.get(new AgentHostEditSource())
 					: this._cache.get(new ChatEditSource('sidebar'));
-			case 'inlineChat.applyEdits':
-				return this._cache.get(new ChatEditSource('inline'));
 			case 'cursor':
 				return this._cache.get(new UserEditSource());
 			default:

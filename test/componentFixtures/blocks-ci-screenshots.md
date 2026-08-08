@@ -186,18 +186,6 @@
 #### editor/injectedTextDecorations/SelectedColorDecorator/Light
 ![screenshot](https://hediet-screenshots.azurewebsites.net/images/7f70224f7733a2461eba63fa98234aab38b8804a73460deffa11f49cd6f7172c)
 
-#### editor/inlineChatZoneWidget/InlineChatZoneWidget/Dark
-![screenshot](https://hediet-screenshots.azurewebsites.net/images/1a8351614d9e211d7f63db3f1f56a46934271cfdbda83b0b72298968d0f5eec5)
-
-#### editor/inlineChatZoneWidget/InlineChatZoneWidget/Light
-![screenshot](https://hediet-screenshots.azurewebsites.net/images/a6412a92ec5265fe65d714be9a9af4e0feb95fed7378ca1477629fb2391485a0)
-
-#### editor/inlineChatZoneWidget/InlineChatZoneWidgetTerminated/Dark
-![screenshot](https://hediet-screenshots.azurewebsites.net/images/0752cf02ae3a4e21fce84b62859df32a5f41c13622bdec0083a3fd46832c2e0a)
-
-#### editor/inlineChatZoneWidget/InlineChatZoneWidgetTerminated/Light
-![screenshot](https://hediet-screenshots.azurewebsites.net/images/a29cfc0bf4510b57c82d9eae0d974babe7035042456326be861308cae609a1b5)
-
 #### sessions/accountMenu/petAchievementBadges/chatPetAchievementBadges/AllBadges/Dark
 ![screenshot](https://hediet-screenshots.azurewebsites.net/images/2f3f859c302172469115f4e7c5245b7006bdb5cad9b43d2a69c9046a99ec88ce)
 

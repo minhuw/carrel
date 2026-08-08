@@ -53,7 +53,6 @@ import { EditorPool } from '../chatContentCodePools.js';
 import { DetachedTerminalCommandMirror, DetachedTerminalSnapshotMirror } from '../../../../../terminal/browser/chatTerminalCommandMirror.js';
 import { TerminalLocation } from '../../../../../../../platform/terminal/common/terminal.js';
 import { Codicon } from '../../../../../../../base/common/codicons.js';
-import { TerminalContribCommandId } from '../../../../../terminal/terminalContribExports.js';
 import { ITelemetryService } from '../../../../../../../platform/telemetry/common/telemetry.js';
 import { isNumber } from '../../../../../../../base/common/types.js';
 import { removeAnsiEscapeCodes } from '../../../../../../../base/common/strings.js';
@@ -99,15 +98,15 @@ const expandedStateByInvocation = new WeakMap<IChatToolInvocation | IChatToolInv
 
 // --- Command registrations for terminal tool progress toolbar ---
 
-CommandsRegistry.registerCommand(TerminalContribCommandId.FocusChatInstanceAction, async (_accessor: unknown, progressPart?: IChatTerminalToolProgressPart) => {
+CommandsRegistry.registerCommand('workbench.action.terminal.chat.focusChatInstance', async (_accessor: unknown, progressPart?: IChatTerminalToolProgressPart) => {
 	await progressPart?.focusTerminal();
 });
 
-CommandsRegistry.registerCommand(TerminalContribCommandId.ContinueInBackground, async (_accessor: unknown, progressPart?: IChatTerminalToolProgressPart) => {
+CommandsRegistry.registerCommand('workbench.action.terminal.chat.continueInBackground', async (_accessor: unknown, progressPart?: IChatTerminalToolProgressPart) => {
 	progressPart?.continueInBackground();
 });
 
-CommandsRegistry.registerCommand(TerminalContribCommandId.ToggleChatTerminalOutput, async (_accessor: unknown, progressPart?: IChatTerminalToolProgressPart) => {
+CommandsRegistry.registerCommand('workbench.action.terminal.chat.toggleChatTerminalOutput', async (_accessor: unknown, progressPart?: IChatTerminalToolProgressPart) => {
 	await progressPart?.toggleOutputFromAction();
 });
 
@@ -747,7 +746,7 @@ export class ChatTerminalToolProgressPart extends BaseChatToolInvocationSubPart 
 		const actions: IAction[] = [];
 		if (this._toolbarCanContinueInBackground) {
 			const action = new Action(
-				TerminalContribCommandId.ContinueInBackground,
+				'workbench.action.terminal.chat.continueInBackground',
 				localize('continueInBackground', 'Continue in Background'),
 				ThemeIcon.asClassName(Codicon.debugContinueSmall),
 				true,
@@ -761,7 +760,7 @@ export class ChatTerminalToolProgressPart extends BaseChatToolInvocationSubPart 
 				? localize('showTerminal', 'Show and Focus Terminal')
 				: localize('focusTerminal', 'Focus Terminal');
 			const action = new Action(
-				TerminalContribCommandId.FocusChatInstanceAction,
+				'workbench.action.terminal.chat.focusChatInstance',
 				focusLabel,
 				ThemeIcon.asClassName(Codicon.openInProduct),
 				true,
@@ -776,7 +775,7 @@ export class ChatTerminalToolProgressPart extends BaseChatToolInvocationSubPart 
 				? localize('hideTerminalOutput', 'Hide Output')
 				: localize('showTerminalOutput', 'Show Output');
 			const action = new Action(
-				TerminalContribCommandId.ToggleChatTerminalOutput,
+				'workbench.action.terminal.chat.toggleChatTerminalOutput',
 				toggleLabel,
 				ThemeIcon.asClassName(toggleIcon),
 				true,

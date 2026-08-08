@@ -609,10 +609,6 @@
 	padding-right: 8px;
 }
 
-.style-override.monaco-workbench .pane-body.integrated-terminal .terminal-tabs-chat-entry {
-	padding: 4px;
-}
-
 .style-override.monaco-workbench .pane-body.integrated-terminal .tabs-list .codicon {
 	vertical-align: sub;
 }

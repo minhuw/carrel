@@ -1,0 +1,24 @@
+{
+  "name": "theme-carrel",
+  "displayName": "Carrel Themes",
+  "description": "Carrel's signature unified chrome themes",
+  "categories": [
+    "Themes"
+  ],
+  "version": "1.0.0",
+  "publisher": "carrel",
+  "license": "MIT",
+  "engines": {
+    "vscode": "*"
+  },
+  "contributes": {
+    "themes": [
+      {
+        "id": "Carrel Dark",
+        "label": "Carrel Dark",
+        "uiTheme": "vs-dark",
+        "path": "./themes/carrel-dark-color-theme.json"
+      }
+    ]
+  }
+}

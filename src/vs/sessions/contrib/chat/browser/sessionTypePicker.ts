@@ -10,7 +10,6 @@ import { Disposable, DisposableStore, MutableDisposable, toDisposable } from '..
 import { renderIcon } from '../../../../base/browser/ui/iconLabel/iconLabels.js';
 import { localize } from '../../../../nls.js';
 import { IActionWidgetService } from '../../../../platform/actionWidget/browser/actionWidget.js';
-import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { IContextKey, IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
 import { ActionListItemKind, IActionListDelegate, IActionListItem } from '../../../../platform/actionWidget/browser/actionList.js';
 import { IProviderSessionType, ISessionsManagementService } from '../../../services/sessions/common/sessionsManagement.js';
@@ -18,20 +17,18 @@ import { ISessionsProvidersService } from '../../../services/sessions/browser/se
 import { autorun, IObservable, observableValue } from '../../../../base/common/observable.js';
 import { ISession, SessionStatus } from '../../../services/sessions/common/session.js';
 import { Emitter } from '../../../../base/common/event.js';
+import { isWeb } from '../../../../base/common/platform.js';
 import { isEqual } from '../../../../base/common/resources.js';
 import { URI } from '../../../../base/common/uri.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../../../platform/storage/common/storage.js';
 import { ITelemetryService } from '../../../../platform/telemetry/common/telemetry.js';
 import { IChatSessionsService } from '../../../../workbench/contrib/chat/common/chatSessionsService.js';
 import { ILanguageModelsService } from '../../../../workbench/contrib/chat/common/languageModels.js';
-import { getSessionTypeAvailability, getSessionTypePickerAvailability, getSessionTypeUnavailableDescription, getSessionTypeUnavailableHover, SessionTypeAvailability } from '../../../../workbench/contrib/chat/browser/agentSessions/sessionTypeAvailability.js';
-import { hasAgentSdkSetupNotification } from '../../../../workbench/contrib/chat/browser/agentSessions/agentHost/agentHostSdkSetupNotification.js';
-import { IChatInputNotificationService } from '../../../../workbench/contrib/chat/browser/widget/input/chatInputNotificationService.js';
-import { IChatEntitlementService } from '../../../../workbench/services/chat/common/chatEntitlementService.js';
+import { getSessionTypeAvailability, getSessionTypeUnavailableDescription, getSessionTypeUnavailableHover, SessionTypeAvailability } from '../../../../workbench/contrib/chat/browser/agentSessions/sessionTypeAvailability.js';
+import { IChatEntitlementService } from '../../../../workbench/contrib/chat/common/chatEntitlementService.js';
 import { markOnboardingTarget } from '../../../../workbench/contrib/onboarding/browser/spotlight/onboardingTarget.js';
 import { reportNewChatPickerClosed } from './newChatPickerTelemetry.js';
-import { SessionHarnessPickerInteractiveContext, SessionHarnessPickerVisibleContext } from '../../../common/contextkeys.js';
-import { isAllowSignedOutWhenUsableEnabled } from '../../../browser/sessionsAuthGate.js';
+import { SessionHarnessPickerVisibleContext } from '../../../common/contextkeys.js';
 
 const STORAGE_KEY_LAST_SESSION_TYPE = 'sessions.userSelectedSessionType';
 
@@ -148,8 +145,13 @@ export class SessionTypePicker extends Disposable {
 	private readonly _renderDisposables = this._register(new DisposableStore());
 	protected _triggerElement: HTMLElement | undefined;
 
+	/**
+	 * Tracks whether the harness picker trigger is currently visible. Mirrors
+	 * the `.hidden` state computed in {@link _updateTriggerLabel}, so the
+	 * new-session-view onboarding tour can skip the harness step when only a
+	 * single harness can serve the selected workspace.
+	 */
 	private readonly _visibleKey: IContextKey<boolean>;
-	private readonly _interactiveKey: IContextKey<boolean>;
 
 	constructor(
 		private readonly _session: IObservable<ISession | undefined>,
@@ -162,16 +164,12 @@ export class SessionTypePicker extends Disposable {
 		@IChatSessionsService protected readonly chatSessionsService: IChatSessionsService,
 		@IChatEntitlementService protected readonly chatEntitlementService: IChatEntitlementService,
 		@ILanguageModelsService protected readonly languageModelsService: ILanguageModelsService,
-		@IConfigurationService protected readonly configurationService: IConfigurationService,
-		@IChatInputNotificationService protected readonly chatInputNotificationService: IChatInputNotificationService,
 		@IContextKeyService contextKeyService: IContextKeyService,
 	) {
 		super();
 
 		this._visibleKey = SessionHarnessPickerVisibleContext.bindTo(contextKeyService);
 		this._register(toDisposable(() => this._visibleKey.reset()));
-		this._interactiveKey = SessionHarnessPickerInteractiveContext.bindTo(contextKeyService);
-		this._register(toDisposable(() => this._interactiveKey.reset()));
 
 		// Restore the previously selected session type from storage
 		this._picked = this._readStoredPick();
@@ -397,12 +395,8 @@ export class SessionTypePicker extends Disposable {
 	 * the override can decide where to anchor (or that it doesn't need
 	 * anchoring at all, e.g. for a bottom sheet).
 	 */
-	showPicker(anchor?: HTMLElement): void {
-		this._showPicker(anchor);
-	}
-
-	protected _showPicker(anchor = this._triggerElement): void {
-		if (!anchor || this.actionWidgetService.isVisible) {
+	protected _showPicker(): void {
+		if (!this._triggerElement || this.actionWidgetService.isVisible) {
 			return;
 		}
 
@@ -459,14 +453,7 @@ export class SessionTypePicker extends Disposable {
 			}
 			for (const { providerId, sessionType } of types) {
 				const isCurrent = this._picked?.providerId === providerId && this._picked?.sessionTypeId === sessionType.id;
-				const modelTarget = sessionType.chatSessionType ?? sessionType.id;
-				const allowSignedOutWhenUsable = isAllowSignedOutWhenUsableEnabled(this.configurationService);
-				const availability = getSessionTypePickerAvailability(
-					modelTarget,
-					getSessionTypeAvailability(this.chatSessionsService, this.chatEntitlementService, this.languageModelsService, modelTarget, allowSignedOutWhenUsable),
-					allowSignedOutWhenUsable,
-					hasAgentSdkSetupNotification(this.chatInputNotificationService, modelTarget),
-				);
+				const availability = getSessionTypeAvailability(this.chatSessionsService, this.chatEntitlementService, this.languageModelsService, sessionType.chatSessionType ?? sessionType.id);
 				const unavailable = availability !== SessionTypeAvailability.Available;
 				const item: ISessionTypePickerItem = {
 					providerId,
@@ -498,11 +485,7 @@ export class SessionTypePicker extends Disposable {
 				this.actionWidgetService.hide();
 				this._handleSelectedSessionType(item);
 			},
-			onHide: () => {
-				if (triggerElement?.isConnected) {
-					triggerElement.focus();
-				}
-			},
+			onHide: () => { triggerElement.focus(); },
 		};
 
 		this.actionWidgetService.show<ISessionTypePickerItem>(
@@ -510,7 +493,7 @@ export class SessionTypePicker extends Disposable {
 			false,
 			groupedItems,
 			delegate,
-			anchor,
+			this._triggerElement,
 			undefined,
 			[],
 			{
@@ -628,27 +611,26 @@ export class SessionTypePicker extends Disposable {
 	private _updateTriggerLabel(): void {
 		if (!this._triggerElement) {
 			this._visibleKey.set(false);
-			this._interactiveKey.set(false);
 			return;
 		}
 
 		dom.clearNode(this._triggerElement);
 
-		if (this._folderSessionTypes.length === 0) {
+		// In web (vscode.dev/agents) the host filter already scopes the
+		// workbench to a single agent host, so when that host advertises only
+		// one harness there is nothing to pick — hide the trigger entirely.
+		// Note: the existing CSS rule on `.session-workspace-picker-with-label`
+		// uses `:has(+ .sessions-chat-session-type-picker .action-label.hidden)`
+		// to also hide the "with" connector when the trigger is hidden.
+		const hideForSingleHarness = isWeb && this._folderSessionTypes.length <= 1 && this._pickServedByFolder(this._picked);
+		if (this._folderSessionTypes.length === 0 || hideForSingleHarness) {
 			this._triggerElement.classList.add('hidden');
-			this._triggerElement.parentElement?.classList.remove('disabled');
 			this._visibleKey.set(false);
-			this._interactiveKey.set(false);
 			return;
 		}
 
-		const disabled = this._folderSessionTypes.length === 1 && this._pickServedByFolder(this._picked);
 		this._triggerElement.classList.remove('hidden');
-		this._triggerElement.parentElement?.classList.toggle('disabled', disabled);
-		this._triggerElement.tabIndex = disabled ? -1 : 0;
-		this._triggerElement.setAttribute('aria-disabled', String(disabled));
 		this._visibleKey.set(true);
-		this._interactiveKey.set(!disabled);
 		const currentType = this._folderSessionTypes.find(t =>
 			t.providerId === this._picked?.providerId && t.sessionType.id === this._picked?.sessionTypeId)?.sessionType
 			?? this._folderSessionTypes.find(t => t.sessionType.id === this._picked?.sessionTypeId)?.sessionType;
@@ -659,13 +641,11 @@ export class SessionTypePicker extends Disposable {
 		const labelSpan = dom.append(this._triggerElement, dom.$('span.sessions-chat-dropdown-label'));
 		labelSpan.textContent = modeLabel;
 
-		if (!disabled && this._options?.showChevron !== false) {
+		if (this._options?.showChevron !== false) {
 			const chevron = dom.append(this._triggerElement, renderIcon(Codicon.chevronDownCompact));
 			chevron.classList.add('sessions-chat-dropdown-chevron');
 		}
 
-		this._triggerElement.ariaLabel = disabled
-			? localize('sessionTypePicker.disabledTriggerAriaLabel', "Session Type, {0}", modeLabel)
-			: localize('sessionTypePicker.triggerAriaLabel', "Pick Session Type, {0}", modeLabel);
+		this._triggerElement.ariaLabel = localize('sessionTypePicker.triggerAriaLabel', "Pick Session Type, {0}", modeLabel);
 	}
 }

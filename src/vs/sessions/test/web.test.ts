@@ -11,8 +11,8 @@ import { SessionsBrowserMain } from '../browser/web.main.js';
 import { Emitter, Event } from '../../base/common/event.js';
 import { CancellationToken } from '../../base/common/cancellation.js';
 import { IObservable, observableValue } from '../../base/common/observable.js';
-import { ChatEntitlement, IChatEntitlementService, IChatSentiment } from '../../workbench/services/chat/common/chatEntitlementService.js';
-import { IDefaultAccountService, MANAGED_SETTINGS_FRESHNESS_NOT_REQUIRED } from '../../platform/defaultAccount/common/defaultAccount.js';
+import { ChatEntitlement, IChatEntitlementService, IChatSentiment } from '../../workbench/contrib/chat/common/chatEntitlementService.js';
+import { IDefaultAccountService } from '../../platform/defaultAccount/common/defaultAccount.js';
 import { IDefaultAccount, IDefaultAccountAuthenticationProvider, ICopilotTokenInfo, IPolicyData } from '../../base/common/defaultAccount.js';
 import { IChatAgentService, IChatAgentData, IChatAgentImplementation } from '../../workbench/contrib/chat/common/participants/chatAgents.js';
 import { ChatAgentLocation, ChatModeKind } from '../../workbench/contrib/chat/common/constants.js';
@@ -135,8 +135,6 @@ class MockDefaultAccountService implements IDefaultAccountService {
 	readonly managedSettingsRawResponse: unknown = null;
 	readonly managedSettingsCompatibilityError = null;
 	readonly onDidChangeManagedSettingsCompatibilityError = Event.None;
-	readonly managedSettingsFreshness = MANAGED_SETTINGS_FRESHNESS_NOT_REQUIRED;
-	readonly onDidChangeManagedSettingsFreshness = Event.None;
 
 	async getDefaultAccount(): Promise<IDefaultAccount | null> { return MOCK_ACCOUNT; }
 	getDefaultAccountAuthenticationProvider(): IDefaultAccountAuthenticationProvider { return MOCK_ACCOUNT.authenticationProvider; }

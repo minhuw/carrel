@@ -31,7 +31,7 @@ import { TerminalInitialHintSettingId } from '../common/terminalInitialHintConfi
 import './media/terminalInitialHint.css';
 import { TerminalSuggestCommandId } from '../../suggest/common/terminal.suggest.js';
 import { TerminalSuggestSettingId } from '../../suggest/common/terminalSuggestConfiguration.js';
-import { IChatEntitlementService } from '../../../../services/chat/common/chatEntitlementService.js';
+import { IChatEntitlementService } from '../../../chat/common/chatEntitlementService.js';
 
 const $ = dom.$;
 

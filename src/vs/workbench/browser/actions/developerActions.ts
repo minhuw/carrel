@@ -10,11 +10,7 @@ import { IKeybindingService } from '../../../platform/keybinding/common/keybindi
 import { DomEmitter } from '../../../base/browser/event.js';
 import { Color } from '../../../base/common/color.js';
 import { Emitter, Event } from '../../../base/common/event.js';
-import { getErrorMessage } from '../../../base/common/errors.js';
 import { IDisposable, toDisposable, dispose, DisposableStore, setDisposableTracker, DisposableTracker, DisposableInfo } from '../../../base/common/lifecycle.js';
-import { Schemas } from '../../../base/common/network.js';
-import { URI } from '../../../base/common/uri.js';
-import { generateUuid } from '../../../base/common/uuid.js';
 import { getDomNodePagePosition, append, $, getActiveDocument, onDidRegisterWindow, getWindows } from '../../../base/browser/dom.js';
 import { createCSSRule, createStyleSheet } from '../../../base/browser/domStylesheets.js';
 import { IConfigurationService } from '../../../platform/configuration/common/configuration.js';
@@ -43,7 +39,7 @@ import { IQuickInputService, IQuickPickItem } from '../../../platform/quickinput
 import { IUserDataProfileService } from '../../services/userDataProfile/common/userDataProfile.js';
 import { IEditorService } from '../../services/editor/common/editorService.js';
 import product from '../../../platform/product/common/product.js';
-import { CommandsRegistry, ICommandService } from '../../../platform/commands/common/commands.js';
+import { CommandsRegistry } from '../../../platform/commands/common/commands.js';
 import { IEnvironmentService } from '../../../platform/environment/common/environment.js';
 
 class InspectContextKeysAction extends Action2 {

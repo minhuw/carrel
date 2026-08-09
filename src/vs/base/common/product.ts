@@ -37,15 +37,6 @@ export interface IFeaturedExtension {
 	readonly imagePath: string;
 }
 
-export interface IChatSessionRecommendation {
-	readonly extensionId: string;
-	readonly extensionName: string;
-	readonly displayName: string;
-	readonly name: string;
-	readonly description: string;
-	readonly postInstallCommand?: string;
-}
-
 export type ConfigurationSyncStore = {
 	url: string;
 	insidersUrl: string;
@@ -95,7 +86,6 @@ export interface IProductConfiguration {
 	readonly win32ContextMenu?: { readonly [arch: string]: { readonly clsid: string } };
 	readonly applicationName: string;
 	readonly embedderIdentifier?: string;
-	readonly agentsTelemetryAppName?: string;
 
 	readonly urlProtocol: string;
 	readonly dataFolderName: string; // location for extensions (e.g. ~/.vscode-insiders)
@@ -230,8 +220,7 @@ export interface IProductConfiguration {
 		readonly excludeVersionRange?: string;
 	}>;
 	readonly extensionsForceVersionByQuality?: readonly string[];
-	readonly builtInExtensionsEnabledWithAutoUpdates: readonly string[];
-	readonly sessionsWindowAllowedExtensions?: readonly string[];
+	readonly builtInExtensionsEnabledWithAutoUpdates?: readonly string[];
 
 	readonly msftInternalDomains?: string[];
 	readonly linkProtectionTrustedDomains?: readonly string[];
@@ -248,11 +237,7 @@ export interface IProductConfiguration {
 	readonly commonlyUsedSettings?: string[];
 	readonly aiGeneratedWorkspaceTrust?: IAiGeneratedWorkspaceTrust;
 
-	readonly defaultChatAgent: IDefaultChatAgent;
-	readonly chatParticipantRegistry?: string;
-	readonly chatSessionRecommendations?: IChatSessionRecommendation[];
 	readonly emergencyAlertUrl?: string;
-	readonly voiceWsUrl?: string;
 
 	readonly remoteDefaultExtensionsIfInstalledLocally?: string[];
 
@@ -397,50 +382,3 @@ export interface IAiGeneratedWorkspaceTrust {
 	readonly startupTrustRequestLearnMore: string;
 }
 
-export interface IDefaultChatAgent {
-	readonly extensionId: string;
-	readonly chatExtensionId: string;
-
-	readonly chatExtensionOutputId: string;
-	readonly chatExtensionOutputExtensionStateCommand: string;
-
-	readonly documentationUrl: string;
-	readonly skusDocumentationUrl: string;
-	readonly optimizeUsageDocumentationUrl: string;
-	readonly publicCodeMatchesUrl: string;
-	readonly managePlanUrl: string;
-	readonly upgradePlanUrl: string;
-	readonly signUpUrl: string;
-	readonly termsStatementUrl: string;
-	readonly privacyStatementUrl: string;
-
-	readonly provider: {
-		default: { id: string; name: string };
-		enterprise: { id: string; name: string };
-		google: { id: string; name: string };
-		apple: { id: string; name: string };
-	};
-
-	readonly providerExtensionId: string;
-	readonly providerUriSetting: string;
-	readonly providerScopes: string[][];
-
-	readonly entitlementUrl: string;
-	readonly entitlementSignupLimitedUrl: string;
-	readonly tokenEntitlementUrl: string;
-	readonly mcpRegistryDataUrl: string;
-	readonly managedSettingsUrl: string;
-
-	readonly chatQuotaExceededContext: string;
-	readonly completionsQuotaExceededContext: string;
-
-	readonly walkthroughCommand: string;
-	readonly completionsMenuCommand: string;
-	readonly chatRefreshTokenCommand: string;
-	readonly generateCommitMessageCommand: string;
-	readonly resolveMergeConflictsCommand: string;
-
-	readonly completionsAdvancedSetting: string;
-	readonly completionsEnablementSetting: string;
-	readonly nextEditSuggestionsSetting: string;
-}

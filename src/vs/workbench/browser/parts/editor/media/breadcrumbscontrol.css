@@ -3,6 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+.monaco-workbench.vs .breadcrumbs-control {
+	/* Carrel: the reference design renders no separator here (keeps the
+	   breadcrumbs row at 22px instead of 23px). */
+	border-bottom: none;
+}
+
 .monaco-workbench .part.editor > .content .editor-group-container .breadcrumbs-control.hidden {
 	display: none;
 }

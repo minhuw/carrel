@@ -441,6 +441,13 @@ export abstract class AbstractPaneCompositePart extends CompositePart<PaneCompos
 
 		this.compositeBarPosition = newPosition;
 
+		// Carrel: only the primary sidebar hides its title row when the composite
+		// bar moves into the header area (see sidebarpart.css). The auxiliary bar
+		// retains its title and must continue reserving that height.
+		if (this.partId === Parts.SIDEBAR_PART) {
+			this.setTitleAreaVisibility(newPosition !== CompositeBarPosition.TOP);
+		}
+
 		if (updateCompositeBarOption) {
 			this.layoutCompositeBar();
 		}

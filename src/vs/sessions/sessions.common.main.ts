@@ -426,7 +426,6 @@ import '../workbench/contrib/inlineCompletions/browser/inlineCompletions.contrib
 import '../workbench/contrib/dropOrPasteInto/browser/dropOrPasteInto.contribution.js';
 
 // Edit Telemetry
-import '../workbench/contrib/editTelemetry/browser/editTelemetry.contribution.js';
 
 // Opener
 import '../workbench/contrib/opener/browser/opener.contribution.js';

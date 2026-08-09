@@ -31,7 +31,6 @@ import { IChatContentInlineReference } from '../../../../common/chatService/chat
 import { IChatSessionsService } from '../../../../common/chatSessionsService.js';
 import { ChatConfiguration } from '../../../../common/constants.js';
 import { rewriteAgentHostLinkTarget } from '../../../../browser/agentSessions/agentHost/stateToProgressAdapter.js';
-import { IAiEditTelemetryService } from '../../../../../editTelemetry/browser/telemetry/aiEditTelemetry/aiEditTelemetryService.js';
 import { IViewDescriptorService } from '../../../../../../common/views.js';
 import { IDisposableReference } from '../../../../browser/widget/chatContentParts/chatCollections.js';
 import { MockChatSessionsService } from '../../../common/mockChatSessionsService.js';
@@ -175,14 +174,6 @@ suite('ChatMarkdownContentPart', () => {
 			showAndFocusLastHover: () => { },
 			setupManagedHover: () => ({ dispose: () => { }, show: () => { }, hide: () => { }, update: () => { } }),
 			showManagedHover: () => { },
-		});
-
-		// Stub AI edit telemetry service
-		instantiationService.stub(IAiEditTelemetryService, {
-			_serviceBrand: undefined,
-			createSuggestionId: () => undefined!,
-			handleCodeAccepted: () => { },
-			handleCodeRejected: () => { },
 		});
 
 		instantiationService.stub(IChatOutputRendererService, {

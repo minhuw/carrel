@@ -15,7 +15,7 @@ import { EditTrackingFeature } from './telemetry/editSourceTrackingFeature.js';
 import { VSCodeWorkspace } from './helpers/vscodeObservableWorkspace.js';
 import { AiStatsFeature } from './editStats/aiStatsFeature.js';
 import { AI_STATS_SETTING_ID, EDIT_TELEMETRY_SETTING_ID } from './settingIds.js';
-import { IChatEntitlementService } from '../../../services/chat/common/chatEntitlementService.js';
+import { IChatEntitlementService } from '../../chat/common/chatEntitlementService.js';
 import { AiContributionFeature } from './aiContributionFeature.js';
 
 export class EditTelemetryContribution extends Disposable {

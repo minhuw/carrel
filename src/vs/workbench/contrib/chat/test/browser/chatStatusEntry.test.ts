@@ -13,7 +13,7 @@ import { ContextKeyExpression, IContextKeyService } from '../../../../../platfor
 import { MockContextKeyService } from '../../../../../platform/keybinding/test/common/mockKeybindingService.js';
 import { IMarkdownRendererService } from '../../../../../platform/markdown/browser/markdownRenderer.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../../../../platform/storage/common/storage.js';
-import { ChatEntitlement, IChatEntitlementService, IChatSentiment } from '../../../../services/chat/common/chatEntitlementService.js';
+import { ChatEntitlement, IChatEntitlementService, IChatSentiment } from '../../common/chatEntitlementService.js';
 import { IStatusbarEntry, IStatusbarEntryAccessor, IStatusbarService } from '../../../../services/statusbar/browser/statusbar.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { InEditorZenModeContext } from '../../../../common/contextkeys.js';

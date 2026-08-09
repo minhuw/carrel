@@ -33,7 +33,7 @@ import { ITelemetryService } from '../../../../../platform/telemetry/common/tele
 import { IWorkspaceContextService } from '../../../../../platform/workspace/common/workspace.js';
 import { isVirtualWorkspace } from '../../../../../platform/workspace/common/virtualWorkspace.js';
 import { IExtensionService } from '../../../../services/extensions/common/extensions.js';
-import { IChatEntitlementService } from '../../../../services/chat/common/chatEntitlementService.js';
+import { IChatEntitlementService } from '../chatEntitlementService.js';
 import { IChatDebugService } from '../chatDebugService.js';
 import { IMcpService } from '../../../mcp/common/mcpTypes.js';
 import { awaitStatsForSession } from '../chat.js';

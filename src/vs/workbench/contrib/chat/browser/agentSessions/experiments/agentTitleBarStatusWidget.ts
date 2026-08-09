@@ -42,7 +42,7 @@ import { mainWindow } from '../../../../../../base/browser/window.js';
 import { LayoutSettings } from '../../../../../services/layout/browser/layoutService.js';
 import { WindowTitle } from '../../../../../browser/parts/titlebar/windowTitle.js';
 import { ChatAIDisabledSettingId, ChatConfiguration } from '../../../common/constants.js';
-import { IChatEntitlementService } from '../../../../../services/chat/common/chatEntitlementService.js';
+import { IChatEntitlementService } from '../../../common/chatEntitlementService.js';
 import { IChatWidgetService } from '../../chat.js';
 import { ITelemetryService } from '../../../../../../platform/telemetry/common/telemetry.js';
 import { ITitleService } from '../../../../../services/title/browser/titleService.js';

@@ -301,8 +301,6 @@ export class MenuId {
 	static readonly ChatMultiDiffContext = new MenuId('ChatMultiDiffContext');
 	static readonly ChatConfirmationMenu = new MenuId('ChatConfirmationMenu');
 	static readonly ChatEditorInlineMenu = new MenuId('ChatEditorInlineGutter');
-	static readonly ChatEditorInlineExecute = new MenuId('ChatEditorInputExecute');
-	static readonly ChatEditorInlineInputSide = new MenuId('ChatEditorInputSide');
 
 	static readonly AccessibleView = new MenuId('AccessibleView');
 	static readonly MultiDiffEditorContent = new MenuId('MultiDiffEditorContent');

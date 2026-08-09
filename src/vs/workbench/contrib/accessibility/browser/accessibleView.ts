@@ -381,10 +381,7 @@ export class AccessibleView extends Disposable {
 		if (!markdown) {
 			return;
 		}
-		if (this._currentProvider?.id !== AccessibleViewProviderId.PanelChat && this._currentProvider?.id !== AccessibleViewProviderId.QuickChat) {
-			return;
-		}
-		if (this._currentProvider.options.language && this._currentProvider.options.language !== 'markdown') {
+		if (this._currentProvider?.options.language && this._currentProvider.options.language !== 'markdown') {
 			// Symbols haven't been provided and we cannot parse this language
 			return;
 		}

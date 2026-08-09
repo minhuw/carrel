@@ -67,7 +67,6 @@ import { IContextKeyService } from '../../../../platform/contextkey/common/conte
 import { IContextMenuService, IContextViewService } from '../../../../platform/contextview/browser/contextView.js';
 import { IWorkspaceTrustManagementService, IWorkspaceTrustRequestService } from '../../../../platform/workspace/common/workspaceTrust.js';
 import { IDataChannelService, NullDataChannelService } from '../../../../platform/dataChannel/common/dataChannel.js';
-import { IDefaultAccountService } from '../../../../platform/defaultAccount/common/defaultAccount.js';
 import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { TestDialogService } from '../../../../platform/dialogs/test/common/testDialogService.js';
 import { IHoverService } from '../../../../platform/hover/browser/hover.js';
@@ -549,25 +548,6 @@ export function createEditorServices(disposables: DisposableStore, options?: Cre
 		showAndFocusLastHover: () => { },
 		setupManagedHover: () => ({ dispose: () => { }, show: () => { }, hide: () => { }, update: () => { } }),
 		showManagedHover: () => { },
-	});
-	defineInstance(IDefaultAccountService, {
-		_serviceBrand: undefined,
-		onDidChangeDefaultAccount: new Emitter<null>().event,
-		onDidChangePolicyData: new Emitter<null>().event,
-		policyData: null,
-		currentDefaultAccount: null,
-		copilotTokenInfo: null,
-		onDidChangeCopilotTokenInfo: new Emitter<null>().event,
-		managedSettingsFetchStatus: null,
-		managedSettingsFetchedAt: null,
-		managedSettingsRawResponse: null,
-		getDefaultAccount: async () => null,
-		getDefaultAccountAuthenticationProvider: () => ({ id: 'test', name: 'Test', scopes: [], enterprise: false }),
-		resolveGitHubUrl: (path: string) => `https://github.com/${path}`,
-		setDefaultAccountProvider: () => { },
-		refresh: async () => null,
-		signIn: async () => null,
-		signOut: async () => { },
 	});
 
 	// User interaction service with focus simulation enabled (all elements appear focused in fixtures)

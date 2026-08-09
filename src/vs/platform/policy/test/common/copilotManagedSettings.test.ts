@@ -5,7 +5,7 @@
 
 import assert from 'assert';
 import { IStringDictionary } from '../../../../base/common/collections.js';
-import { IPolicyData } from '../../../../base/common/defaultAccount.js';
+import { IPolicyData } from '../../../../base/common/policy.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { collectManagedSettingsDefinitions, hasManagedSettingsDefinitions, managedSettingValue, projectManagedSettings, pickManagedSettings } from '../../common/copilotManagedSettings.js';
 import { PolicyDefinition } from '../../common/policy.js';

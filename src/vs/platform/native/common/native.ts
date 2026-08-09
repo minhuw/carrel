@@ -5,7 +5,7 @@
 
 import { VSBuffer } from '../../../base/common/buffer.js';
 import { Event } from '../../../base/common/event.js';
-import { URI, UriComponents } from '../../../base/common/uri.js';
+import { URI } from '../../../base/common/uri.js';
 import { MessageBoxOptions, MessageBoxReturnValue, OpenDevToolsOptions, OpenDialogOptions, OpenDialogReturnValue, SaveDialogOptions, SaveDialogReturnValue } from '../../../base/parts/sandbox/common/electronTypes.js';
 import { ISerializableCommandAction } from '../../action/common/action.js';
 import { INativeOpenDialogOptions } from '../../dialogs/common/dialogs.js';
@@ -13,7 +13,7 @@ import { createDecorator } from '../../instantiation/common/instantiation.js';
 import { IV8Profile } from '../../profiling/common/profiling.js';
 import { AuthInfo, Credentials } from '../../request/common/request.js';
 import { IPartsSplash } from '../../theme/common/themeService.js';
-import { AgentsWindowOpenSource, IColorScheme, IOpenedAuxiliaryWindow, IOpenedMainWindow, IOpenEmptyWindowOptions, IOpenWindowOptions, IPoint, IRectangle, IWindowOpenable } from '../../window/common/window.js';
+import { IColorScheme, IOpenedAuxiliaryWindow, IOpenedMainWindow, IOpenEmptyWindowOptions, IOpenWindowOptions, IPoint, IRectangle, IWindowOpenable } from '../../window/common/window.js';
 
 export interface IToastOptions {
 	readonly id: string;
@@ -39,12 +39,6 @@ export interface IToastResult {
 export type INativeZipFile =
 	| { readonly path: string; readonly contents: string }
 	| { readonly path: string; readonly source: URI; readonly size: number };
-
-export interface IOpenAgentsWindowOptions {
-	readonly folderUri?: UriComponents;
-	readonly sessionResource?: UriComponents;
-	readonly source?: AgentsWindowOpenSource;
-}
 
 export interface ICPUProperties {
 	model: string;
@@ -230,8 +224,6 @@ export interface ICommonNativeHostService {
 
 	openWindow(options?: IOpenEmptyWindowOptions): Promise<void>;
 	openWindow(toOpen: IWindowOpenable[], options?: IOpenWindowOptions): Promise<void>;
-
-	openAgentsWindow(options?: IOpenAgentsWindowOptions): Promise<void>;
 
 	/**
 	 * Registers this window's set of system-wide (OS global) keybindings with the main process,

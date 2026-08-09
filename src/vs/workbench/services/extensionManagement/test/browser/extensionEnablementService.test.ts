@@ -42,8 +42,6 @@ import { FileService } from '../../../../../platform/files/common/fileService.js
 import { IProductService } from '../../../../../platform/product/common/productService.js';
 import { AllowedExtensionsService } from '../../../../../platform/extensionManagement/common/allowedExtensionsService.js';
 import { IStringDictionary } from '../../../../../base/common/collections.js';
-import { IDefaultAccountService } from '../../../../../platform/defaultAccount/common/defaultAccount.js';
-import { IDefaultAccountAuthenticationProvider } from '../../../../../base/common/defaultAccount.js';
 
 function createStorageService(instantiationService: TestInstantiationService, disposableStore: DisposableStore): IStorageService {
 	let service = instantiationService.get(IStorageService);
@@ -90,7 +88,6 @@ export class TestExtensionEnablementService extends ExtensionEnablementService {
 			instantiationService.get(IConfigurationService),
 			extensionManagementServerService,
 			instantiationService.get(IUserDataSyncEnablementService) || instantiationService.stub(IUserDataSyncEnablementService, <Partial<IUserDataSyncEnablementService>>{ isEnabled() { return false; } }),
-			instantiationService.get(IDefaultAccountService) || instantiationService.stub(IDefaultAccountService, new class extends mock<IDefaultAccountService>() { override getDefaultAccountAuthenticationProvider(): IDefaultAccountAuthenticationProvider { return { id: 'default-auth-provider', name: 'default-auth-provider', enterprise: false }; } }),
 			instantiationService.get(IUserDataSyncAccountService) || instantiationService.stub(IUserDataSyncAccountService, UserDataSyncAccountService),
 			instantiationService.get(ILifecycleService) || instantiationService.stub(ILifecycleService, disposables.add(new TestLifecycleService())),
 			instantiationService.get(INotificationService) || instantiationService.stub(INotificationService, new TestNotificationService()),

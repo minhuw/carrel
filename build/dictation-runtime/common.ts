@@ -83,9 +83,7 @@ export const KNOWN_VSCODE_PLATFORMS: ReadonlySet<string> = new Set<VscodeBuildPl
 
 /**
  * The set of `<platform>-<arch>` targets Foundry Local ships a native runtime
- * for. Mirrors `FOUNDRY_LOCAL_SUPPORTED_PLATFORMS` in
- * `src/vs/platform/localTranscription/node/foundryLocalRuntime.ts` and the
- * `SUPPORTED_TARGETS` runtime gate — keep the three in sync.
+ * for.
  */
 export const SUPPORTED_TARGETS: ReadonlySet<string> = new Set([
 	'darwin-arm64',

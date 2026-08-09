@@ -25,7 +25,7 @@ import { ISessionFileChange } from '../../../services/sessions/common/session.js
 import { IsNewChatSessionContext } from '../../../common/contextkeys.js';
 import { SideBarVisibleContext } from '../../../../workbench/common/contextkeys.js';
 import { Menus } from '../../menus.js';
-import { ChatEntitlement, ChatEntitlementService, IChatEntitlementService } from '../../../../workbench/services/chat/common/chatEntitlementService.js';
+import { ChatEntitlement, ChatEntitlementService, IChatEntitlementService } from '../../../../workbench/contrib/chat/common/chatEntitlementService.js';
 import { getAccountTitleBarState, getAccountProfileImageUrl, getAccountTitleBarBadgeKey, resolveAccountInfo } from '../../accountTitleBarState.js';
 import { IChatDashboardService } from '../../chatDashboardService.js';
 import { MOBILE_OPEN_CHANGES_VIEW_COMMAND_ID } from './contributions/mobileChangesView.js';

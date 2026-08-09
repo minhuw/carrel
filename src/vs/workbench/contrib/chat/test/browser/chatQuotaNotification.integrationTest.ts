@@ -18,7 +18,7 @@ import { IStorageService, StorageScope, StorageTarget } from '../../../../../pla
 import { ITelemetryData, ITelemetryService } from '../../../../../platform/telemetry/common/telemetry.js';
 import { TelemetryService } from '../../../../../platform/telemetry/common/telemetryService.js';
 import { ITelemetryAppender } from '../../../../../platform/telemetry/common/telemetryUtils.js';
-import { ChatEntitlement, IChatEntitlementService, IChatSentiment, IQuotaSnapshot } from '../../../../services/chat/common/chatEntitlementService.js';
+import { ChatEntitlement, IChatEntitlementService, IChatSentiment, IQuotaSnapshot } from '../../common/chatEntitlementService.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { ChatQuotaNotificationContribution } from '../../browser/chatQuotaNotification.js';
 import { ChatInputNotificationSeverity, IChatInputNotificationService } from '../../browser/widget/input/chatInputNotificationService.js';

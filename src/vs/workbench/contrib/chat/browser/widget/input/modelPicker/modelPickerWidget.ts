@@ -29,7 +29,7 @@ import { ITelemetryService } from '../../../../../../../platform/telemetry/commo
 import { IStorageService, StorageScope, StorageTarget } from '../../../../../../../platform/storage/common/storage.js';
 import { TelemetryTrustedValue } from '../../../../../../../platform/telemetry/common/telemetryUtils.js';
 import { IModelControlEntry, ILanguageModelChatMetadataAndIdentifier, ILanguageModelsService } from '../../../../common/languageModels.js';
-import { chatRequiresSetup, IChatEntitlementService } from '../../../../../../services/chat/common/chatEntitlementService.js';
+import { chatRequiresSetup, IChatEntitlementService } from '../../../../common/chatEntitlementService.js';
 import { IModelPickerDelegate } from './modelPickerActionItem.js';
 import { CHAT_SETUP_ACTION_ID } from '../../../actions/chatActions.js';
 import { IUriIdentityService } from '../../../../../../../platform/uriIdentity/common/uriIdentity.js';

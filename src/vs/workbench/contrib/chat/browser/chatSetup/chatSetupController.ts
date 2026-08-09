@@ -24,7 +24,7 @@ import { ITelemetryService } from '../../../../../platform/telemetry/common/tele
 import { IActivityService, ProgressBadge } from '../../../../services/activity/common/activity.js';
 import { ILifecycleService } from '../../../../services/lifecycle/common/lifecycle.js';
 import { IExtensionsWorkbenchService } from '../../../extensions/common/extensions.js';
-import { ChatEntitlement, ChatEntitlementContext, ChatEntitlementRequests, isProUser } from '../../../../services/chat/common/chatEntitlementService.js';
+import { ChatEntitlement, ChatEntitlementContext, ChatEntitlementRequests, isProUser } from '../../common/chatEntitlementService.js';
 import { CHAT_OPEN_ACTION_ID } from '../actions/chatActions.js';
 import { ChatViewContainerId, ChatViewId } from '../chat.js';
 import { ChatSetupAnonymous, ChatSetupError, ChatSetupStep, ChatSetupResultValue, InstallChatEvent, InstallChatClassification, refreshTokens, maybeEnableAuthExtension } from './chatSetup.js';

@@ -21,13 +21,13 @@ import { IProductService } from '../../../../platform/product/common/productServ
 import { asText, IRequestService } from '../../../../platform/request/common/request.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../../../platform/storage/common/storage.js';
 import { ITelemetryService, TelemetryLevel } from '../../../../platform/telemetry/common/telemetry.js';
-import { AuthenticationSession, IAuthenticationService } from '../../authentication/common/authentication.js';
+import { AuthenticationSession, IAuthenticationService } from '../../../services/authentication/common/authentication.js';
 import { IOpenerService } from '../../../../platform/opener/common/opener.js';
 import { URI } from '../../../../base/common/uri.js';
 import Severity from '../../../../base/common/severity.js';
-import { IWorkbenchEnvironmentService } from '../../environment/common/environmentService.js';
+import { IWorkbenchEnvironmentService } from '../../../services/environment/common/environmentService.js';
 import { isWeb } from '../../../../base/common/platform.js';
-import { ILifecycleService } from '../../lifecycle/common/lifecycle.js';
+import { ILifecycleService } from '../../../services/lifecycle/common/lifecycle.js';
 import { Mutable } from '../../../../base/common/types.js';
 import { InstantiationType, registerSingleton } from '../../../../platform/instantiation/common/extensions.js';
 import { IObservable, observableFromEvent } from '../../../../base/common/observable.js';

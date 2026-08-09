@@ -13,7 +13,7 @@ import { ActionListItemKind, IActionListItem } from '../../../../../../../platfo
 import { IActionWidgetDropdownAction } from '../../../../../../../platform/actionWidget/browser/actionWidgetDropdown.js';
 import { IOpenerService } from '../../../../../../../platform/opener/common/opener.js';
 import { StateType } from '../../../../../../../platform/update/common/update.js';
-import { ChatEntitlement, IChatEntitlementService } from '../../../../../../services/chat/common/chatEntitlementService.js';
+import { ChatEntitlement, IChatEntitlementService } from '../../../../common/chatEntitlementService.js';
 import { getLanguageModelProviderDisplayName, IModelControlEntry, ILanguageModelChatMetadata, ILanguageModelChatMetadataAndIdentifier, ILanguageModelsService } from '../../../../common/languageModels.js';
 import { getModelHoverContent } from './modelPickerHover.js';
 import { getPriceCategoryLabel, isMultiplierPricing } from './modelPickerPresentation.js';

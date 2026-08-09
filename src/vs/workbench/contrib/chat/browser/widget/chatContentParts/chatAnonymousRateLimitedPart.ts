@@ -13,7 +13,7 @@ import { localize } from '../../../../../../nls.js';
 import { ICommandService } from '../../../../../../platform/commands/common/commands.js';
 import { ITelemetryService } from '../../../../../../platform/telemetry/common/telemetry.js';
 import { defaultButtonStyles } from '../../../../../../platform/theme/browser/defaultStyles.js';
-import { IChatEntitlementService } from '../../../../../services/chat/common/chatEntitlementService.js';
+import { IChatEntitlementService } from '../../../common/chatEntitlementService.js';
 import { IChatErrorDetailsPart, IChatRendererContent } from '../../../common/model/chatViewModel.js';
 import { IChatContentPart } from './chatContentParts.js';
 

@@ -23,7 +23,7 @@ import { localize } from '../../../../../nls.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { IChatInputPickerOptions, withChatInputPickerMotion } from '../widget/input/chatInputPickerActionItem.js';
 import { autorun } from '../../../../../base/common/observable.js';
-import { IChatEntitlementService } from '../../../../services/chat/common/chatEntitlementService.js';
+import { IChatEntitlementService } from '../../common/chatEntitlementService.js';
 import { IActionListItemHover } from '../../../../../platform/actionWidget/browser/actionList.js';
 import { getModelHoverContent } from '../widget/input/modelPicker/modelPickerHover.js';
 import { ExtensionIdentifier } from '../../../../../platform/extensions/common/extensions.js';

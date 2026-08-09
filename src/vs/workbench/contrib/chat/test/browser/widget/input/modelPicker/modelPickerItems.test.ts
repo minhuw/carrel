@@ -15,7 +15,7 @@ import { buildModelPickerItems, getControlModelsForEntitlement, getModelPickerAc
 import { filterModelsForSession } from '../../../../../browser/widget/input/chatInputModelUtils.js';
 import { ChatAgentLocation, ChatModeKind } from '../../../../../common/constants.js';
 import { ILanguageModelChatMetadata, ILanguageModelChatMetadataAndIdentifier, ILanguageModelsService, IModelControlEntry, IModelsControlManifest } from '../../../../../common/languageModels.js';
-import { ChatEntitlement, IChatEntitlementService } from '../../../../../../../services/chat/common/chatEntitlementService.js';
+import { ChatEntitlement, IChatEntitlementService } from '../../../../../common/chatEntitlementService.js';
 
 function createStubEntitlementService(opts?: { entitlement?: ChatEntitlement; isInternal?: boolean; anonymous?: boolean }): IChatEntitlementService {
 	return {

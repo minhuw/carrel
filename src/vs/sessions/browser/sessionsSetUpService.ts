@@ -12,7 +12,7 @@ import { IStorageService, StorageScope, StorageTarget } from '../../platform/sto
 import { IUserDataProfileStorageService } from '../../platform/userDataProfile/common/userDataProfileStorageService.js';
 import { IUserDataProfilesService } from '../../platform/userDataProfile/common/userDataProfile.js';
 import { ServiceCollection } from '../../platform/instantiation/common/serviceCollection.js';
-import { ChatEntitlementContext, IChatEntitlementService } from '../../workbench/services/chat/common/chatEntitlementService.js';
+import { ChatEntitlementContext, IChatEntitlementService } from '../../workbench/contrib/chat/common/chatEntitlementService.js';
 import { isWeb } from '../../base/common/platform.js';
 import { GitHubPaths, IDefaultAccountService } from '../../platform/defaultAccount/common/defaultAccount.js';
 import { IProductService } from '../../platform/product/common/productService.js';

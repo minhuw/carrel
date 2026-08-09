@@ -10,7 +10,7 @@ import { EditorPartModalVisibleContext } from '../../../../../workbench/common/c
 import { ChatContextKeys } from '../../../../../workbench/contrib/chat/common/actions/chatContextKeys.js';
 import { ISpotlightPayload, SPOTLIGHT_PRESENTATION_KIND } from '../../../../../workbench/contrib/onboarding/browser/spotlight/spotlightTypes.js';
 import { IOnboardingScenario } from '../../../../../workbench/contrib/onboarding/common/onboardingScenario.js';
-import { ChatEntitlementContextKeys } from '../../../../../workbench/services/chat/common/chatEntitlementService.js';
+import { ChatEntitlementContextKeys } from '../../../../../workbench/contrib/chat/common/chatEntitlementService.js';
 import { IsNewChatSessionContext, SessionHasWorkspaceContext, SessionWorkspacePickerVisibleContext } from '../../../../common/contextkeys.js';
 import { NEW_SESSION_ONBOARDING_SEEN_KEY } from './newSessionTour.js';
 

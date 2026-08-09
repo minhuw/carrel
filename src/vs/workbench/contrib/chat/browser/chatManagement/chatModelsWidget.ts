@@ -30,7 +30,7 @@ import { Link } from '../../../../../platform/opener/browser/link.js';
 import { SuggestEnabledInput } from '../../../codeEditor/browser/suggestEnabledInput/suggestEnabledInput.js';
 import { Delayer } from '../../../../../base/common/async.js';
 import { settingsTextInputBorder } from '../../../preferences/common/settingsEditorColorRegistry.js';
-import { IChatEntitlementService, ChatEntitlement } from '../../../../services/chat/common/chatEntitlementService.js';
+import { IChatEntitlementService, ChatEntitlement } from '../../common/chatEntitlementService.js';
 import { DropdownMenuActionViewItem } from '../../../../../base/browser/ui/dropdown/dropdownActionViewItem.js';
 import { IActionViewItemOptions } from '../../../../../base/browser/ui/actionbar/actionViewItems.js';
 import { AnchorAlignment } from '../../../../../base/browser/ui/contextview/contextview.js';

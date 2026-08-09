@@ -24,7 +24,7 @@ import { IOpenerService } from '../../../../../../platform/opener/common/opener.
 import { ChatContextKeys } from '../../../common/actions/chatContextKeys.js';
 import { CHAT_SETUP_ACTION_ID } from '../../actions/chatActions.js';
 import { IChatTip, IChatTipService } from '../../chatTipService.js';
-import { ChatEntitlement, IChatEntitlementService } from '../../../../../services/chat/common/chatEntitlementService.js';
+import { ChatEntitlement, IChatEntitlementService } from '../../../common/chatEntitlementService.js';
 
 const $ = dom.$;
 

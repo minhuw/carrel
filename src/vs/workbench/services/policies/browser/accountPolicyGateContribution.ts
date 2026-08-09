@@ -17,7 +17,6 @@ import { IStorageService, StorageScope } from '../../../../platform/storage/comm
 import { ITelemetryService } from '../../../../platform/telemetry/common/telemetry.js';
 import { IWorkbenchContribution } from '../../../common/contributions.js';
 import { DEFAULT_ACCOUNT_SIGN_IN_COMMAND } from '../../accounts/browser/defaultAccount.js';
-import { IChatEntitlementService } from '../../chat/common/chatEntitlementService.js';
 import { AccountPolicyGateState, AccountPolicyGateUnsatisfiedReason, ChatAccountPolicyGateActiveContext, IAccountPolicyGateInfo, IAccountPolicyGateService } from '../common/accountPolicyService.js';
 
 const NOTIFICATION_DISMISSED_KEY = 'accountPolicy.gateNotificationDismissed';
@@ -56,7 +55,6 @@ export class AccountPolicyGateContribution extends Disposable implements IWorkbe
 	constructor(
 		@IAccountPolicyGateService private readonly gateService: IAccountPolicyGateService,
 		@IContextKeyService contextKeyService: IContextKeyService,
-		@IChatEntitlementService private readonly chatEntitlementService: IChatEntitlementService,
 		@IDefaultAccountService private readonly defaultAccountService: IDefaultAccountService,
 		@ILogService private readonly logService: ILogService,
 		@INotificationService private readonly notificationService: INotificationService,
@@ -96,7 +94,6 @@ export class AccountPolicyGateContribution extends Disposable implements IWorkbe
 		const isRestricted = info.state === AccountPolicyGateState.Restricted
 			&& info.reason !== AccountPolicyGateUnsatisfiedReason.PolicyNotResolved;
 		this.contextKey.set(isRestricted);
-		this.chatEntitlementService.setForceHidden(isRestricted);
 		this.logService.info(`[AccountPolicyGate] apply: state=${info.state}, reason=${info.reason}, isRestricted=${isRestricted}`);
 
 		if (stateChanged) {

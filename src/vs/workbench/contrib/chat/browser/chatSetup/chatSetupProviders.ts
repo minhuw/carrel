@@ -24,7 +24,7 @@ import { IWorkbenchEnvironmentService } from '../../../../services/environment/c
 import { nullExtensionDescription } from '../../../../services/extensions/common/extensions.js';
 import { CountTokensCallback, ILanguageModelToolsService, IPreparedToolInvocation, IToolData, IToolImpl, IToolInvocation, IToolResult, ToolDataSource, ToolProgress } from '../../common/tools/languageModelToolsService.js';
 import { IChatAgentImplementation, IChatAgentRequest, IChatAgentResult, IChatAgentService } from '../../common/participants/chatAgents.js';
-import { ChatEntitlementContext, chatRequiresSetup, IChatEntitlementService } from '../../../../services/chat/common/chatEntitlementService.js';
+import { ChatEntitlementContext, chatRequiresSetup, IChatEntitlementService } from '../../common/chatEntitlementService.js';
 import { ChatModel, ChatRequestModel, IChatRequestModel, IChatRequestVariableData } from '../../common/model/chatModel.js';
 import { ChatMode } from '../../common/chatModes.js';
 import { ChatRequestAgentPart, ChatRequestToolPart } from '../../common/requestParser/chatParserTypes.js';

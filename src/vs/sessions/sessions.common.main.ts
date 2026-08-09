@@ -135,7 +135,7 @@ import '../workbench/services/editor/browser/editorPaneService.js';
 import '../workbench/services/editor/common/customEditorLabelService.js';
 import '../workbench/services/dataChannel/browser/dataChannelService.js';
 import '../workbench/services/inlineCompletions/common/inlineCompletionsUnification.js';
-import '../workbench/services/chat/common/chatEntitlementService.js';
+import '../workbench/contrib/chat/common/chatEntitlementService.js';
 import '../workbench/services/log/common/defaultLogLevels.js';
 import '../workbench/services/agentHost/common/agentHostResourceService.js';
 import '../platform/agentHost/browser/agentHostConnectionsService.js';

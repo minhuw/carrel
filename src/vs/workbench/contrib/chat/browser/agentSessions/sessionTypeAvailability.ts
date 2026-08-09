@@ -5,7 +5,7 @@
 
 import { IMarkdownString, MarkdownString } from '../../../../../base/common/htmlContent.js';
 import { localize } from '../../../../../nls.js';
-import { ChatEntitlement, IChatEntitlementService } from '../../../../services/chat/common/chatEntitlementService.js';
+import { ChatEntitlement, IChatEntitlementService } from '../../common/chatEntitlementService.js';
 import { IChatSessionsService } from '../../common/chatSessionsService.js';
 import { ILanguageModelsService } from '../../common/languageModels.js';
 

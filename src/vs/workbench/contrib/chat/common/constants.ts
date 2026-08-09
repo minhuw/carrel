@@ -11,7 +11,7 @@ import { IWorkspace, IWorkspaceContextService } from '../../../../platform/works
 import { isVirtualWorkspace } from '../../../../platform/workspace/common/virtualWorkspace.js';
 import { ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
 import { ContextKeyExpr, RawContextKey } from '../../../../platform/contextkey/common/contextkey.js';
-import { ChatEntitlementContextKeys } from '../../../services/chat/common/chatEntitlementService.js';
+import { ChatEntitlementContextKeys } from './chatEntitlementService.js';
 import { IsAuxiliaryWindowContext, IsSessionsWindowContext } from '../../../common/contextkeys.js';
 import { URI } from '../../../../base/common/uri.js';
 import { generateUuid } from '../../../../base/common/uuid.js';

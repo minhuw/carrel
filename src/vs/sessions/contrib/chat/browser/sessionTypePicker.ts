@@ -25,7 +25,7 @@ import { ITelemetryService } from '../../../../platform/telemetry/common/telemet
 import { IChatSessionsService } from '../../../../workbench/contrib/chat/common/chatSessionsService.js';
 import { ILanguageModelsService } from '../../../../workbench/contrib/chat/common/languageModels.js';
 import { getSessionTypeAvailability, getSessionTypeUnavailableDescription, getSessionTypeUnavailableHover, SessionTypeAvailability } from '../../../../workbench/contrib/chat/browser/agentSessions/sessionTypeAvailability.js';
-import { IChatEntitlementService } from '../../../../workbench/services/chat/common/chatEntitlementService.js';
+import { IChatEntitlementService } from '../../../../workbench/contrib/chat/common/chatEntitlementService.js';
 import { markOnboardingTarget } from '../../../../workbench/contrib/onboarding/browser/spotlight/onboardingTarget.js';
 import { reportNewChatPickerClosed } from './newChatPickerTelemetry.js';
 import { SessionHarnessPickerVisibleContext } from '../../../common/contextkeys.js';

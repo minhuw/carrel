@@ -11,7 +11,6 @@ import { ContextKeyExpr } from '../../../../../platform/contextkey/common/contex
 import { ILogService } from '../../../../../platform/log/common/log.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { IWorkbenchContribution } from '../../../../common/contributions.js';
-import { checkProposedApiEnabled } from '../../../../services/extensions/common/extensions.js';
 import * as extensionsRegistry from '../../../../services/extensions/common/extensionsRegistry.js';
 import { ChatViewsWelcomeExtensions, IChatViewsWelcomeContributionRegistry, IChatViewsWelcomeDescriptor } from './chatViewsWelcome.js';
 
@@ -61,8 +60,6 @@ export class ChatViewsWelcomeHandler implements IWorkbenchContribution {
 		chatViewsWelcomeExtensionPoint.setHandler((extensions, delta) => {
 			for (const extension of delta.added) {
 				for (const providerDescriptor of extension.value) {
-					checkProposedApiEnabled(extension.description, 'chatParticipantPrivate');
-
 					const when = ContextKeyExpr.deserialize(providerDescriptor.when);
 					if (!when) {
 						this.logService.error(`Could not deserialize 'when' clause for chatViewsWelcome contribution: ${providerDescriptor.when}`);

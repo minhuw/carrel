@@ -9,7 +9,6 @@ import { localize } from '../../../../../nls.js';
 
 import { IWorkbenchContribution, registerWorkbenchContribution2, WorkbenchPhase } from '../../../../common/contributions.js';
 import { IChatContextService } from './chatContextService.js';
-import { isProposedApiEnabled } from '../../../../services/extensions/common/extensions.js';
 import { ExtensionsRegistry } from '../../../../services/extensions/common/extensionsRegistry.js';
 
 interface IChatContextExtensionPoint {
@@ -58,9 +57,6 @@ export class ChatContextContribution extends Disposable implements IWorkbenchCon
 		super();
 		extensionPoint.setHandler(extensions => {
 			for (const ext of extensions) {
-				if (!isProposedApiEnabled(ext.description, 'chatContextProvider')) {
-					continue;
-				}
 				if (!Array.isArray(ext.value)) {
 					continue;
 				}

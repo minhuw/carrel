@@ -20,7 +20,7 @@ import { ExtensionIdentifier } from '../../../../platform/extensions/common/exte
 import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
 import { IStorageService } from '../../../../platform/storage/common/storage.js';
 import { ExtensionKeyedWebviewOriginStore, IWebview, IWebviewService, WebviewContentPurpose } from '../../../contrib/webview/browser/webview.js';
-import { IExtensionService, isProposedApiEnabled } from '../../../services/extensions/common/extensions.js';
+import { IExtensionService } from '../../../services/extensions/common/extensions.js';
 import { ExtensionsRegistry, IExtensionPointUser } from '../../../services/extensions/common/extensionsRegistry.js';
 import { IChatWidgetService } from './chat.js';
 
@@ -235,10 +235,6 @@ export class ChatOutputRendererService extends Disposable implements IChatOutput
 	private updateContributions(extensions: readonly IExtensionPointUser<readonly IChatOutputRendererContribution[]>[]) {
 		this._contributions.clear();
 		for (const extension of extensions) {
-			if (!isProposedApiEnabled(extension.description, 'chatOutputRenderer')) {
-				continue;
-			}
-
 			for (const contribution of extension.value) {
 				if (this._contributions.has(contribution.viewType)) {
 					extension.collector.error(`Chat output renderer with view type '${contribution.viewType}' already registered`);

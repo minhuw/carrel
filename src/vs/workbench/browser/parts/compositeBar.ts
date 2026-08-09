@@ -232,6 +232,15 @@ class CompositeBarDndCallbacks implements ICompositeDragAndDropObserverCallbacks
 	}
 }
 
+/**
+ * Carrel: composites that start unpinned (hidden from the activity/composite
+ * bar, restorable via the bar's context menu) for a calmer default chrome.
+ * Only applies to composites with no stored state; user choices always win.
+ */
+const CARREL_DEFAULT_UNPINNED_VIEW_CONTAINERS = new Set([
+	'workbench.view.debug', /* Run and Debug */
+]);
+
 export class CompositeBar extends Widget implements ICompositeBar {
 
 	private readonly _onDidChange = this._register(new Emitter<void>());
@@ -757,7 +766,7 @@ class CompositeBarModel {
 
 			return changed;
 		} else {
-			const item = this.createCompositeBarItem(id, name, order, true, true);
+			const item = this.createCompositeBarItem(id, name, order, !CARREL_DEFAULT_UNPINNED_VIEW_CONTAINERS.has(id) /* pinned */, true /* visible */);
 			if (!isUndefinedOrNull(requestedIndex)) {
 				let index = 0;
 				let rIndex = requestedIndex;

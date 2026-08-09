@@ -32,10 +32,6 @@ const FILES_TO_SKIP = [
 	// OS proxy resolver: universal app has separate x64 and arm64 packages
 	'**/node_modules/@vscode/os-proxy-resolver-darwin-*/**',
 	'**/node_modules.asar.unpacked/@vscode/os-proxy-resolver-darwin-*/**',
-	// MXC SDK ships per-arch native binaries under bin/<arch>; the package
-	// includes both arm64 and x64 trees regardless of host arch.
-	'**/node_modules/@microsoft/mxc-sdk/bin/**',
-	'**/node_modules.asar.unpacked/@microsoft/mxc-sdk/bin/**',
 ];
 
 

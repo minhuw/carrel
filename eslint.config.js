@@ -719,8 +719,6 @@ export default defineConfig(
 			'src/vs/workbench/contrib/preferences/browser/settingsTree.ts',
 			'src/vs/workbench/contrib/preferences/browser/settingsTreeModels.ts',
 			'src/vs/workbench/contrib/remote/browser/tunnelView.ts',
-			'src/vs/workbench/contrib/search/browser/AISearch/aiSearchModel.ts',
-			'src/vs/workbench/contrib/search/browser/AISearch/aiSearchModelBase.ts',
 			'src/vs/workbench/contrib/search/browser/notebookSearch/notebookSearchModel.ts',
 			'src/vs/workbench/contrib/search/browser/notebookSearch/notebookSearchModelBase.ts',
 			'src/vs/workbench/contrib/search/browser/notebookSearch/searchNotebookHelpers.ts',

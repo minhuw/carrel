@@ -22,9 +22,7 @@ use std::future::Future;
 use std::sync::{Arc, LazyLock, Mutex};
 use std::time::Duration;
 use tokio::sync::{mpsc, watch};
-use tunnels::connections::{
-	ClientRelayHandle, ForwardedPortConnection, PortConnection, RelayTunnelClient, RelayTunnelHost,
-};
+use tunnels::connections::{ForwardedPortConnection, RelayTunnelHost};
 use tunnels::contracts::{
 	Tunnel, TunnelAccessControl, TunnelEndpoint, TunnelPort, PORT_TOKEN,
 	TUNNEL_ACCESS_SCOPES_CONNECT, TUNNEL_PROTOCOL_AUTO,
@@ -380,83 +378,6 @@ impl DevTunnels {
 		self.update_tunnel_name(self.launcher_tunnel.load(), name)
 			.await
 			.map(|_| ())
-	}
-
-	/// Connects to a tunnel by name as a client, returning a raw connection
-	/// to the tunnel's agent host port. The caller is responsible for doing
-	/// the WebSocket upgrade over the returned stream.
-	///
-	/// The returned [`ClientRelayHandle`] must be kept alive for the duration
-	/// of the connection; dropping it closes the underlying SSH session.
-	pub async fn connect_to_tunnel_port(
-		&mut self,
-		name: &str,
-		port: u16,
-	) -> Result<(PortConnection, ClientRelayHandle), AnyError> {
-		let tunnel = self.get_tunnel_with_connect_scope(name).await?;
-
-		let endpoint = tunnel.endpoints.first().ok_or_else(|| {
-			DevTunnelError(format!(
-				"Tunnel '{name}' has no active endpoint (is the host running?)",
-			))
-		})?;
-
-		let connect_token = tunnel
-			.access_tokens
-			.as_ref()
-			.and_then(|t| t.get("connect"))
-			.ok_or_else(|| {
-				DevTunnelError(format!(
-					"No connect-scoped access token for tunnel '{name}'",
-				))
-			})?;
-
-		let client = RelayTunnelClient::new(self.client.clone());
-		let handle = client
-			.connect(endpoint, connect_token)
-			.await
-			.map_err(|e| wrap(e, "failed to connect to tunnel relay"))?;
-
-		let port_conn = handle
-			.connect_to_port(port)
-			.await
-			.map_err(|e| wrap(e, format!("failed to connect to port {port} on tunnel")))?;
-
-		Ok((port_conn, handle))
-	}
-
-	/// Looks up a tunnel by name with connect-scoped access token.
-	async fn get_tunnel_with_connect_scope(&self, name: &str) -> Result<Tunnel, AnyError> {
-		let existing: Vec<Tunnel> = self
-			.client
-			.list_all_tunnels(&TunnelRequestOptions {
-				labels: vec![self.tag.to_string(), name.to_string()],
-				require_all_labels: true,
-				limit: 1,
-				..Default::default()
-			})
-			.await
-			.map_err(|e| wrap(e, "failed to list tunnels"))?;
-
-		let tunnel = match existing.into_iter().next() {
-			Some(t) => t,
-			None => {
-				return Err(DevTunnelError(format!("No tunnel found with name '{name}'")).into())
-			}
-		};
-
-		let loc = TunnelLocator::try_from(&tunnel).unwrap();
-		self.client
-			.get_tunnel(
-				&loc,
-				&TunnelRequestOptions {
-					include_ports: true,
-					token_scopes: vec!["connect".to_string()],
-					..Default::default()
-				},
-			)
-			.await
-			.map_err(|e| wrap(e, "failed to lookup tunnel").into())
 	}
 
 	/// Updates the name of the existing persisted tunnel to the new name.

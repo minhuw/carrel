@@ -98,3 +98,30 @@
 	display: inline-block;
 	transform: rotate(180deg);
 }
+
+/*
+ * Carrel: panel tabs as compact rounded pills (reference design) — 22px
+ * items, dimmed inactive labels, and a background pill for the active tab
+ * instead of the stock top-border indicator.
+ */
+.monaco-workbench .part.panel > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item {
+	height: 22px;
+	margin: auto 2px;
+	padding: 0 6px;
+	border-radius: 4px;
+	font-weight: 600;
+}
+
+.monaco-workbench .part.panel > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item:not(.checked) .action-label {
+	opacity: 0.67;
+}
+
+.monaco-workbench .part.panel > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.checked {
+	background-color: var(--vscode-panelTitle-activeBackground, rgba(127, 127, 127, 0.12));
+}
+
+.monaco-workbench .part.panel > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item .active-item-indicator,
+.monaco-workbench .part.panel > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.checked:not(:focus) .active-item-indicator:before,
+.monaco-workbench .part.panel > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.checked.clicked:focus .active-item-indicator:before {
+	display: none;
+}

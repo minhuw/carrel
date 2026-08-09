@@ -9,7 +9,8 @@
 	z-index: 2550;
 	left: 50%;
 	-webkit-app-region: no-drag;
-	border-radius: var(--vscode-cornerRadius-xLarge);
+	/* Carrel: reference quick input corners are 8px, not the stock 12px xLarge */
+	border-radius: var(--vscode-cornerRadius-large);
 	box-shadow: var(--vscode-shadow-xl);
 }
 

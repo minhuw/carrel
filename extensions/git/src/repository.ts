@@ -368,17 +368,15 @@ class ProgressManager {
 		onDidChange(_ => this.updateEnablement(), null, this.disposables);
 		this.updateEnablement();
 
-		if (!workspace.isAgentSessionsWorkspace) {
-			this.repository.onDidChangeOperations(() => {
-				// Disable input box when the commit operation is running
-				this.repository.sourceControl.inputBox.enabled = !this.repository.operations.isRunning(OperationKind.Commit);
-			}, null, this.disposables);
-		}
+		this.repository.onDidChangeOperations(() => {
+			// Disable input box when the commit operation is running
+			this.repository.sourceControl.inputBox.enabled = !this.repository.operations.isRunning(OperationKind.Commit);
+		}, null, this.disposables);
 	}
 
 	private updateEnablement(): void {
 		const config = workspace.getConfiguration('git', Uri.file(this.repository.root));
-		const showProgress = config.get<boolean>('showProgress') === true && !workspace.isAgentSessionsWorkspace;
+		const showProgress = config.get<boolean>('showProgress') === true;
 
 		if (showProgress) {
 			this.enable();
@@ -955,9 +953,7 @@ export class Repository implements Disposable {
 		// don't use the parent/child relationship and it is expected for
 		// a worktree repository to be opened while the main repository
 		// is closed.
-		const parentRoot = workspace.isAgentSessionsWorkspace
-			? undefined
-			: repository.kind === 'submodule'
+		const parentRoot = repository.kind === 'submodule'
 				? repository.dotGit.superProjectPath
 				: repository.kind === 'worktree' && repository.dotGit.commonPath
 					? path.dirname(repository.dotGit.commonPath)

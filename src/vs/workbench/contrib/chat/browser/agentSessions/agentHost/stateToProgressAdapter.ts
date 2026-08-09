@@ -46,6 +46,7 @@ import { type ChatRequestSource, type IChatRequestVariableData } from '../../../
 import { ChatRequestOriginKind, type IChatRequestOrigin } from '../../../common/chatRequestOrigin.js';
 import { AgentHostCompletionReferenceKind, restoreChatTranscriptContextVariableEntry, restorePasteVariableEntryFromAttachment, toAgentHostCompletionVariableEntryFromMetadata, type IAgentFeedbackVariableEntry, type IChatRequestVariableEntry, type IElementVariableEntry } from '../../../common/attachments/chatVariableEntries.js';
 import { type IToolConfirmationMessages, type IToolData, type IPreparedToolInvocation, type IToolResult, type IToolResultInputOutputDetails, ToolDataSource, ToolInvocationPresentation } from '../../../common/tools/languageModelToolsService.js';
+import { MCP } from '../../../../mcp/common/modelContextProtocol.js';
 import { basename, isEqual } from '../../../../../../base/common/resources.js';
 import { hasKey, type Mutable } from '../../../../../../base/common/types.js';
 import { localize } from '../../../../../../nls.js';
@@ -1701,24 +1702,7 @@ function getToolInputOutputDetails(tc: ToolCallState, isError: boolean, errorStr
 }
 
 /**
- * Minimal MCP result shapes. MCP support has been removed; these keep the
- * agent-host tool-result plumbing structurally typed without depending on
- * the deleted MCP protocol types.
- */
-type McpContentBlock =
-	| { type: 'text'; text: string }
-	| { type: 'image'; data: string; mimeType: string }
-	| { type: 'audio'; data: string; mimeType: string }
-	| { type: 'resource'; resource: { uri: string; mimeType: string; blob: string } }
-	| { type: 'resource_link'; name: string; uri: string; mimeType?: string };
-
-interface McpCallToolResult {
-	content: McpContentBlock[];
-	isError?: boolean;
-}
-
-/**
- * Builds a minimal MCP `CallToolResult` from an agent-host tool call's
+ * Builds a minimal {@link MCP.CallToolResult} from an agent-host tool call's
  * content blocks so the chat MCP App webview can receive a
  * `ui/notifications/tool-result` notification with the real tool output
  * (see {@link chatMcpAppModel}). Agent-host tool completions only carry our
@@ -1731,11 +1715,11 @@ interface McpCallToolResult {
  *    `data:` URI so MCP's resource shape is honored
  *  - `Resource` (content ref) → `ResourceLink` to the referenced URI
  */
-function toMcpCallToolResult(tc: ToolCallState, isError: boolean, connectionAuthority: string): McpCallToolResult | undefined {
+function toMcpCallToolResult(tc: ToolCallState, isError: boolean, connectionAuthority: string): MCP.CallToolResult | undefined {
 	if (tc.status !== ToolCallStatus.Completed && tc.status !== ToolCallStatus.Running) {
 		return undefined;
 	}
-	const content: McpContentBlock[] = [];
+	const content: MCP.ContentBlock[] = [];
 	for (const block of tc.content ?? []) {
 		const mcpBlock = toMcpContentBlock(block, connectionAuthority);
 		if (mcpBlock) {
@@ -1748,7 +1732,7 @@ function toMcpCallToolResult(tc: ToolCallState, isError: boolean, connectionAuth
 	return { content, isError: isError || undefined };
 }
 
-function toMcpContentBlock(block: ToolResultContent, connectionAuthority: string): McpContentBlock | undefined {
+function toMcpContentBlock(block: ToolResultContent, connectionAuthority: string): MCP.ContentBlock | undefined {
 	switch (block.type) {
 		case ToolResultContentType.Text:
 			return { type: 'text', text: block.text };

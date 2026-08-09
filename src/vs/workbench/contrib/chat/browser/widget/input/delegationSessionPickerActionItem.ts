@@ -20,15 +20,14 @@ import { IStorageService } from '../../../../../../platform/storage/common/stora
 import { ITelemetryService } from '../../../../../../platform/telemetry/common/telemetry.js';
 import { IWorkspaceContextService } from '../../../../../../platform/workspace/common/workspace.js';
 import { IAgentHostEnablementService } from '../../../../../../platform/agentHost/common/agentHostEnablementService.js';
-import { IChatEntitlementService } from '../../../../../services/chat/common/chatEntitlementService.js';
-import { IAgentSdkSetupService } from '../../../../../services/agentHost/browser/agentSdkSetupService.js';
-import { ICodexAccountService } from '../../../../../services/agentHost/browser/codexAccountService.js';
+import { IChatEntitlementService } from '../../../common/chatEntitlementService.js';
 import { IChatSessionsService } from '../../../common/chatSessionsService.js';
 import { ILanguageModelsService } from '../../../common/languageModels.js';
 import { ACTION_ID_NEW_CHAT } from '../../actions/chatActions.js';
 import { AgentSessionProviders, AgentSessionTarget, getAgentCanContinueIn, getAgentSessionProvider, isAgentHostTarget, isFirstPartyAgentSessionProvider } from '../../agentSessions/agentSessions.js';
 import { ISessionTypePickerDelegate } from '../../chat.js';
 import { IChatInputPickerOptions } from './chatInputPickerActionItem.js';
+import { IChatInputNotificationService } from './chatInputNotificationService.js';
 import { ISessionTypeItem, SessionTypePickerActionItem } from './sessionTargetPickerActionItem.js';
 import { IGitService } from '../../../../git/common/gitService.js';
 
@@ -56,11 +55,10 @@ export class DelegationSessionPickerActionItem extends SessionTypePickerActionIt
 		@IStorageService storageService: IStorageService,
 		@IWorkspaceContextService workspaceContextService: IWorkspaceContextService,
 		@IAgentHostEnablementService agentHostEnablementService: IAgentHostEnablementService,
-		@IAgentSdkSetupService agentSdkSetupService: IAgentSdkSetupService,
-		@ICodexAccountService codexAccountService: ICodexAccountService,
+		@IChatInputNotificationService chatInputNotificationService: IChatInputNotificationService,
 		@IGitService private readonly gitService: IGitService,
 	) {
-		super(action, chatSessionPosition, delegate, pickerOptions, actionWidgetService, keybindingService, contextKeyService, chatSessionsService, commandService, openerService, telemetryService, chatEntitlementService, languageModelsService, configurationService, storageService, workspaceContextService, agentHostEnablementService, agentSdkSetupService, codexAccountService);
+		super(action, chatSessionPosition, delegate, pickerOptions, actionWidgetService, keybindingService, contextKeyService, chatSessionsService, commandService, openerService, telemetryService, chatEntitlementService, languageModelsService, configurationService, storageService, workspaceContextService, agentHostEnablementService, chatInputNotificationService);
 	}
 
 	protected override _run(sessionTypeItem: ISessionTypeItem): void {

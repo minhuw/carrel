@@ -20,7 +20,6 @@ import { IProductService } from '../../../../../platform/product/common/productS
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { IWorkbenchContribution } from '../../../../common/contributions.js';
 import { Extensions, IExtensionFeaturesRegistry, IExtensionFeatureTableRenderer, IRenderedData, IRowData, ITableData } from '../../../../services/extensionManagement/common/extensionFeatures.js';
-import { isProposedApiEnabled } from '../../../../services/extensions/common/extensions.js';
 import * as extensionsRegistry from '../../../../services/extensions/common/extensionsRegistry.js';
 import { ILanguageModelToolsService, IToolData, IToolSet, ToolDataSource, ToolSet } from './languageModelToolsService.js';
 import { toolsParametersSchemaSchemaId } from './languageModelToolsParametersSchema.js';
@@ -239,16 +238,16 @@ export class LanguageModelToolsExtensionPointHandler implements IWorkbenchContri
 						continue;
 					}
 
-					if ((rawTool.name.startsWith('copilot_') || rawTool.name.startsWith('vscode_')) && !isProposedApiEnabled(extension.description, 'chatParticipantPrivate')) {
+					if (rawTool.name.startsWith('copilot_') || rawTool.name.startsWith('vscode_')) {
 						extension.collector.error(`Extension '${extension.description.identifier.value}' CANNOT register tool with name starting with "vscode_" or "copilot_"`);
 						continue;
 					}
 
-					if (rawTool.tags?.some(tag => tag.startsWith('copilot_') || tag.startsWith('vscode_')) && !isProposedApiEnabled(extension.description, 'chatParticipantPrivate')) {
+					if (rawTool.tags?.some(tag => tag.startsWith('copilot_') || tag.startsWith('vscode_'))) {
 						extension.collector.error(`Extension '${extension.description.identifier.value}' CANNOT register tool with tags starting with "vscode_" or "copilot_"`);
 					}
 
-					if (rawTool.legacyToolReferenceFullNames && !isProposedApiEnabled(extension.description, 'chatParticipantPrivate')) {
+					if (rawTool.legacyToolReferenceFullNames) {
 						extension.collector.error(`Extension '${extension.description.identifier.value}' CANNOT use 'legacyToolReferenceFullNames' without the 'chatParticipantPrivate' API proposal enabled`);
 						continue;
 					}
@@ -270,7 +269,7 @@ export class LanguageModelToolsExtensionPointHandler implements IWorkbenchContri
 					// If OSS and the product.json is not set up, fall back to checking api proposal
 					const isBuiltinTool = productService.defaultChatAgent?.chatExtensionId ?
 						ExtensionIdentifier.equals(extension.description.identifier, productService.defaultChatAgent.chatExtensionId) :
-						isProposedApiEnabled(extension.description, 'chatParticipantPrivate');
+						false;
 
 					const source: ToolDataSource = isBuiltinTool
 						? ToolDataSource.Internal
@@ -332,14 +331,9 @@ export class LanguageModelToolsExtensionPointHandler implements IWorkbenchContri
 
 			for (const extension of delta.added) {
 
-				if (!isProposedApiEnabled(extension.description, 'contribLanguageModelToolSets')) {
-					extension.collector.error(`Extension '${extension.description.identifier.value}' CANNOT register language model tools because the 'contribLanguageModelToolSets' API proposal is not enabled.`);
-					continue;
-				}
-
 				const isBuiltinTool = productService.defaultChatAgent?.chatExtensionId ?
 					ExtensionIdentifier.equals(extension.description.identifier, productService.defaultChatAgent.chatExtensionId) :
-					isProposedApiEnabled(extension.description, 'chatParticipantPrivate');
+					false;
 
 				const source: ToolDataSource = isBuiltinTool
 					? ToolDataSource.Internal
@@ -353,7 +347,7 @@ export class LanguageModelToolsExtensionPointHandler implements IWorkbenchContri
 						continue;
 					}
 
-					if (toolSet.legacyFullNames && !isProposedApiEnabled(extension.description, 'contribLanguageModelToolSets')) {
+					if (toolSet.legacyFullNames) {
 						extension.collector.error(`Tool set '${toolSet.name}' CANNOT use 'legacyFullNames' without the 'contribLanguageModelToolSets' API proposal enabled`);
 						continue;
 					}

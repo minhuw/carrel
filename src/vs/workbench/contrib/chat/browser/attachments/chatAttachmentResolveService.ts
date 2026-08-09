@@ -19,7 +19,6 @@ import { MarkerSeverity } from '../../../../../platform/markers/common/markers.j
 import { isUntitledResourceEditorInput } from '../../../../common/editor.js';
 import { EditorInput } from '../../../../common/editor/editorInput.js';
 import { IEditorService } from '../../../../services/editor/common/editorService.js';
-import { IExtensionService, isProposedApiEnabled } from '../../../../services/extensions/common/extensions.js';
 import { UntitledTextEditorInput } from '../../../../services/untitled/common/untitledTextEditorInput.js';
 import { SCMHistoryItemTransferData } from '../../../scm/browser/scmHistoryViewPane.js';
 import { CHAT_ATTACHABLE_IMAGE_MIME_TYPES, getAttachableImageExtension } from '../../common/model/chatModel.js';
@@ -54,7 +53,6 @@ export class ChatAttachmentResolveService implements IChatAttachmentResolveServi
 	constructor(
 		@IFileService private fileService: IFileService,
 		@IEditorService private editorService: IEditorService,
-		@IExtensionService private extensionService: IExtensionService,
 		@IDialogService private dialogService: IDialogService,
 		@IBrowserViewWorkbenchService private browserViewService: IBrowserViewWorkbenchService,
 	) { }
@@ -89,7 +87,7 @@ export class ChatAttachmentResolveService implements IChatAttachmentResolveServi
 
 		const imageContext = await this.resolveImageEditorAttachContext(editor.resource);
 		if (imageContext) {
-			return this.extensionService.extensions.some(ext => isProposedApiEnabled(ext, 'chatReferenceBinaryData')) ? imageContext : undefined;
+			return imageContext;
 		}
 
 		return await this.resolveResourceAttachContext(editor.resource, stat.isDirectory);

@@ -4,7 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 .monaco-workbench.vs .breadcrumbs-control {
-	border-bottom: 1px solid var(--vscode-editorWidget-border);
+	/* Carrel: the reference design renders no separator here (keeps the
+	   breadcrumbs row at 22px instead of 23px). */
+	border-bottom: none;
 }
 
 .monaco-workbench .part.editor > .content .editor-group-container .breadcrumbs-control.hidden {

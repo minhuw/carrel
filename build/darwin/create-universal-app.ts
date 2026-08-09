@@ -64,12 +64,6 @@ async function main(buildDir?: string) {
 		}
 	}
 
-	for (const base of nodeModulesBases) {
-		for (const mxcArch of ['x64', 'arm64']) {
-			crossCopyPlatformDir(x64AppPath, arm64AppPath, path.join(base, '@microsoft', 'mxc-sdk', 'bin', mxcArch));
-		}
-	}
-
 	const filesToSkip = [
 		'**/CodeResources',
 		'**/Credits.rtf',
@@ -82,10 +76,6 @@ async function main(buildDir?: string) {
 		'**/node_modules/@vscode/ripgrep-universal/bin/darwin-arm64/**',
 		'**/node_modules.asar.unpacked/@vscode/ripgrep-universal/bin/darwin-x64/**',
 		'**/node_modules.asar.unpacked/@vscode/ripgrep-universal/bin/darwin-arm64/**',
-		// @microsoft/mxc-sdk ships per-arch native binaries under bin/<arch>;
-		// the package includes both arm64 and x64 trees regardless of host arch.
-		'**/node_modules/@microsoft/mxc-sdk/bin/**',
-		'**/node_modules.asar.unpacked/@microsoft/mxc-sdk/bin/**',
 	];
 
 	await makeUniversalApp({
@@ -101,8 +91,8 @@ async function main(buildDir?: string) {
 		// them as arch-unique. Paths here are ASAR-internal (top level, no `node_modules`
 		// prefix). Over-covering is harmless: the allowlist is only consulted for files
 		// that are actually unique to one arch.
-		singleArchFiles: '{**/@vscode/ripgrep-universal/bin/darwin-*,**/@vscode/ripgrep-universal/bin/darwin-*/**,**/@vscode/os-proxy-resolver-darwin-*,**/@vscode/os-proxy-resolver-darwin-*/**,**/@microsoft/mxc-sdk/bin/*,**/@microsoft/mxc-sdk/bin/*/**}',
-		x64ArchFiles: '{*/kerberos.node,**/extensions/microsoft-authentication/dist/libmsalruntime.dylib,**/extensions/microsoft-authentication/dist/msal-node-runtime.node,**/node_modules/@vscode/ripgrep-universal/bin/darwin-*/*,**/node_modules.asar.unpacked/@vscode/ripgrep-universal/bin/darwin-*/*,**/node_modules/@vscode/os-proxy-resolver-darwin-*/**,**/node_modules.asar.unpacked/@vscode/os-proxy-resolver-darwin-*/**,**/node_modules/@microsoft/mxc-sdk/bin/**,**/node_modules.asar.unpacked/@microsoft/mxc-sdk/bin/**}',
+		singleArchFiles: '{**/@vscode/ripgrep-universal/bin/darwin-*,**/@vscode/ripgrep-universal/bin/darwin-*/**,**/@vscode/os-proxy-resolver-darwin-*,**/@vscode/os-proxy-resolver-darwin-*/**}',
+		x64ArchFiles: '{*/kerberos.node,**/extensions/microsoft-authentication/dist/libmsalruntime.dylib,**/extensions/microsoft-authentication/dist/msal-node-runtime.node,**/node_modules/@vscode/ripgrep-universal/bin/darwin-*/*,**/node_modules.asar.unpacked/@vscode/ripgrep-universal/bin/darwin-*/*,**/node_modules/@vscode/os-proxy-resolver-darwin-*/**,**/node_modules.asar.unpacked/@vscode/os-proxy-resolver-darwin-*/**}',
 		filesToSkipComparison: (file: string) => {
 			for (const expected of filesToSkip) {
 				if (minimatch(file, expected)) {

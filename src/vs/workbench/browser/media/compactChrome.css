@@ -1,0 +1,52 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+/*
+ * Carrel: compact chrome ("no-titlebar") layout.
+ *
+ * Active when the layout applies the `compact-chrome` class to the workbench
+ * container (macOS desktop with `window.titleBarStyle: custom` and
+ * `workbench.compactChrome` enabled). The titlebar part is removed from the
+ * layout grid and the native macOS traffic lights overlay the top of the
+ * window, so the topmost strips are padded to keep content clear of them.
+ */
+
+.monaco-workbench.compact-chrome {
+	--carrel-traffic-lights-offset: 35px;
+}
+
+/* Push part content below the traffic lights */
+.monaco-workbench.compact-chrome .part.activitybar,
+.monaco-workbench.compact-chrome .part.sidebar,
+.monaco-workbench.compact-chrome .part.panel,
+.monaco-workbench.compact-chrome .part.auxiliarybar {
+	padding-top: var(--carrel-traffic-lights-offset);
+}
+
+/* In fullscreen the traffic lights are hidden by macOS: reclaim the inset */
+.monaco-workbench.compact-chrome.fullscreen .part.activitybar,
+.monaco-workbench.compact-chrome.fullscreen .part.sidebar,
+.monaco-workbench.compact-chrome.fullscreen .part.panel,
+.monaco-workbench.compact-chrome.fullscreen .part.auxiliarybar {
+	padding-top: 0;
+}
+
+/*
+ * Keep the reclaimed top strip draggable, mirroring how the titlebar part
+ * declares its drag region: mark the part boxes as drag regions and exempt
+ * their children so only the top padding strip (part box minus content)
+ * remains a drag handle.
+ */
+.monaco-workbench.compact-chrome:not(.fullscreen) .part.activitybar,
+.monaco-workbench.compact-chrome:not(.fullscreen) .part.sidebar,
+.monaco-workbench.compact-chrome:not(.fullscreen) .part.auxiliarybar {
+	-webkit-app-region: drag;
+}
+
+.monaco-workbench.compact-chrome .part.activitybar > *,
+.monaco-workbench.compact-chrome .part.sidebar > *,
+.monaco-workbench.compact-chrome .part.auxiliarybar > * {
+	-webkit-app-region: no-drag;
+}

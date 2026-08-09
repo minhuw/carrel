@@ -93,6 +93,12 @@ export interface IPaneCompositeBarOptions {
 	readonly activityHoverOptions: IActivityHoverOptions;
 	readonly fillExtraContextMenuActions: (actions: IAction[], e?: MouseEvent | GestureEvent) => void;
 	readonly colors: (theme: IColorTheme) => ICompositeBarColors;
+
+	/**
+	 * Carrel: show an always-visible chevron-down switcher listing all view
+	 * containers with pin toggles at the end of the bar.
+	 */
+	readonly showAllCompositesSwitcher?: boolean;
 }
 
 export class PaneCompositeBar extends Disposable {
@@ -160,6 +166,7 @@ export class PaneCompositeBar extends Disposable {
 			dndHandler: this.dndHandler,
 			compositeSize: this.options.compositeSize,
 			overflowActionSize: this.options.overflowActionSize,
+			showAllCompositesSwitcher: this.options.showAllCompositesSwitcher,
 			colors: theme => this.options.colors(theme),
 		}));
 	}

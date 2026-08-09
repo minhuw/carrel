@@ -17,7 +17,6 @@ import { HiddenItemStrategy, MenuWorkbenchToolBar } from '../../../../platform/a
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../../../platform/storage/common/storage.js';
 import { DomScrollableElement } from '../../../../base/browser/ui/scrollbar/scrollableElement.js';
-import { IMcpService } from '../../../../workbench/contrib/mcp/common/mcpTypes.js';
 import { IAICustomizationItemsModel } from '../../../../workbench/contrib/chat/browser/aiCustomization/aiCustomizationItemsModel.js';
 import { ICustomizationHarnessService } from '../../../../workbench/contrib/chat/common/customizationHarnessService.js';
 import { CUSTOMIZATION_ITEMS } from './customizationsToolbar.contribution.js';
@@ -65,7 +64,6 @@ export class AICustomizationShortcutsWidget extends Disposable {
 		container: HTMLElement,
 		options: IAICustomizationShortcutsWidgetOptions | undefined,
 		@IInstantiationService private readonly instantiationService: IInstantiationService,
-		@IMcpService private readonly mcpService: IMcpService,
 		@IAICustomizationItemsModel private readonly itemsModel: IAICustomizationItemsModel,
 		@ICustomizationHarnessService private readonly harnessService: ICustomizationHarnessService,
 		@IStorageService private readonly storageService: IStorageService,
@@ -115,8 +113,6 @@ export class AICustomizationShortcutsWidget extends Disposable {
 				}
 				if (config.modelSection) {
 					total += this.itemsModel.getCount(config.modelSection).read(reader);
-				} else if (config.isMcp) {
-					total += this.mcpService.servers.read(reader).length;
 				} else if (config.isPlugins) {
 					total += this.itemsModel.getPluginCount().read(reader);
 				}

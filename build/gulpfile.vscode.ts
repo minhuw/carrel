@@ -30,7 +30,6 @@ import { compileNonNativeExtensionsBuildTask, compileNativeExtensionsBuildTask, 
 import { copyCodiconsTask } from './lib/compilation.ts';
 import { getMxcExcludeFilter, getRipgrepExcludeFilter } from './lib/dependencies.ts';
 import { ensureOSProxyResolverPlatformPackage, getOSProxyResolverExcludeFilter, getOSProxyResolverPlatformFiles } from './lib/osProxyResolver.ts';
-import { readAgentSdkResults } from './agent-sdk/common.ts';
 import { readDictationRuntimeResults } from './dictation-runtime/common.ts';
 import { useEsbuildTranspile } from './buildConfig.ts';
 import { promisify } from 'util';
@@ -312,13 +311,6 @@ function packageTask(platform: string, arch: string, sourceFolderName: string, d
 				json.date = readISODate(out);
 				json.checksums = checksums;
 				json.version = version;
-				// Stamp agentSdks from the per-platform results file produced
-				// by `build/agent-sdk/produce.ts` (an earlier pipeline step).
-				// Local dev: file absent → empty → not stamped.
-				const agentSdks = readAgentSdkResults();
-				if (Object.keys(agentSdks).length > 0) {
-					json.agentSdks = agentSdks;
-				}
 				// Stamp dictationRuntime from the per-platform results file
 				// produced by `build/dictation-runtime/produce.ts`. Local dev /
 				// unsupported target: file absent → undefined → not stamped.

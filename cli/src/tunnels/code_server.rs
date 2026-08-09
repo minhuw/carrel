@@ -74,14 +74,6 @@ pub struct CodeServerArgs {
 	pub without_connection_token: bool,
 	// reconnection
 	pub reconnection_grace_time: Option<u32>,
-	// agent-host bridge: tells the spawned VS Code server where the
-	// canonical agent host is listening so it can register the
-	// `agentHostProxy` IPC channel and let renderers reach the agent
-	// host over the remote-agent connection. The server does NOT spawn
-	// an agent host of its own when these are set.
-	pub agent_host_bridge_host: Option<String>,
-	pub agent_host_bridge_port: Option<u16>,
-	pub agent_host_bridge_connection_token: Option<String>,
 }
 
 impl CodeServerArgs {
@@ -166,15 +158,6 @@ impl CodeServerArgs {
 		}
 		if self.start_server {
 			args.push(String::from("--start-server"));
-		}
-		if let Some(port) = self.agent_host_bridge_port {
-			args.push(format!("--agent-host-bridge-port={port}"));
-			if let Some(host) = &self.agent_host_bridge_host {
-				args.push(format!("--agent-host-bridge-host={host}"));
-			}
-			if let Some(token) = &self.agent_host_bridge_connection_token {
-				args.push(format!("--agent-host-bridge-connection-token={token}"));
-			}
 		}
 		args
 	}
@@ -874,10 +857,8 @@ pub fn get_tunnel_web_url(tunnel_name: &str) -> Option<url::Url> {
 	Some(addr)
 }
 
-/// Prints the tunnel's ready banner. `show_editor_link` must be `false` for a
-/// tunnel that does not serve the control port (`--agent-host-only`): the
-/// editor URL would 404, since nothing is listening behind it.
-pub fn print_listening(log: &log::Logger, tunnel_name: &str, show_editor_link: bool) {
+/// Prints the tunnel's ready banner.
+pub fn print_listening(log: &log::Logger, tunnel_name: &str) {
 	use crate::commands::output;
 	use console::style;
 
@@ -903,14 +884,12 @@ pub fn print_listening(log: &log::Logger, tunnel_name: &str, show_editor_link: b
 	);
 	println!();
 	output::print_banner_line("Tunnel", tunnel_name);
-	if show_editor_link {
-		println!(
-			"  {}  {}  {}",
-			arrow,
-			style("Open:").bold(),
-			style(&addr).cyan(),
-		);
-	}
+	println!(
+		"  {}  {}  {}",
+		arrow,
+		style("Open:").bold(),
+		style(&addr).cyan(),
+	);
 	output::print_banner_footer();
 }
 

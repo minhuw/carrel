@@ -185,10 +185,6 @@ pub enum Commands {
 	/// Runs the control server on process stdin/stdout
 	#[clap(hide = true)]
 	CommandShell(CommandShellArgs),
-
-	/// Manage agent host sessions.
-	#[clap(name = "agent")]
-	Agent(Box<AgentArgs>),
 }
 
 #[derive(Args, Debug, Clone)]
@@ -232,228 +228,6 @@ pub struct ServeWebArgs {
 	/// Use a specific commit SHA for the client.
 	#[clap(long)]
 	pub commit_id: Option<String>,
-}
-
-#[derive(Args, Debug, Clone, Default)]
-pub struct AgentHostArgs {
-	/// Host the agent host should bind on. Defaults to 'localhost'. Pass
-	/// `0.0.0.0` to expose the agent host on all interfaces (paired with
-	/// a connection token unless `--without-connection-token` is set).
-	#[clap(long)]
-	pub host: Option<String>,
-	/// Port the agent host should bind on. If 0 (the default) the OS
-	/// picks a free ephemeral port; the chosen port is recorded in the
-	/// shared agent-host endpoint registry.
-	#[clap(long, default_value_t = 0)]
-	pub port: u16,
-	/// A secret that must be included with all requests.
-	#[clap(long)]
-	pub connection_token: Option<String>,
-	/// A file containing a secret that must be included with all requests.
-	#[clap(long)]
-	pub connection_token_file: Option<String>,
-	/// Run without a connection token. Only use this if the connection is secured by other means.
-	#[clap(long)]
-	pub without_connection_token: bool,
-	/// Specifies the directory that server data is kept in.
-	#[clap(long)]
-	pub server_data_dir: Option<String>,
-
-	/// Overrides the resolved user data directory used to home the local
-	/// agent-host endpoint registry
-	/// (`<user-data-dir>/agent-host/local-endpoint/entries/`, the directory of
-	/// per-instance entry files editor windows also publish to). Defaults to
-	/// the platform user data directory (honoring `VSCODE_PORTABLE` /
-	/// `VSCODE_APPDATA` when set), matching the editor's own resolution rules.
-	#[clap(long)]
-	pub user_data_dir: Option<String>,
-
-	/// Stop any agent host already running on this machine and start a
-	/// fresh one. Without this flag, the command reuses an existing live
-	/// supervisor when its configuration is compatible, and errors out
-	/// when the requested `--host` / `--port` / `--connection-token`
-	/// differ from what's already running.
-	#[clap(long)]
-	pub replace: bool,
-
-	/// Always start a brand new standalone supervisor, even if one is
-	/// already registered and would normally be reused. Unlike
-	/// `--replace`, this never kills or removes any existing registry
-	/// entry (editor or standalone) — the new supervisor simply
-	/// publishes its own additional entry alongside whatever is already
-	/// there. Useful for remote scenarios (e.g. "Start New Dedicated
-	/// Agent Host") that must guarantee a fresh, independent instance
-	/// regardless of what else is running.
-	#[clap(long)]
-	pub new_instance: bool,
-
-	/// Run a newly started agent host supervisor in the foreground instead
-	/// of detaching it, keeping its logs attached to this terminal and
-	/// stopping it on Ctrl-C. Useful for debugging. An existing compatible
-	/// supervisor is still reused, so combine this with `--replace` or
-	/// `--new-instance` to guarantee a supervisor is actually started here.
-	#[clap(long)]
-	pub foreground: bool,
-
-	/// Expose the agent host over a dev tunnel.
-	#[clap(long)]
-	pub tunnel: bool,
-	/// Sets the machine name for the tunnel.
-	#[clap(long)]
-	pub name: Option<String>,
-	/// Randomly name the machine for the tunnel.
-	#[clap(long)]
-	pub random_name: bool,
-
-	/// Automatically terminate this supervisor once no client has been
-	/// connected for this many seconds. The idle timer starts once the
-	/// supervisor is ready, is cancelled/paused for as long as at least
-	/// one client is connected, and restarts from the full duration each
-	/// time the last client disconnects. Unset (the default) means
-	/// unlimited: a manually started local host never self-terminates.
-	#[clap(long)]
-	pub idle_timeout: Option<u64>,
-
-	/// Optional details to connect to an existing tunnel.
-	#[clap(flatten, next_help_heading = Some("ADVANCED TUNNEL OPTIONS"))]
-	pub existing_tunnel: ExistingTunnelArgs,
-}
-
-#[derive(Args, Debug, Clone)]
-pub struct AgentArgs {
-	#[clap(subcommand)]
-	pub subcommand: Option<AgentSubcommand>,
-
-	/// Agent host arguments used when no subcommand is given.
-	#[clap(flatten)]
-	pub host_args: AgentHostArgs,
-}
-
-#[derive(Subcommand, Debug, Clone)]
-pub enum AgentSubcommand {
-	/// Start a local agent host server.
-	Host(AgentHostArgs),
-
-	/// List active sessions on a running agent host.
-	Ps(AgentPsArgs),
-
-	/// Cancel the active turn of a session.
-	Stop(AgentStopArgs),
-
-	/// Forcefully kill the running agent host process tree.
-	Kill(AgentKillArgs),
-
-	/// Stream live session events.
-	Logs(AgentLogsArgs),
-
-	/// Print every live agent host endpoint as a single JSON document.
-	/// Machine-readable: intended for consumption over an already
-	/// authenticated transport (e.g. SSH), since the output includes each
-	/// endpoint's connection token.
-	Endpoints(AgentEndpointsArgs),
-
-	/// Relay stdin/stdout to a single live agent host endpoint's raw
-	/// socket/pipe or TCP connection, with no WebSocket interpretation and
-	/// no banner output. Intended to be used as an SSH `ProxyCommand`-style
-	/// bridge to reach `editor`-owned (socket/pipe) endpoints remotely.
-	#[clap(hide = true)]
-	Relay(AgentRelayArgs),
-}
-
-#[derive(Args, Debug, Clone)]
-pub struct AgentEndpointsArgs {
-	/// Overrides the resolved user data directory used to locate the
-	/// shared agent host registry. Defaults to the platform user data
-	/// directory, matching every other `code agent` subcommand.
-	#[clap(long)]
-	pub user_data_dir: Option<String>,
-}
-
-#[derive(Args, Debug, Clone)]
-pub struct AgentRelayArgs {
-	/// The `instanceId` of the live registry endpoint to relay to, as
-	/// shown by `code agent endpoints` / `code agent ps`.
-	pub instance_id: String,
-
-	/// Overrides the resolved user data directory used to locate the
-	/// shared agent host registry.
-	#[clap(long)]
-	pub user_data_dir: Option<String>,
-}
-
-/// Discovery/connection target shared by every agent-host command that
-/// can either auto-discover a local instance or target one explicitly:
-/// `code agent ps|stop|logs`. `--user-data-dir` scopes automatic
-/// discovery to a specific registry (see
-/// [`crate::commands::agent_discovery::discover_live_endpoints`]);
-/// `--address`/`--tunnel` bypass discovery entirely and connect to
-/// exactly one explicit target (see
-/// [`crate::commands::agent::connect_explicit`]). Passing neither
-/// `--address` nor `--tunnel` means "discover automatically", not
-/// "connect nowhere" — every consumer of this struct must branch on that
-/// itself.
-#[derive(Args, Debug, Clone)]
-pub struct AgentDiscoveryArgs {
-	/// Directory containing the shared agent host registry used for automatic discovery.
-	#[clap(long)]
-	pub user_data_dir: Option<String>,
-
-	/// WebSocket address of a running agent host (e.g. ws://127.0.0.1:1234?tkn=secret).
-	/// If omitted, the CLI discovers a locally running agent host automatically.
-	#[clap(long)]
-	pub address: Option<String>,
-
-	/// Connect via a named dev tunnel instead of the local address.
-	#[clap(long)]
-	pub tunnel: Option<String>,
-}
-
-#[derive(Args, Debug, Clone)]
-pub struct AgentPsArgs {
-	/// Discovery/connection target; see [`AgentDiscoveryArgs`].
-	#[clap(flatten)]
-	pub discovery: AgentDiscoveryArgs,
-
-	/// Output results as JSON instead of a human-readable table.
-	#[clap(long)]
-	pub json: bool,
-
-	/// Show all sessions, including idle and archived ones.
-	#[clap(long, short)]
-	pub all: bool,
-}
-
-#[derive(Args, Debug, Clone)]
-pub struct AgentStopArgs {
-	/// Session URI to cancel the active turn of (e.g. copilot:/<uuid>).
-	pub session: String,
-
-	/// Discovery/connection target; see [`AgentDiscoveryArgs`].
-	#[clap(flatten)]
-	pub discovery: AgentDiscoveryArgs,
-}
-
-#[derive(Args, Debug, Clone)]
-pub struct AgentLogsArgs {
-	/// Session URI to stream events for (e.g. copilot:/<uuid>).
-	pub session: String,
-
-	/// Discovery/connection target; see [`AgentDiscoveryArgs`].
-	#[clap(flatten)]
-	pub discovery: AgentDiscoveryArgs,
-}
-
-#[derive(Args, Debug, Clone)]
-pub struct AgentKillArgs {
-	/// Directory containing the shared agent host registry used for automatic discovery.
-	#[clap(long)]
-	pub user_data_dir: Option<String>,
-
-	/// Instance ID of the standalone agent host to kill, as shown when
-	/// multiple are running. Required to select non-interactively when
-	/// more than one live standalone agent host is registered.
-	#[clap(long)]
-	pub instance_id: Option<String>,
 }
 
 #[derive(Args, Debug, Clone)]
@@ -708,14 +482,6 @@ pub struct DesktopCodeOptions {
 	pub use_version: Option<String>,
 }
 
-/// Argument specifying the output format.
-#[derive(Args, Debug, Clone)]
-pub struct OutputFormatOptions {
-	/// Set the data output formats.
-	#[clap(value_enum, long, value_name = "format", default_value_t = OutputFormat::Text)]
-	pub format: OutputFormat,
-}
-
 impl DesktopCodeOptions {
 	pub fn add_code_args(&self, target: &mut Vec<String>) {
 		if let Some(extensions_dir) = &self.extensions_dir {
@@ -852,12 +618,6 @@ impl fmt::Display for SyncState {
 	}
 }
 
-#[derive(ValueEnum, Clone, Copy, Debug)]
-pub enum OutputFormat {
-	Json,
-	Text,
-}
-
 #[derive(Args, Clone, Debug, Default)]
 pub struct ExistingTunnelArgs {
 	/// Name you'd like to assign preexisting tunnel to use to connect the tunnel
@@ -907,19 +667,6 @@ pub struct TunnelServeArgs {
 	#[clap(long)]
 	pub accept_server_license_terms: bool,
 
-	/// Overrides the resolved user data directory used to home the local
-	/// agent-host endpoint registry
-	/// (`<user-data-dir>/agent-host/local-endpoint/entries/`, the directory of
-	/// per-instance entry files editor windows also publish to). Defaults to
-	/// the platform user data directory (honoring `VSCODE_PORTABLE` /
-	/// `VSCODE_APPDATA` when set), matching the editor's own resolution rules.
-	#[clap(long, hide = true)]
-	pub user_data_dir: Option<String>,
-
-	/// Serve only the agent-host tunnel port, without granting remote editor access.
-	#[clap(long, hide = true)]
-	pub agent_host_only: bool,
-
 	/// Emit machine-readable status lines on stdout for a parent process
 	/// (the editor) to consume, in addition to the human-readable banner.
 	#[clap(
@@ -933,14 +680,6 @@ pub struct TunnelServeArgs {
 		value_parser = clap::builder::BoolishValueParser::new()
 	)]
 	pub machine_status: bool,
-
-	/// Serve only the editor's own agent host through this tunnel: the
-	/// selection gateway pins every client to the live `editor` endpoint in
-	/// the registry and refuses to start a dedicated agent host. Intended for
-	/// tunnels whose lifetime is bound to the editor that started them, where
-	/// a dedicated agent host would outlive the tunnel and be unreachable.
-	#[clap(long, hide = true)]
-	pub delegate_to_editor: bool,
 }
 
 #[derive(Args, Debug, Clone, Default)]
@@ -1135,7 +874,11 @@ mod tests {
 		assert!(!parse_machine_status(&["code", "tunnel"]));
 
 		std::env::remove_var(MACHINE_STATUS_ENV);
-		assert!(parse_machine_status(&["code", "tunnel", "--machine-status"]));
+		assert!(parse_machine_status(&[
+			"code",
+			"tunnel",
+			"--machine-status"
+		]));
 
 		match previous_value {
 			Some(value) => std::env::set_var(MACHINE_STATUS_ENV, value),

@@ -1641,7 +1641,6 @@ export class EnableForWorkspaceAction extends ExtensionAction {
 	constructor(
 		@IExtensionsWorkbenchService private readonly extensionsWorkbenchService: IExtensionsWorkbenchService,
 		@IWorkbenchExtensionEnablementService private readonly extensionEnablementService: IWorkbenchExtensionEnablementService,
-		@IProductService private readonly productService: IProductService,
 	) {
 		super(EnableForWorkspaceAction.ID, EnableForWorkspaceAction.LABEL, ExtensionAction.LABEL_ACTION_CLASS);
 		this.tooltip = localize('enableForWorkspaceActionToolTip', "Enable this extension only in this workspace");
@@ -1651,9 +1650,6 @@ export class EnableForWorkspaceAction extends ExtensionAction {
 	update(): void {
 		this.enabled = false;
 		if (this.extension && this.extension.local && !this.extension.isWorkspaceScoped) {
-			if (ExtensionIdentifier.equals(this.extension.identifier.id, this.productService.defaultChatAgent?.chatExtensionId)) {
-				return;
-			}
 			this.enabled = this.extension.state === ExtensionState.Installed
 				&& !this.extensionEnablementService.isEnabled(this.extension.local)
 				&& this.extensionEnablementService.canChangeWorkspaceEnablement(this.extension.local);
@@ -1676,7 +1672,6 @@ export class EnableGloballyAction extends ExtensionAction {
 	constructor(
 		@IExtensionsWorkbenchService private readonly extensionsWorkbenchService: IExtensionsWorkbenchService,
 		@IWorkbenchExtensionEnablementService private readonly extensionEnablementService: IWorkbenchExtensionEnablementService,
-		@IProductService private readonly productService: IProductService,
 	) {
 		super(EnableGloballyAction.ID, EnableGloballyAction.LABEL, ExtensionAction.LABEL_ACTION_CLASS);
 		this.tooltip = localize('enableGloballyActionToolTip', "Enable this extension");
@@ -1686,9 +1681,6 @@ export class EnableGloballyAction extends ExtensionAction {
 	update(): void {
 		this.enabled = false;
 		if (this.extension && this.extension.local && !this.extension.isWorkspaceScoped) {
-			if (ExtensionIdentifier.equals(this.extension.identifier.id, this.productService.defaultChatAgent?.chatExtensionId)) {
-				return;
-			}
 			this.enabled = this.extension.state === ExtensionState.Installed
 				&& this.extensionEnablementService.isDisabledGlobally(this.extension.local)
 				&& this.extensionEnablementService.canChangeEnablement(this.extension.local);
@@ -1713,7 +1705,6 @@ export class DisableForWorkspaceAction extends ExtensionAction {
 		@IExtensionsWorkbenchService private readonly extensionsWorkbenchService: IExtensionsWorkbenchService,
 		@IWorkbenchExtensionEnablementService private readonly extensionEnablementService: IWorkbenchExtensionEnablementService,
 		@IExtensionService private readonly extensionService: IExtensionService,
-		@IProductService private readonly productService: IProductService,
 	) {
 		super(DisableForWorkspaceAction.ID, DisableForWorkspaceAction.LABEL, ExtensionAction.LABEL_ACTION_CLASS);
 		this.tooltip = localize('disableForWorkspaceActionToolTip', "Disable this extension only in this workspace");
@@ -1724,9 +1715,6 @@ export class DisableForWorkspaceAction extends ExtensionAction {
 	update(): void {
 		this.enabled = false;
 		if (this.extension && this.extension.local && !this.extension.isWorkspaceScoped && this.extensionService.extensions.some(e => areSameExtensions({ id: e.identifier.value, uuid: e.uuid }, this.extension!.identifier) && this.workspaceContextService.getWorkbenchState() !== WorkbenchState.EMPTY)) {
-			if (ExtensionIdentifier.equals(this.extension.identifier.id, this.productService.defaultChatAgent?.chatExtensionId)) {
-				return;
-			}
 			this.enabled = this.extension.state === ExtensionState.Installed
 				&& (this.extension.enablementState === EnablementState.EnabledGlobally || this.extension.enablementState === EnablementState.EnabledWorkspace)
 				&& this.extensionEnablementService.canChangeWorkspaceEnablement(this.extension.local);
@@ -1750,7 +1738,6 @@ export class DisableGloballyAction extends ExtensionAction {
 		@IExtensionsWorkbenchService private readonly extensionsWorkbenchService: IExtensionsWorkbenchService,
 		@IWorkbenchExtensionEnablementService private readonly extensionEnablementService: IWorkbenchExtensionEnablementService,
 		@IExtensionService private readonly extensionService: IExtensionService,
-		@IProductService private readonly productService: IProductService,
 	) {
 		super(DisableGloballyAction.ID, DisableGloballyAction.LABEL, ExtensionAction.LABEL_ACTION_CLASS);
 		this.tooltip = localize('disableGloballyActionToolTip', "Disable this extension");
@@ -1761,9 +1748,6 @@ export class DisableGloballyAction extends ExtensionAction {
 	update(): void {
 		this.enabled = false;
 		if (this.extension && this.extension.local && !this.extension.isWorkspaceScoped && this.extensionService.extensions.some(e => areSameExtensions({ id: e.identifier.value, uuid: e.uuid }, this.extension!.identifier))) {
-			if (ExtensionIdentifier.equals(this.extension.identifier.id, this.productService.defaultChatAgent?.chatExtensionId)) {
-				return;
-			}
 			this.enabled = this.extension.state === ExtensionState.Installed
 				&& (this.extension.enablementState === EnablementState.EnabledGlobally || this.extension.enablementState === EnablementState.EnabledWorkspace)
 				&& this.extensionEnablementService.canChangeEnablement(this.extension.local);

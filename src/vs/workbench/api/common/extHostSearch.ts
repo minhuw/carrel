@@ -11,7 +11,7 @@ import { FileSearchManager } from '../../services/search/common/fileSearchManage
 import { IExtHostRpcService } from './extHostRpcService.js';
 import { IURITransformerService } from './extHostUriTransformerService.js';
 import { ILogService } from '../../../platform/log/common/log.js';
-import { IRawFileQuery, ISearchCompleteStats, IFileQuery, IRawTextQuery, IRawQuery, ITextQuery, IFolderQuery, IRawAITextQuery, IAITextQuery } from '../../services/search/common/search.js';
+import { IRawFileQuery, ISearchCompleteStats, IFileQuery, IRawTextQuery, IRawQuery, ITextQuery, IFolderQuery } from '../../services/search/common/search.js';
 import { URI, UriComponents } from '../../../base/common/uri.js';
 import { TextSearchManager } from '../../services/search/common/textSearchManager.js';
 import { CancellationToken } from '../../../base/common/cancellation.js';
@@ -156,15 +156,7 @@ export class ExtHostSearch implements IExtHostSearch {
 		return engine.search(progress => this._proxy.$handleTextMatch(handle, session, progress), token);
 	}
 
-	$provideAITextSearchResults(handle: number, session: number, rawQuery: IRawAITextQuery, token: vscode.CancellationToken): Promise<ISearchCompleteStats> {
-		throw new Error(`Unknown AI Text Search Provider ${handle}`);
-	}
-
 	$enableExtensionHostSearch(): void { }
-
-	async $getAIName(handle: number): Promise<string | undefined> {
-		return undefined;
-	}
 
 	protected createTextSearchManager(query: ITextQuery, provider: vscode.TextSearchProvider2): TextSearchManager {
 		return new TextSearchManager({ query, provider }, {
@@ -175,7 +167,7 @@ export class ExtHostSearch implements IExtHostSearch {
 
 }
 
-export function reviveQuery<U extends IRawQuery>(rawQuery: U): U extends IRawTextQuery ? ITextQuery : U extends IRawAITextQuery ? IAITextQuery : IFileQuery {
+export function reviveQuery<U extends IRawQuery>(rawQuery: U): U extends IRawTextQuery ? ITextQuery : IFileQuery {
 	return {
 		// eslint-disable-next-line local/code-no-any-casts
 		...<any>rawQuery, // TODO@rob ???

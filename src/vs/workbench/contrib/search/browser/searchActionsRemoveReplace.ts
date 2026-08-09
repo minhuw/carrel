@@ -23,8 +23,6 @@ import { KeyCode, KeyMod } from '../../../../base/common/keyCodes.js';
 import { category, getElementsToOperateOn, getSearchView, shouldRefocus } from './searchActionsBase.js';
 import { equals } from '../../../../base/common/arrays.js';
 import { arrayContainsElementOrParent, RenderableMatch, ISearchResult, isSearchTreeFileMatch, isSearchTreeFolderMatch, isSearchTreeMatch, isSearchResult, isTextSearchHeading } from './searchTreeModel/searchTreeCommon.js';
-import { MatchInNotebook } from './notebookSearch/notebookSearchModel.js';
-import { AITextSearchHeadingImpl } from './AISearch/aiSearchModel.js';
 
 
 //#region Interfaces
@@ -309,7 +307,7 @@ async function performReplace(accessor: ServicesAccessor,
 
 			if (isSearchTreeMatch(nextFocusElement)) {
 				const useReplacePreview = configurationService.getValue<ISearchConfiguration>().search?.useReplacePreview;
-				if (!useReplacePreview || instantiationService.invokeFunction(accessor => hasToOpenFile(accessor, nextFocusElement!)) || nextFocusElement instanceof MatchInNotebook) {
+				if (!useReplacePreview || instantiationService.invokeFunction(accessor => hasToOpenFile(accessor, nextFocusElement!))) {
 					viewlet?.open(nextFocusElement, true);
 				} else {
 					instantiationService.invokeFunction(accessor => accessor.get(IReplaceService)).openReplacePreview(nextFocusElement, true);
@@ -378,18 +376,10 @@ export async function getElementToFocusAfterRemoved(viewer: WorkbenchCompressibl
 		while (!!navigator.next() && (!isSearchTreeFolderMatch(navigator.current()) || arrayContainsElementOrParent(navigator.current(), elementsToRemove))) { }
 	} else if (isSearchTreeFileMatch(element)) {
 		while (!!navigator.next() && (!isSearchTreeFileMatch(navigator.current()) || arrayContainsElementOrParent(navigator.current(), elementsToRemove))) {
-			// Never expand AI search results by default
-			if (navigator.current() instanceof AITextSearchHeadingImpl) {
-				return navigator.current();
-			}
 			await viewer.expand(navigator.current());
 		}
 	} else {
 		while (navigator.next() && (!isSearchTreeMatch(navigator.current()) || arrayContainsElementOrParent(navigator.current(), elementsToRemove))) {
-			// Never expand AI search results by default
-			if (navigator.current() instanceof AITextSearchHeadingImpl) {
-				return navigator.current();
-			}
 			await viewer.expand(navigator.current());
 		}
 	}

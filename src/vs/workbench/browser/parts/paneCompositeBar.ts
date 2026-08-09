@@ -34,6 +34,16 @@ import { IConfigurationService } from '../../../platform/configuration/common/co
 import { IViewsService } from '../../services/views/common/viewsService.js';
 import { RunOnceScheduler } from '../../../base/common/async.js';
 
+/**
+ * Carrel: composites that start unpinned (hidden from the activity/composite
+ * bar, restorable via the bar's context menu) for a calmer default chrome.
+ * Only applies where no stored state exists; user choices always win.
+ * Mirrored in `compositeBar.ts` (CompositeBarModel.add).
+ */
+const CARREL_DEFAULT_UNPINNED_VIEW_CONTAINERS = new Set([
+	'workbench.view.debug', /* Run and Debug */
+]);
+
 interface IPlaceholderViewContainer {
 	readonly id: string;
 	readonly name?: string;
@@ -86,6 +96,12 @@ export interface IPaneCompositeBarOptions {
 	readonly fillExtraContextMenuActions: (actions: IAction[], e?: MouseEvent | GestureEvent) => void;
 	readonly transformContextMenuActionsForComposite?: (actions: IAction[], compositeId: string) => IAction[];
 	readonly colors: (theme: IColorTheme) => ICompositeBarColors;
+
+	/**
+	 * Carrel: show an always-visible chevron-down switcher listing all view
+	 * containers with pin toggles at the end of the bar.
+	 */
+	readonly showAllCompositesSwitcher?: boolean;
 }
 
 export class PaneCompositeBar extends Disposable {
@@ -172,6 +188,7 @@ export class PaneCompositeBar extends Disposable {
 			dndHandler: this.dndHandler,
 			compositeSize: this.options.compositeSize,
 			overflowActionSize: this.options.overflowActionSize,
+			showAllCompositesSwitcher: this.options.showAllCompositesSwitcher,
 			colors: theme => this.options.colors(theme),
 		}));
 	}
@@ -363,7 +380,8 @@ export class PaneCompositeBar extends Disposable {
 
 			// Pin it by default if it is new
 			const cachedViewContainer = this.cachedViewContainers.filter(({ id }) => id === viewContainer.id)[0];
-			if (!cachedViewContainer) {
+			// Carrel: ...unless it is in the default-unpinned set (calmer chrome).
+			if (!cachedViewContainer && !CARREL_DEFAULT_UNPINNED_VIEW_CONTAINERS.has(viewContainer.id)) {
 				this.compositeBar.pin(viewContainer.id);
 			}
 
@@ -594,7 +612,8 @@ export class PaneCompositeBar extends Disposable {
 						id: viewContainer.id,
 						name: typeof viewContainer.title === 'string' ? viewContainer.title : viewContainer.title.value,
 						order: viewContainer.order,
-						pinned: true,
+						// Carrel: some containers start unpinned for a calmer chrome.
+						pinned: !CARREL_DEFAULT_UNPINNED_VIEW_CONTAINERS.has(viewContainer.id),
 						visible: !this.shouldBeHidden(viewContainer),
 					});
 				}

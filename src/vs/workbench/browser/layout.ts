@@ -3,13 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import './media/compactChrome.css';
 import { Disposable, DisposableMap, DisposableStore, IDisposable, toDisposable } from '../../base/common/lifecycle.js';
 import { Event, Emitter } from '../../base/common/event.js';
 import { onUnexpectedError } from '../../base/common/errors.js';
 import { alert } from '../../base/browser/ui/aria/aria.js';
 import { EventType, addDisposableListener, getClientArea, size, IDimension, isAncestorUsingFlowTo, computeScreenAwareSize, getActiveDocument, getWindows, getActiveWindow, isActiveDocument, getWindow, getWindowId, getActiveElement, Dimension } from '../../base/browser/dom.js';
 import { onDidChangeFullscreen, isFullscreen, isWCOEnabled } from '../../base/browser/browser.js';
-import { isWindows, isLinux, isMacintosh, isWeb, isIOS } from '../../base/common/platform.js';
+import { isWindows, isLinux, isMacintosh, isNative, isWeb, isIOS } from '../../base/common/platform.js';
 import { EditorInputCapabilities, GroupIdentifier, isResourceEditorInput, IUntypedEditorInput, pathsToEditors } from '../common/editor.js';
 import { SidebarPart } from './parts/sidebar/sidebarPart.js';
 import type { ChatHostPart } from './parts/chat/chatHostPart.js';
@@ -114,6 +115,9 @@ enum LayoutClasses {
 	WINDOW_BORDER = 'border',
 	NO_SHADOWS = 'no-shadows',
 	FLOATING_PANELS = 'floating-panels',
+	// Carrel: compact chrome removes the titlebar part and lets the macOS
+	// traffic lights overlay the top of the workbench (see compactChrome.css).
+	COMPACT_CHROME = 'compact-chrome',
 	// Presentation class for the Modern UI Update experiment, owned/toggled at
 	// runtime by `ModernUIContribution`. It is *also* applied here at render
 	// time (see `getLayoutClasses`) to avoid a flash of unstyled workbench chrome.
@@ -466,6 +470,7 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 			// Layout related
 			if ([
 				...TITLE_BAR_SETTINGS,
+				WorkbenchLayoutSettings.COMPACT_CHROME,
 				LegacyWorkbenchLayoutSettings.SIDEBAR_POSITION,
 				LegacyWorkbenchLayoutSettings.STATUSBAR_VISIBLE,
 			].some(setting => e.affectsConfiguration(setting))) {
@@ -568,12 +573,12 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 
 			// The menu bar toggles the title bar in web because it does not need to be shown for window controls only
 			if (isWeb && menuBarVisibility === 'toggle') {
-				this.workbenchGrid.setViewVisible(this.titleBarPartView, shouldShowCustomTitleBar(this.configurationService, mainWindow, this.state.runtime.menuBar.toggled));
+				this.workbenchGrid.setViewVisible(this.titleBarPartView, this.shouldShowTitleBar());
 			}
 
 			// The menu bar toggles the title bar in full screen for toggle and classic settings
 			else if (this.state.runtime.mainWindowFullscreen && (menuBarVisibility === 'toggle' || menuBarVisibility === 'classic')) {
-				this.workbenchGrid.setViewVisible(this.titleBarPartView, shouldShowCustomTitleBar(this.configurationService, mainWindow, this.state.runtime.menuBar.toggled));
+				this.workbenchGrid.setViewVisible(this.titleBarPartView, this.shouldShowTitleBar());
 			}
 
 			// Move layout call to any time the menubar
@@ -629,7 +634,7 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 		if (hasCustomTitlebar(this.configurationService)) {
 
 			// Propagate to grid
-			this.workbenchGrid.setViewVisible(this.titleBarPartView, shouldShowCustomTitleBar(this.configurationService, mainWindow, this.state.runtime.menuBar.toggled));
+			this.workbenchGrid.setViewVisible(this.titleBarPartView, this.shouldShowTitleBar());
 
 			// Indicate active window border
 			this.updateWindowBorder(true);
@@ -663,7 +668,33 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 		return getWindow(activeContainer).vscodeWindowId;
 	}
 
+	/**
+	 * Carrel: compact chrome is only available on macOS desktop with the
+	 * custom title bar style (`window.titleBarStyle: custom`, the default).
+	 * When enabled, the titlebar part is removed from the layout grid and the
+	 * native traffic lights overlay the top of the workbench; parts receive a
+	 * top inset via the `compact-chrome` layout class (see compactChrome.css).
+	 */
+	private isCompactChromeEnabled(): boolean {
+		return isMacintosh && isNative
+			&& this.configurationService.getValue<boolean>(WorkbenchLayoutSettings.COMPACT_CHROME) === true
+			&& !hasNativeTitlebar(this.configurationService);
+	}
+
+	/**
+	 * Whether the titlebar part should be part of the layout grid. Wraps
+	 * {@link shouldShowCustomTitleBar} and additionally hides the titlebar part
+	 * entirely when Carrel's compact chrome is active.
+	 */
+	private shouldShowTitleBar(): boolean {
+		return shouldShowCustomTitleBar(this.configurationService, mainWindow, this.state.runtime.menuBar.toggled)
+			&& !this.isCompactChromeEnabled();
+	}
+
 	private doUpdateLayoutConfiguration(skipLayout?: boolean): void {
+
+		// Compact chrome (Carrel): reflect setting in layout classes
+		this.mainContainer.classList.toggle(LayoutClasses.COMPACT_CHROME, this.isCompactChromeEnabled());
 
 		// Custom Titlebar visibility with native titlebar
 		this.updateCustomTitleBarVisibility();
@@ -1445,7 +1476,7 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 			case Parts.TITLEBAR_PART:
 				return this.initialized ?
 					this.workbenchGrid.isViewVisible(this.titleBarPartView) :
-					shouldShowCustomTitleBar(this.configurationService, mainWindow, this.state.runtime.menuBar.toggled);
+					this.shouldShowTitleBar();
 			case Parts.SIDEBAR_PART:
 				return !this.stateModel.getRuntimeValue(LayoutStateKeys.SIDEBAR_HIDDEN);
 			case Parts.PANEL_PART:
@@ -2027,6 +2058,7 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 			this.state.runtime.mainWindowFullscreen ? LayoutClasses.FULLSCREEN : undefined,
 			this.isShadowsDisabled() ? LayoutClasses.NO_SHADOWS : undefined,
 			this.isFloatingPanelsEnabled() ? LayoutClasses.FLOATING_PANELS : undefined,
+			this.isCompactChromeEnabled() ? LayoutClasses.COMPACT_CHROME : undefined,
 			// Also seed the modern-ui class here (see `LayoutClasses.MODERN_UI`).
 			this.isFloatingPanelsEnabled() ? LayoutClasses.MODERN_UI : undefined,
 			this.isModernUICompact() ? LayoutClasses.MODERN_UI_COMPACT : undefined,
@@ -2589,14 +2621,14 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 	}
 
 	updateMenubarVisibility(skipLayout: boolean): void {
-		const shouldShowTitleBar = shouldShowCustomTitleBar(this.configurationService, mainWindow, this.state.runtime.menuBar.toggled);
+		const shouldShowTitleBar = this.shouldShowTitleBar();
 		if (!skipLayout && this.workbenchGrid && shouldShowTitleBar !== this.isVisible(Parts.TITLEBAR_PART, mainWindow)) {
 			this.workbenchGrid.setViewVisible(this.titleBarPartView, shouldShowTitleBar);
 		}
 	}
 
 	updateCustomTitleBarVisibility(): void {
-		const shouldShowTitleBar = shouldShowCustomTitleBar(this.configurationService, mainWindow, this.state.runtime.menuBar.toggled);
+		const shouldShowTitleBar = this.shouldShowTitleBar();
 		const titlebarVisible = this.isVisible(Parts.TITLEBAR_PART);
 		if (shouldShowTitleBar !== titlebarVisible) {
 			this.workbenchGrid.setViewVisible(this.titleBarPartView, shouldShowTitleBar);
@@ -2769,7 +2801,7 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 			this.workbenchGrid.moveView(this.bannerPartView, Sizing.Distribute, this.titleBarPartView, shouldBannerBeFirst ? Direction.Up : Direction.Down);
 		}
 
-		this.workbenchGrid.setViewVisible(this.titleBarPartView, shouldShowCustomTitleBar(this.configurationService, mainWindow, this.state.runtime.menuBar.toggled));
+		this.workbenchGrid.setViewVisible(this.titleBarPartView, this.shouldShowTitleBar());
 	}
 
 	private arrangeEditorNodes(nodes: { editor: ISerializedNode; chat?: ISerializedNode; sideBar?: ISerializedNode; auxiliaryBar?: ISerializedNode }, availableHeight: number, availableWidth: number): ISerializedNode {
@@ -3161,7 +3193,8 @@ interface ILayoutStateChangeEvent<T extends StorageKeyType> {
 	readonly value: T;
 }
 
-enum WorkbenchLayoutSettings {
+export enum WorkbenchLayoutSettings {
+	COMPACT_CHROME = 'workbench.compactChrome',
 	AUXILIARYBAR_DEFAULT_VISIBILITY = 'workbench.secondarySideBar.defaultVisibility',
 	AUXILIARYBAR_FORCE_MAXIMIZED = 'workbench.secondarySideBar.forceMaximized',
 	ACTIVITY_BAR_VISIBLE = 'workbench.activityBar.visible',

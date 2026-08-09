@@ -641,7 +641,9 @@ const registry = Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Con
 			[LayoutSettings.ACTIVITY_BAR_LOCATION]: {
 				'type': 'string',
 				'enum': ['default', 'top', 'bottom', 'hidden'],
-				'default': 'default',
+				// Carrel: the activity bar lives on top by default for a compact,
+				// horizontal chrome (upstream default: 'default' / side).
+				'default': 'top',
 				'markdownDescription': localize({ comment: ['This is the description for a setting'], key: 'activityBarLocation' }, "Controls the location of the Activity Bar relative to the Primary and Secondary Side Bars."),
 				'enumDescriptions': [
 					localize('workbench.activityBar.location.default', "Show the Activity Bar on the side of the Primary Side Bar and on top of the Secondary Side Bar."),
@@ -715,9 +717,8 @@ const registry = Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Con
 			'workbench.hover.delay': {
 				'type': 'number',
 				'description': localize('workbench.hover.delay', "Controls the delay in milliseconds after which the hover is shown for workbench items (ex. some extension provided tree view items). Already visible items may require a refresh before reflecting this setting change."),
-				// Testing has indicated that on Windows and Linux 500 ms matches the native hovers most closely.
-				// On Mac, the delay is 1500.
-				'default': isMacintosh ? 1500 : 500,
+				// Carrel: snappier hovers (upstream: 500ms, 1500ms on Mac).
+				'default': 250,
 				'minimum': 0
 			},
 			'workbench.hover.reducedDelay': {
@@ -763,6 +764,13 @@ const registry = Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Con
 				'markdownDescription': isWeb ?
 					localize('layoutControlEnabledWeb', "Controls whether the layout control in the title bar is shown.") :
 					localize({ key: 'layoutControlEnabled', comment: ['{0}, {1} is a placeholder for a setting identifier.'] }, "Controls whether the layout control is shown in the custom title bar. This setting only has an effect when {0} is not set to {1}.", '`#window.customTitleBarVisibility#`', '`never`'),
+			},
+			'workbench.compactChrome': {
+				'type': 'boolean',
+				// Carrel: opt-in. The default chrome keeps the custom title bar,
+				// matching the reference design's titlebar row.
+				'default': false,
+				'markdownDescription': localize({ key: 'compactChrome', comment: ['{0}, {1} is a placeholder for a setting identifier.'] }, "Controls whether the compact chrome layout is used. When enabled, the custom title bar is removed and the macOS window controls (traffic lights) overlay the top of the workbench, giving the window a compact, unified look. Only applies on macOS desktop when {0} is {1}; ignored on other platforms.", '`#window.titleBarStyle#`', '`custom`'),
 			},
 			'workbench.layoutControl.type': {
 				'type': 'string',
@@ -853,7 +861,8 @@ const registry = Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Con
 			},
 			[LayoutSettings.COMMAND_CENTER]: {
 				type: 'boolean',
-				default: true,
+				// Carrel: no command center in the (already compact) chrome.
+				default: false,
 				markdownDescription: isWeb ?
 					localize('window.commandCenterWeb', "Show command launcher together with the window title.") :
 					localize({ key: 'window.commandCenter', comment: ['{0}, {1} is a placeholder for a setting identifier.'] }, "Show command launcher together with the window title. This setting only has an effect when {0} is not set to {1}.", '`#window.customTitleBarVisibility#`', '`never`'),

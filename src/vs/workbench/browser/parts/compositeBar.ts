@@ -9,6 +9,7 @@ import { IActivity } from '../../services/activity/common/activity.js';
 import { IInstantiationService } from '../../../platform/instantiation/common/instantiation.js';
 import { ActionBar, ActionsOrientation } from '../../../base/browser/ui/actionbar/actionbar.js';
 import { CompositeActionViewItem, CompositeOverflowActivityAction, CompositeOverflowActivityActionViewItem, CompositeBarAction, ICompositeBar, ICompositeBarColors, IActivityHoverOptions } from './compositeBarActions.js';
+import { CompositeViewSwitcherAction, CompositeViewSwitcherActionViewItem } from './compositeBarViewSwitcher.js';
 import { Dimension, $, addDisposableListener, EventType, EventHelper, isAncestor, getWindow } from '../../../base/browser/dom.js';
 import { StandardMouseEvent } from '../../../base/browser/mouseEvent.js';
 import { IContextMenuService } from '../../../platform/contextview/browser/contextView.js';
@@ -156,6 +157,12 @@ export interface ICompositeBarOptions {
 	readonly fillExtraContextMenuActions: (actions: IAction[], e?: MouseEvent | GestureEvent) => void;
 	readonly getContextMenuActionsForComposite: (compositeId: string) => IAction[];
 
+	/**
+	 * Carrel: when set, an always-visible chevron-down switcher is appended at
+	 * the end of the bar listing all view containers with pin toggles.
+	 */
+	readonly showAllCompositesSwitcher?: boolean;
+
 	readonly openComposite: (compositeId: string, preserveFocus?: boolean) => Promise<IComposite | null>;
 	readonly getDefaultCompositeId: () => string | undefined;
 }
@@ -251,6 +258,8 @@ export class CompositeBar extends Widget implements ICompositeBar {
 	private compositeSwitcherBar: ActionBar | undefined;
 	private compositeOverflowAction = this._register(new MutableDisposable<CompositeOverflowActivityAction>());
 	private compositeOverflowActionViewItem = this._register(new MutableDisposable<CompositeOverflowActivityActionViewItem>());
+	private viewSwitcherAction = this._register(new MutableDisposable<CompositeViewSwitcherAction>());
+	private viewSwitcherActionViewItem = this._register(new MutableDisposable<CompositeViewSwitcherActionViewItem>());
 
 	private readonly model: CompositeBarModel;
 	private readonly visibleComposites: string[];
@@ -298,6 +307,9 @@ export class CompositeBar extends Widget implements ICompositeBar {
 			actionViewItemProvider: (action, options) => {
 				if (action instanceof CompositeOverflowActivityAction) {
 					return this.compositeOverflowActionViewItem.value;
+				}
+				if (action instanceof CompositeViewSwitcherAction) {
+					return this.viewSwitcherActionViewItem.value;
 				}
 				const item = this.model.findItem(action.id);
 				return item && this.instantiationService.createInstance(
@@ -589,7 +601,12 @@ export class CompositeBar extends Widget implements ICompositeBar {
 
 		// Remove the overflow action if there are no overflows
 		if (totalComposites === compositesToShow.length && this.compositeOverflowAction.value) {
-			compositeSwitcherBar.pull(compositeSwitcherBar.length() - 1);
+			// Carrel: the view switcher chevron may trail the overflow action,
+			// so pull the overflow action by index instead of pulling the tail.
+			const overflowIndex = this.indexOfAction(compositeSwitcherBar, this.compositeOverflowAction.value);
+			if (overflowIndex !== -1) {
+				compositeSwitcherBar.pull(overflowIndex);
+			}
 
 			this.compositeOverflowAction.value = undefined;
 			this.compositeOverflowActionViewItem.value = undefined;
@@ -643,9 +660,43 @@ export class CompositeBar extends Widget implements ICompositeBar {
 			compositeSwitcherBar.push(this.compositeOverflowAction.value, { label: false, icon: true });
 		}
 
+		// Carrel: ensure the always-visible view switcher chevron trails the bar
+		if (this.options.showAllCompositesSwitcher) {
+			if (!this.viewSwitcherAction.value) {
+				this.viewSwitcherAction.value = this.instantiationService.createInstance(CompositeViewSwitcherAction, () => {
+					this.viewSwitcherActionViewItem.value?.showSwitcher();
+				});
+				this.viewSwitcherActionViewItem.value = this.instantiationService.createInstance(
+					CompositeViewSwitcherActionViewItem,
+					this.viewSwitcherAction.value,
+					this,
+					(compositeId: string) => { this.options.openComposite(compositeId); },
+					this.options.colors,
+					this.options.activityHoverOptions
+				);
+
+				compositeSwitcherBar.push(this.viewSwitcherAction.value, { label: false, icon: true });
+			} else {
+				const switcherIndex = this.indexOfAction(compositeSwitcherBar, this.viewSwitcherAction.value);
+				if (switcherIndex !== -1 && switcherIndex !== compositeSwitcherBar.length() - 1) {
+					compositeSwitcherBar.pull(switcherIndex);
+					compositeSwitcherBar.push(this.viewSwitcherAction.value, { label: false, icon: true });
+				}
+			}
+		}
+
 		if (!donotTrigger) {
 			this._onDidChange.fire();
 		}
+	}
+
+	private indexOfAction(actionBar: ActionBar, action: IAction): number {
+		for (let i = 0; i < actionBar.length(); i++) {
+			if (actionBar.getAction(i) === action) {
+				return i;
+			}
+		}
+		return -1;
 	}
 
 	private getOverflowingComposites(): { id: string; name?: string }[] {

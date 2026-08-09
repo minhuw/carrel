@@ -228,7 +228,10 @@ export class SidebarPart extends AbstractPaneCompositePart {
 				badgeForeground: theme.getColor(ACTIVITY_BAR_BADGE_FOREGROUND),
 				dragAndDropBorder: theme.getColor(ACTIVITY_BAR_TOP_DRAG_AND_DROP_BORDER)
 			}),
-			compact: true
+			compact: true,
+			// Carrel: chevron-down view switcher at the end of the bar, only when
+			// the bar renders in the sidebar's top/header (or title) area.
+			showAllCompositesSwitcher: this.getCompositeBarPosition() !== CompositeBarPosition.BOTTOM
 		};
 	}
 

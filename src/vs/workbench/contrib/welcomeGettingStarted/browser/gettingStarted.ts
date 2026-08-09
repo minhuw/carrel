@@ -195,8 +195,6 @@ export class GettingStartedPage extends EditorPane {
 		@IWorkspaceContextService private readonly workspaceContextService: IWorkspaceContextService,
 		@IAccessibilityService private readonly accessibilityService: IAccessibilityService,
 		@IMarkdownRendererService private readonly markdownRendererService: IMarkdownRendererService,
-		@IChatEntitlementService private readonly chatEntitlementService: IChatEntitlementService,
-		@IDefaultAccountService private readonly defaultAccountService: IDefaultAccountService,
 	) {
 
 		super(GettingStartedPage.ID, group, telemetryService, themeService, storageService);
@@ -936,19 +934,6 @@ export class GettingStartedPage extends EditorPane {
 		const gettingStartedList = this.buildGettingStartedWalkthroughsList();
 
 		const footerChildren: HTMLElement[] = [];
-		const agentsBanner = createAgentsBanner(
-			{
-				cssClass: 'getting-started-category.agents-banner',
-				source: 'welcomePage',
-			},
-			this.commandService,
-			this.telemetryService,
-			this.configurationService,
-			this.chatEntitlementService,
-			this.defaultAccountService,
-		);
-		this.categoriesSlideDisposables.add(agentsBanner.disposables);
-		footerChildren.push(agentsBanner.element);
 		footerChildren.push($('p.showOnStartup', {},
 			showOnStartupCheckbox.domNode,
 			showOnStartupLabel,

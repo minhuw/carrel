@@ -12,7 +12,6 @@ import { IWorkspaceContextService, WorkbenchState } from '../../../../platform/w
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { IKeybindingService } from '../../../../platform/keybinding/common/keybinding.js';
 import { Disposable, IDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
-import { process } from '../../../../base/parts/sandbox/electron-browser/globals.js';
 import { ACTIVE_GROUP, AUX_WINDOW_GROUP, IEditorService, PreferredGroup, SIDE_GROUP, USE_MODAL_EDITOR_SETTING, UseModalEditorMode } from '../../../services/editor/common/editorService.js';
 import { mainWindow } from '../../../../base/browser/window.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
@@ -29,7 +28,6 @@ import { DEFAULT_FONT_FAMILY } from '../../../../base/browser/fonts.js';
 import { findGroup } from '../../../services/editor/common/editorGroupFinder.js';
 import { IAccessibilityService } from '../../../../platform/accessibility/common/accessibility.js';
 import { Schemas } from '../../../../base/common/network.js';
-import { getCopilotRootPaths } from '../../../../platform/agentHost/common/copilotHome.js';
 import { INativeWorkbenchEnvironmentService } from '../../../services/environment/electron-browser/environmentService.js';
 import { ITunnelProxyInfo } from '../../../../platform/tunnel/common/tunnelProxy.js';
 
@@ -498,8 +496,7 @@ export class BrowserViewWorkbenchService extends Disposable implements IBrowserV
 	}
 
 	private _getTrustedFileRoots(): string[] {
-		// Trust Copilot roots so agents can create HTML files and open them in the browser.
-		const roots = new Set(getCopilotRootPaths(this.environmentService.userHome.fsPath, process.env));
+		const roots = new Set<string>();
 		if (this.workspaceTrustManagementService.isWorkspaceTrusted()) {
 			for (const folder of this.workspaceContextService.getWorkspace().folders) {
 				if (folder.uri.scheme === Schemas.file) {

@@ -70,45 +70,12 @@ suite('SettingsChangeRelauncher', () => {
 		disposables.clear();
 	});
 
-	test('prompts to restart when chat.agentHost.claudeAgent.enabled changes', async () => {
+	test('prompts to restart when a watched setting changes', async () => {
 		confirmResult = true;
 		await changeSetting(
-			'chat.agentHost.claudeAgent.enabled',
-			() => ({ chat: { agentHost: { claudeAgent: { enabled: true } } } }),
-			c => c.chat.agentHost.claudeAgent.enabled = false);
-
-		assert.strictEqual(confirmCount, 1, 'should prompt to restart');
-		assert.strictEqual(restartCount, 1, 'should restart when confirmed');
-	});
-
-	test('does not prompt to restart when chat.agentHost.codexAgent.enabled changes', async () => {
-		confirmResult = true;
-		await changeSetting(
-			'chat.agentHost.codexAgent.enabled',
-			() => ({ chat: { agentHost: { codexAgent: { enabled: true } } } }),
-			c => c.chat.agentHost.codexAgent.enabled = false);
-
-		assert.strictEqual(confirmCount, 0, 'should not prompt to restart');
-		assert.strictEqual(restartCount, 0, 'should not restart');
-	});
-
-	test('prompts to restart when chat.agentHost.byokModels.enabled changes', async () => {
-		confirmResult = true;
-		await changeSetting(
-			'chat.agentHost.byokModels.enabled',
-			() => ({ chat: { agentHost: { byokModels: { enabled: true } } } }),
-			c => c.chat.agentHost.byokModels.enabled = false);
-
-		assert.strictEqual(confirmCount, 1, 'should prompt to restart');
-		assert.strictEqual(restartCount, 1, 'should restart when confirmed');
-	});
-
-	test('prompts to restart when chat.editor.codex.preferAgentHost changes', async () => {
-		confirmResult = true;
-		await changeSetting(
-			'chat.editor.codex.preferAgentHost',
-			() => ({ chat: { editor: { codex: { preferAgentHost: true } } } }),
-			c => c.chat.editor.codex.preferAgentHost = false);
+			'telemetry.feedback.enabled',
+			() => ({ telemetry: { feedback: { enabled: false } } }),
+			c => c.telemetry.feedback.enabled = true);
 
 		assert.strictEqual(confirmCount, 1, 'should prompt to restart');
 		assert.strictEqual(restartCount, 1, 'should restart when confirmed');
@@ -117,9 +84,9 @@ suite('SettingsChangeRelauncher', () => {
 	test('does not restart when the confirmation is declined', async () => {
 		confirmResult = false;
 		await changeSetting(
-			'chat.agentHost.claudeAgent.enabled',
-			() => ({ chat: { agentHost: { claudeAgent: { enabled: true } } } }),
-			c => c.chat.agentHost.claudeAgent.enabled = false);
+			'telemetry.feedback.enabled',
+			() => ({ telemetry: { feedback: { enabled: false } } }),
+			c => c.telemetry.feedback.enabled = true);
 
 		assert.strictEqual(confirmCount, 1, 'should prompt to restart');
 		assert.strictEqual(restartCount, 0, 'should not restart when declined');
@@ -128,9 +95,9 @@ suite('SettingsChangeRelauncher', () => {
 	test('does not prompt when only the default value changes', async () => {
 		confirmResult = true;
 		await changeSetting(
-			'chat.agentHost.claudeAgent.enabled',
-			() => ({ chat: { agentHost: { claudeAgent: { enabled: true } } } }),
-			c => c.chat.agentHost.claudeAgent.enabled = false,
+			'telemetry.feedback.enabled',
+			() => ({ telemetry: { feedback: { enabled: false } } }),
+			c => c.telemetry.feedback.enabled = true,
 			ConfigurationTarget.DEFAULT);
 
 		assert.strictEqual(confirmCount, 0, 'should not prompt for default changes');

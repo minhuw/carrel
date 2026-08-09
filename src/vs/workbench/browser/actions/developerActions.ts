@@ -53,8 +53,6 @@ import { adaptManagedSettings, IManagedSettingsResponse } from '../../services/a
 import { isObject } from '../../../base/common/types.js';
 import * as json from '../../../base/common/json.js';
 import { getParseErrorMessage } from '../../../base/common/jsonErrorMessages.js';
-import { IAgentHostService } from '../../../platform/agentHost/common/agentService.js';
-import { IAgentHostEnablementService } from '../../../platform/agentHost/common/agentHostEnablementService.js';
 
 class InspectContextKeysAction extends Action2 {
 
@@ -752,8 +750,6 @@ class PolicyDiagnosticsAction extends Action2 {
 		const authenticationAccessService = accessor.get(IAuthenticationAccessService);
 		const policyService = accessor.get(IPolicyService);
 		const accountPolicyGateService = accessor.get(IAccountPolicyGateService);
-		const agentHostService = accessor.get(IAgentHostService);
-		const agentHostEnablementService = accessor.get(IAgentHostEnablementService);
 		// Native MDM is a desktop-only channel, registered in the renderer service collection on
 		// desktop and Agents windows but absent in web. Resolve it now, synchronously, because the
 		// accessor is only valid before the first `await` below.
@@ -982,27 +978,7 @@ class PolicyDiagnosticsAction extends Action2 {
 			}
 
 			content += '### Agent Runtime Resolution\n\n';
-			content += '*Resolved independently by each provider through its own SDK/runtime. This may include runtime-owned keys that VS Code does not declare as configuration policies.*\n\n';
-			if (!agentHostEnablementService.enabled.get()) {
-				content += '*Agent Host is disabled; runtime managed-settings diagnostics were not queried.*\n\n';
-			} else {
-				try {
-					const runtimeDiagnostics = await agentHostService.getManagedSettingsDiagnostics();
-					if (runtimeDiagnostics.length === 0) {
-						content += '*No agent provider exposes managed-settings diagnostics.*\n\n';
-					}
-					for (const diagnostic of runtimeDiagnostics) {
-						content += `#### ${diagnostic.provider}\n\n`;
-						if (diagnostic.error) {
-							content += `*Probe failed: ${diagnostic.error}*\n\n`;
-						} else {
-							content += jsonBlock(diagnostic.snapshot);
-						}
-					}
-				} catch (error) {
-					content += `*Agent runtime diagnostics unavailable: ${error}*\n\n`;
-				}
-			}
+			content += '*Agent host runtime has been removed from this product; runtime managed-settings diagnostics are unavailable.*\n\n';
 
 			// JSON payloads: the structured keys carry a JSON string that PolicyConfiguration parses
 			// back into the object/array-typed setting on read. Re-parse exactly those keys with the

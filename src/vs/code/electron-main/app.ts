@@ -118,7 +118,6 @@ import { ExtensionsScannerService } from '../../platform/extensionManagement/nod
 import { UserDataProfilesHandler } from '../../platform/userDataProfile/electron-main/userDataProfilesHandler.js';
 import { ProfileStorageChangesListenerChannel } from '../../platform/userDataProfile/electron-main/userDataProfileStorageIpc.js';
 import { Promises, RunOnceScheduler, runWhenGlobalIdle } from '../../base/common/async.js';
-import { CancellationToken } from '../../base/common/cancellation.js';
 import { resolveMachineId, resolveSqmId, resolveDevDeviceId, validateDevDeviceId } from '../../platform/telemetry/electron-main/telemetryUtils.js';
 import { ExtensionsProfileScannerService } from '../../platform/extensionManagement/node/extensionsProfileScannerService.js';
 import { LoggerChannel } from '../../platform/log/electron-main/logIpc.js';
@@ -129,8 +128,6 @@ import { ipcUtilityProcessWorkerChannelName } from '../../platform/utilityProces
 import { ILocalPtyService, LocalReconnectConstants, TerminalIpcChannels, TerminalSettingId } from '../../platform/terminal/common/terminal.js';
 import { ElectronPtyHostStarter } from '../../platform/terminal/electron-main/electronPtyHostStarter.js';
 import { PtyHostService } from '../../platform/terminal/node/ptyHostService.js';
-import { ElectronAgentHostStarter } from '../../platform/agentHost/electron-main/electronAgentHostStarter.js';
-import { AgentHostProcessManager } from '../../platform/agentHost/node/agentHostService.js';
 import { NODE_REMOTE_RESOURCE_CHANNEL_NAME, NODE_REMOTE_RESOURCE_IPC_METHOD_NAME, NodeRemoteResourceResponse, NodeRemoteResourceRouter } from '../../platform/remote/common/electronRemoteResources.js';
 import { Lazy } from '../../base/common/lazy.js';
 import { IAuxiliaryWindowsMainService } from '../../platform/auxiliaryWindow/electron-main/auxiliaryWindows.js';
@@ -139,8 +136,8 @@ import { normalizeNFC } from '../../base/common/normalization.js';
 import { ICSSDevelopmentService, CSSDevelopmentService } from '../../platform/cssDev/node/cssDevService.js';
 import { IWebContentExtractorService } from '../../platform/webContentExtractor/common/webContentExtractor.js';
 import { NativeWebContentExtractorService } from '../../platform/webContentExtractor/electron-main/webContentExtractorService.js';
-import { AgentNetworkFilterService, IAgentNetworkFilterService } from '../../platform/networkFilter/common/networkFilterService.js';
 import { ITerminalSandboxService, NullTerminalSandboxService } from '../../platform/sandbox/common/terminalSandboxService.js';
+import { AgentNetworkFilterService, IAgentNetworkFilterService } from '../../platform/networkFilter/common/networkFilterService.js';
 import ErrorTelemetry from '../../platform/telemetry/electron-main/errorTelemetry.js';
 
 type OSProxyConfigEvent = {
@@ -724,16 +721,6 @@ export class CodeApplication extends Disposable {
 		// Error telemetry
 		appInstantiationService.invokeFunction(accessor => this._register(new ErrorTelemetry(accessor.get(ILogService), accessor.get(ITelemetryService))));
 
-		// Agent Host
-		// Always instantiate the starter + manager. They are cheap (the
-		// constructors only register an IPC listener and emitters) and the agent
-		// host utility process is spawned lazily on the first window connection
-		// request. The renderer only requests a connection when the runtime is
-		// available and AI features are enabled there, which the main process
-		// cannot fully observe.
-		const agentHostStarter = new ElectronAgentHostStarter({ machineId, sqmId, devDeviceId }, this.configurationService, this.environmentMainService, this.lifecycleMainService, this.logService);
-		this._register(appInstantiationService.createInstance(AgentHostProcessManager, agentHostStarter, process.platform));
-
 		// Metered connection telemetry
 		appInstantiationService.invokeFunction(accessor => {
 			(accessor.get(IMeteredConnectionService) as MeteredConnectionMainService).setTelemetryService(accessor.get(ITelemetryService));
@@ -1066,15 +1053,6 @@ export class CodeApplication extends Disposable {
 			this.environmentMainService.continueOn = continueOn ?? undefined;
 		}
 
-		// Extract session parameter to open a specific chat session in the target window
-		const session = params.get('session');
-		if (session !== null) {
-			this.logService.trace(`app#handleProtocolUrl() found 'session' as parameter:`, uri.toString(true));
-
-			params.delete('session');
-			uri = uri.with({ query: params.toString() });
-		}
-
 		// Check if the protocol URL is a window openable to open...
 		const windowOpenableFromProtocolUrl = this.getWindowOpenableFromProtocolUrl(uri);
 		if (windowOpenableFromProtocolUrl) {
@@ -1095,11 +1073,6 @@ export class CodeApplication extends Disposable {
 				})).at(0);
 
 				window?.focus(); // this should help ensuring that the right window gets focus when multiple are opened
-
-				// Open chat session in the target window if requested
-				if (window && session) {
-					window.sendWhenReady('vscode:openChatSession', CancellationToken.None, session);
-				}
 
 				return true;
 			}
@@ -1451,15 +1424,6 @@ export class CodeApplication extends Disposable {
 
 		const context = isLaunchedFromCli(process.env) ? OpenContext.CLI : OpenContext.DESKTOP;
 		const args = this.environmentMainService.args;
-
-		// Handle agents window first based on context
-		if (args['agents']) {
-			return windowsMainService.openAgentsWindow({
-				context,
-				cli: args,
-				initialStartup: true
-			});
-		}
 
 		// Then check for windows from protocol links to open
 		if (initialProtocolUrls) {

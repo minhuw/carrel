@@ -50,3 +50,18 @@
 .monaco-workbench.compact-chrome .part.auxiliarybar > * {
 	-webkit-app-region: no-drag;
 }
+
+/*
+ * The editor tab strip doubles as the main window drag surface. Individual
+ * tabs, editor actions and breadcrumbs stay interactive (and keep tab
+ * drag-and-drop); the gaps in between drag the window.
+ */
+.monaco-workbench.compact-chrome:not(.fullscreen) .part.editor > .content .editor-group-container > .title {
+	-webkit-app-region: drag;
+}
+
+.monaco-workbench.compact-chrome:not(.fullscreen) .part.editor > .content .editor-group-container > .title .tab,
+.monaco-workbench.compact-chrome:not(.fullscreen) .part.editor > .content .editor-group-container > .title .editor-actions,
+.monaco-workbench.compact-chrome:not(.fullscreen) .part.editor > .content .editor-group-container > .title .monaco-breadcrumbs {
+	-webkit-app-region: no-drag;
+}

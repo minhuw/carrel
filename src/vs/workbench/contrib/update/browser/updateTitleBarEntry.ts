@@ -9,7 +9,6 @@ import { IManagedHoverContent, IManagedHoverOptions, IHoverWidget } from '../../
 import { IAction, WorkbenchActionExecutedClassification, WorkbenchActionExecutedEvent } from '../../../../base/common/actions.js';
 import { AnchorAlignment } from '../../../../base/common/layout.js';
 import { Disposable, MutableDisposable } from '../../../../base/common/lifecycle.js';
-import { autorun } from '../../../../base/common/observable.js';
 import { isWeb } from '../../../../base/common/platform.js';
 import { localize } from '../../../../nls.js';
 import { IActionViewItemService } from '../../../../platform/actions/browser/actionViewItemService.js';
@@ -25,7 +24,6 @@ import { DisablementReason, IUpdateService, State, StateType } from '../../../..
 import { InEditorZenModeContext } from '../../../common/contextkeys.js';
 import { IWorkbenchContribution } from '../../../common/contributions.js';
 import { IHostService } from '../../../services/host/browser/host.js';
-import { IChatService } from '../../chat/common/chatService/chatService.js';
 import { computeProgressPercent } from '../common/updateUtils.js';
 import './media/updateTitleBarEntry.css';
 import { UpdateTooltip } from './updateTooltip.js';
@@ -85,7 +83,6 @@ export class UpdateTitleBarContribution extends Disposable implements IWorkbench
 
 	constructor(
 		@IActionViewItemService actionViewItemService: IActionViewItemService,
-		@IChatService chatService: IChatService,
 		@IConfigurationService private readonly configurationService: IConfigurationService,
 		@IContextKeyService contextKeyService: IContextKeyService,
 		@IHostService private readonly hostService: IHostService,
@@ -101,11 +98,6 @@ export class UpdateTitleBarContribution extends Disposable implements IWorkbench
 
 		this.context = UPDATE_TITLE_BAR_CONTEXT.bindTo(contextKeyService);
 		this.tooltip = this._register(instantiationService.createInstance(UpdateTooltip));
-
-		const chatInProgressContext = UPDATE_TITLE_BAR_CHAT_IN_PROGRESS_CONTEXT.bindTo(contextKeyService);
-		this._register(autorun(reader => {
-			chatInProgressContext.set(chatService.requestInProgressObs.read(reader));
-		}));
 
 		this.state = updateService.state;
 		this._register(updateService.onStateChange((state) => {

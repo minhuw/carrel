@@ -79,7 +79,6 @@ const vscodeResourceIncludes = [
 
 	// Workbench
 	'out-build/vs/code/electron-browser/workbench/workbench.html',
-	'out-build/vs/sessions/electron-browser/sessions.html',
 
 	// Electron Preload
 	'out-build/vs/base/parts/sandbox/electron-browser/preload.js',
@@ -111,15 +110,6 @@ const vscodeResourceIncludes = [
 	'out-build/vs/workbench/contrib/welcomeGettingStarted/common/media/**/*.{svg,png}',
 	'out-build/vs/workbench/contrib/welcomeOnboarding/browser/media/*.svg',
 
-	// Chat Pet
-	'out-build/vs/workbench/contrib/chat/browser/widget/media/chatPet/*.{gif,png}',
-
-	// Sessions
-	'out-build/vs/sessions/contrib/chat/browser/media/*.svg',
-	'out-build/vs/sessions/contrib/welcome/browser/media/*.svg',
-	'out-build/vs/sessions/contrib/welcome/browser/media/themePreviews/*.svg',
-	'out-build/vs/sessions/prompts/*.prompt.md',
-	'out-build/vs/sessions/skills/**/SKILL.md',
 
 	// Extensions
 	'out-build/vs/workbench/contrib/extensions/browser/media/{theme-icon.png,language-icon.svg}',
@@ -173,7 +163,7 @@ const bundleVSCodeTask = task.define('bundle-vscode', task.series(
 					...bootstrapEntryPoints
 				],
 				resources: vscodeResources,
-				skipTSBoilerplateRemoval: entryPoint => entryPoint === 'vs/code/electron-browser/workbench/workbench' || entryPoint === 'vs/sessions/electron-browser/sessions'
+				skipTSBoilerplateRemoval: entryPoint => entryPoint === 'vs/code/electron-browser/workbench/workbench'
 			}
 		}
 	)
@@ -281,11 +271,7 @@ function packageTask(platform: string, arch: string, sourceFolderName: string, d
 			'vs/workbench/workbench.desktop.main.css',
 			'vs/workbench/api/node/extensionHostProcess.js',
 			'vs/code/electron-browser/workbench/workbench.html',
-			'vs/code/electron-browser/workbench/workbench.js',
-			'vs/sessions/sessions.desktop.main.js',
-			'vs/sessions/sessions.desktop.main.css',
-			'vs/sessions/electron-browser/sessions.html',
-			'vs/sessions/electron-browser/sessions.js'
+			'vs/code/electron-browser/workbench/workbench.js'
 		]);
 
 		const src = gulp.src(out + '/**', { base: '.' })

@@ -8,8 +8,6 @@ import { $ } from '../../../../../base/browser/dom.js';
 import { renderIcon } from '../../../../../base/browser/ui/iconLabel/iconLabels.js';
 import { Codicon } from '../../../../../base/common/codicons.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
-import { IContextKeyService } from '../../../../../platform/contextkey/common/contextkey.js';
-import { ChatContextKeys } from '../../../chat/common/actions/chatContextKeys.js';
 import { IBrowserViewModel } from '../../common/browserView.js';
 import { BrowserEditorInput } from '../../common/browserEditorInput.js';
 import {
@@ -30,7 +28,6 @@ export class BrowserWelcomeFeature extends BrowserEditorContribution {
 
 	constructor(
 		editor: BrowserEditor,
-		@IContextKeyService contextKeyService: IContextKeyService,
 	) {
 		super(editor);
 
@@ -46,10 +43,7 @@ export class BrowserWelcomeFeature extends BrowserEditorContribution {
 		content.appendChild(title);
 
 		const subtitle = $('.browser-welcome-subtitle');
-		const chatEnabled = contextKeyService.getContextKeyValue<boolean>(ChatContextKeys.enabled.key);
-		subtitle.textContent = chatEnabled
-			? localize('browser.welcomeSubtitleChat', "Use Add Element to Chat to reference UI elements in chat prompts.")
-			: localize('browser.welcomeSubtitle', "Enter a URL above to get started.");
+		subtitle.textContent = localize('browser.welcomeSubtitle', "Enter a URL above to get started.");
 		content.appendChild(subtitle);
 
 		this._container.appendChild(content);

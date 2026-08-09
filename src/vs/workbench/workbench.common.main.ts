@@ -11,14 +11,6 @@ import './api/browser/extensionHost.contribution.js';
 import './browser/workbench.contribution.js';
 import './browser/workbench.zenMode.contribution.js';
 
-// Agent-sessions color tokens — side-effect import so they register in the
-// global color registry and appear in the color-theme JSON schema.
-import '../sessions/common/theme.js';
-
-// Agent-sessions size tokens (font ramp) — side-effect import so they register
-// in the global size registry and appear in the workbench-sizes JSON schema.
-import '../sessions/common/sizes.js';
-
 //#endregion
 
 
@@ -78,7 +70,6 @@ import './services/configuration/common/jsonEditingService.js';
 import './services/textmodelResolver/common/textModelResolverService.js';
 import './services/editor/browser/editorService.js';
 import './services/editor/browser/editorResolverService.js';
-import './services/aiEmbeddingVector/common/aiEmbeddingVectorService.js';
 import './services/aiRelatedInformation/common/aiRelatedInformationService.js';
 import './services/aiSettingsSearch/common/aiSettingsSearchService.js';
 import './services/history/browser/historyService.js';
@@ -168,8 +159,12 @@ import { UserDataSyncLogService } from '../platform/userDataSync/common/userData
 import { AllowedExtensionsService } from '../platform/extensionManagement/common/allowedExtensionsService.js';
 import { IWebWorkerService } from '../platform/webWorker/browser/webWorkerService.js';
 import { WebWorkerService } from '../platform/webWorker/browser/webWorkerServiceImpl.js';
+import { AgentNetworkFilterService, IAgentNetworkFilterService } from '../platform/networkFilter/common/networkFilterService.js';
 
 registerSingleton(IUserDataSyncLogService, UserDataSyncLogService, InstantiationType.Delayed);
+// Carrel: renderer-side registration for the network filter used by the
+// integrated browser (upstream registered this with the removed chat stack).
+registerSingleton(IAgentNetworkFilterService, AgentNetworkFilterService, InstantiationType.Delayed);
 registerSingleton(IAllowedExtensionsService, AllowedExtensionsService, InstantiationType.Delayed);
 registerSingleton(IIgnoredExtensionsManagementService, IgnoredExtensionsManagementService, InstantiationType.Delayed);
 registerSingleton(IGlobalExtensionEnablementService, GlobalExtensionEnablementService, InstantiationType.Delayed);
@@ -215,17 +210,7 @@ import './contrib/notebook/browser/notebook.contribution.js';
 // Speech
 import './contrib/speech/browser/speech.contribution.js';
 
-// Chat
-import './contrib/chat/browser/chat.shared.contribution.js';
-import './contrib/chat/browser/chat.contribution.js';
-import './contrib/chat/browser/agentSessions/agentHost/agentHost.contribution.js';
-import './contrib/chat/browser/chat.view.contribution.js';
-
-
-// Floating Chat Input Window
-import './contrib/chat/browser/chatInputWindow/chatInputWindow.contribution.js';
-import './contrib/chat/browser/chatSessions/chatSessions.contribution.js';
-import './contrib/chat/browser/contextContrib/chatContext.contribution.js';
+// Image carousel (upstream registered this with the removed chat stack).
 import './contrib/imageCarousel/browser/imageCarousel.contribution.js';
 
 // Interactive
@@ -382,7 +367,6 @@ import './contrib/welcomeViews/common/viewsWelcome.contribution.js';
 import './contrib/welcomeViews/common/newFile.contribution.js';
 
 // Welcome Onboarding
-import './contrib/welcomeOnboarding/browser/welcomeOnboarding.contribution.js';
 
 // Onboarding (scenario engine)
 import './contrib/onboarding/browser/onboarding.contribution.js';

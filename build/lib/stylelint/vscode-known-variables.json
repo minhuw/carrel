@@ -1391,7 +1391,8 @@
 		"--menu-activity-bar-hover-outline",
 		"--menu-activity-bar-active-foreground",
 		"--menu-activity-bar-active-background",
-		"--menu-activity-bar-separator-color"
+		"--menu-activity-bar-separator-color",
+		"--carrel-traffic-lights-offset"
 	],
 	"sizes": [
 		"--segmented-icon-toggle-cell-radius",

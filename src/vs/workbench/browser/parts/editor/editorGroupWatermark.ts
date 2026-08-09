@@ -3,123 +3,103 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { $, append, clearNode, h } from '../../../../base/browser/dom.js';
-import { ActionBar, ActionsOrientation } from '../../../../base/browser/ui/actionbar/actionbar.js';
-import { BaseActionViewItem } from '../../../../base/browser/ui/actionbar/actionViewItems.js';
-import { renderIcon } from '../../../../base/browser/ui/iconLabel/iconLabels.js';
+import { $, addDisposableListener, append, clearNode, EventType, h } from '../../../../base/browser/dom.js';
 import { KeybindingLabel } from '../../../../base/browser/ui/keybindingLabel/keybindingLabel.js';
-import { Action, IAction } from '../../../../base/common/actions.js';
-import { coalesce, shuffle } from '../../../../base/common/arrays.js';
 import { Codicon } from '../../../../base/common/codicons.js';
-import { isCancellationError } from '../../../../base/common/errors.js';
-import { ResolvedKeybinding } from '../../../../base/common/keybindings.js';
 import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
-import { isMacintosh, isWeb, OS } from '../../../../base/common/platform.js';
+import { isWeb, OS } from '../../../../base/common/platform.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
 import { localize } from '../../../../nls.js';
-import { MenuId } from '../../../../platform/actions/common/actions.js';
 import { HiddenItemStrategy, MenuWorkbenchToolBar } from '../../../../platform/actions/browser/toolbar.js';
+import { MenuId } from '../../../../platform/actions/common/actions.js';
 import { CommandsRegistry, ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { ContextKeyExpr, ContextKeyExpression, IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
-import { IHoverService } from '../../../../platform/hover/browser/hover.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { IKeybindingService } from '../../../../platform/keybinding/common/keybinding.js';
-import { INotificationService } from '../../../../platform/notification/common/notification.js';
+import { IQuickInputService } from '../../../../platform/quickinput/common/quickInput.js';
 import { IStorageService, StorageScope, StorageTarget, WillSaveStateReason } from '../../../../platform/storage/common/storage.js';
 import { defaultKeybindingLabelStyles } from '../../../../platform/theme/browser/defaultStyles.js';
-import { registerIcon } from '../../../../platform/theme/common/iconRegistry.js';
 import { IWorkspaceContextService, WorkbenchState } from '../../../../platform/workspace/common/workspace.js';
 
 interface WatermarkEntry {
 	readonly id: string;
-	readonly text: string;
 	readonly icon: ThemeIcon;
+	readonly label: string;
+	readonly description: string;
 	readonly when?: {
 		native?: ContextKeyExpression;
 		web?: ContextKeyExpression;
 	};
 }
 
-const showCommands: WatermarkEntry = {
-	text: localize('watermark.showCommands', "Show All Commands"), id: 'workbench.action.showCommands',
-	icon: registerIcon('watermark-commands', Codicon.listSelection, localize('watermark.commandsIcon', "Icon for showing all commands in the editor watermark."))
-};
-const gotoFile: WatermarkEntry = {
-	text: localize('watermark.quickAccess', "Go to File"), id: 'workbench.action.quickOpen',
-	icon: registerIcon('watermark-quick-open', Codicon.goToFile, localize('watermark.quickOpenIcon', "Icon for going to a file in the editor watermark."))
-};
 const openFile: WatermarkEntry = {
-	text: localize('watermark.openFile', "Open File"), id: 'workbench.action.files.openFile',
-	icon: registerIcon('watermark-open-file', Codicon.goToFile, localize('watermark.openFileIcon', "Icon for opening a file in the editor watermark."))
+	id: 'workbench.action.files.openFile',
+	icon: Codicon.goToFile,
+	label: localize('watermark.openFile', "Open File"),
+	description: localize('watermark.openFile.description', "Open a file from disk"),
 };
+
 const openFolder: WatermarkEntry = {
-	text: localize('watermark.openFolder', "Open Folder"), id: 'workbench.action.files.openFolder',
-	icon: registerIcon('watermark-open-folder', Codicon.folderOpened, localize('watermark.openFolderIcon', "Icon for opening a folder in the editor watermark."))
+	id: 'workbench.action.files.openFolder',
+	icon: Codicon.folderOpened,
+	label: localize('watermark.openFolder', "Open Folder"),
+	description: localize('watermark.openFolder.description', "Open a folder to start working"),
 };
-const openFileOrFolder: WatermarkEntry = {
-	text: localize('watermark.openFileFolder', "Open File or Folder"), id: 'workbench.action.files.openFileFolder',
-	icon: registerIcon('watermark-open-file-folder', Codicon.folderOpened, localize('watermark.openFileFolderIcon', "Icon for opening a file or folder in the editor watermark."))
-};
-const openRecent: WatermarkEntry = {
-	text: localize('watermark.openRecent', "Open Recent"), id: 'workbench.action.openRecent',
-	icon: registerIcon('watermark-open-recent', Codicon.history, localize('watermark.openRecentIcon', "Icon for opening a recent workspace in the editor watermark."))
-};
+
 const newUntitledFile: WatermarkEntry = {
-	text: localize('watermark.newUntitledFile', "New Untitled Text File"), id: 'workbench.action.files.newUntitledFile',
-	icon: registerIcon('watermark-new-file', Codicon.newFile, localize('watermark.newFileIcon', "Icon for creating a file in the editor watermark."))
-};
-const findInFiles: WatermarkEntry = {
-	text: localize('watermark.findInFiles', "Find in Files"), id: 'workbench.action.findInFiles',
-	icon: registerIcon('watermark-find-in-files', Codicon.search, localize('watermark.findInFilesIcon', "Icon for finding in files in the editor watermark."))
-};
-const toggleTerminal: WatermarkEntry = {
-	text: localize({ key: 'watermark.toggleTerminal', comment: ['toggle is a verb here'] }, "Toggle Terminal"), id: 'workbench.action.terminal.toggleTerminal',
-	icon: registerIcon('watermark-terminal', Codicon.terminal, localize('watermark.terminalIcon', "Icon for toggling the terminal in the editor watermark.")),
-	when: { web: ContextKeyExpr.equals('terminalProcessSupported', true) }
-};
-const startDebugging: WatermarkEntry = {
-	text: localize('watermark.startDebugging', "Start Debugging"), id: 'workbench.action.debug.start',
-	icon: registerIcon('watermark-debug', Codicon.debugStart, localize('watermark.debugIcon', "Icon for starting debugging in the editor watermark.")),
-	when: { web: ContextKeyExpr.equals('terminalProcessSupported', true) }
-};
-const openSettings: WatermarkEntry = {
-	text: localize('watermark.openSettings', "Open Settings"), id: 'workbench.action.openSettings',
-	icon: registerIcon('watermark-settings', Codicon.settings, localize('watermark.settingsIcon', "Icon for opening settings in the editor watermark."))
+	id: 'workbench.action.files.newUntitledFile',
+	icon: Codicon.newFile,
+	label: localize('watermark.newUntitledFile', "New File"),
+	description: localize('watermark.newUntitledFile.description', "Create a new untitled text file"),
 };
 
-const baseEntries: WatermarkEntry[] = [
+const showCommands: WatermarkEntry = {
+	id: 'workbench.action.showCommands',
+	icon: Codicon.keyboard,
+	label: localize('watermark.showCommands', "Show All Commands"),
+	description: localize('watermark.showCommands.description', "Run any command from the Command Palette"),
+};
+
+const openTerminal: WatermarkEntry = {
+	id: 'workbench.action.terminal.new',
+	icon: Codicon.terminal,
+	label: localize('watermark.openTerminal', "Open Terminal"),
+	description: localize('watermark.openTerminal.description', "Open a new integrated terminal"),
+	when: { web: ContextKeyExpr.equals('terminalProcessSupported', true) },
+};
+
+const cloneRepository: WatermarkEntry = {
+	id: 'git.clone',
+	icon: Codicon.repoClone,
+	label: localize('watermark.cloneRepository', "Clone Repository"),
+	description: localize('watermark.cloneRepository.description', "Clone a Git repository from a remote"),
+};
+
+const emptyWindowEntries: WatermarkEntry[] = [
+	openFile,
+	openFolder,
+	newUntitledFile,
 	showCommands,
+	openTerminal,
+	cloneRepository,
 ];
-
-const emptyWindowEntries: WatermarkEntry[] = coalesce([
-	...baseEntries,
-	openRecent,
-	...(isMacintosh && !isWeb ? [openFileOrFolder] : [openFile, openFolder]),
-	isMacintosh && !isWeb ? newUntitledFile : undefined, // fill in one more on macOS to get to 5 entries
-]);
 
 const workspaceEntries: WatermarkEntry[] = [
-	...baseEntries,
-];
-
-const otherEntries: WatermarkEntry[] = [
-	gotoFile,
-	findInFiles,
-	startDebugging,
-	toggleTerminal,
-	openSettings,
+	openFile,
+	newUntitledFile,
+	showCommands,
+	openTerminal,
 ];
 
 export class EditorGroupWatermark extends Disposable {
 
 	private static readonly CACHED_WHEN = 'editorGroupWatermark.whenConditions';
 	private static readonly SETTINGS_KEY = 'workbench.tips.enabled';
-	private static readonly MINIMUM_ENTRIES = 3;
 
 	private readonly cachedWhen: { [when: string]: boolean };
 
-	private readonly shortcuts: HTMLElement;
+	private readonly cards: HTMLElement;
 	private readonly toolbarContainer: HTMLElement;
 	private readonly transientDisposables = this._register(new DisposableStore());
 	private readonly shortcutDisposables = this._register(new DisposableStore());
@@ -136,26 +116,48 @@ export class EditorGroupWatermark extends Disposable {
 		@IStorageService private readonly storageService: IStorageService,
 		@IInstantiationService private readonly instantiationService: IInstantiationService,
 		@ICommandService private readonly commandService: ICommandService,
-		@INotificationService private readonly notificationService: INotificationService
+		@IQuickInputService private readonly quickInputService: IQuickInputService
 	) {
 		super();
 
 		this.cachedWhen = this.storageService.getObject(EditorGroupWatermark.CACHED_WHEN, StorageScope.PROFILE, Object.create(null));
 		this.workbenchState = this.contextService.getWorkbenchState();
 
+		const searchLabel = localize('watermark.searchCommands', "Type to search commands");
+
 		const elements = h('.editor-group-watermark-wrapper', [
 			h('.editor-group-watermark-toolbar-container@toolbarContainer'),
 			h('.editor-group-watermark', [
 				h('.watermark-container', [
 					h('.letterpress'),
-					h('.shortcuts@shortcuts'),
+					h('.watermark-body', [
+						h('.watermark-cards@cards'),
+						h('.watermark-search', [
+							h('input@searchInput', { type: 'text', placeholder: searchLabel, 'aria-label': searchLabel }),
+						]),
+					]),
 				])
 			])
 		]);
 
 		append(container, elements.root);
-		this.shortcuts = elements.shortcuts;
+		this.cards = elements.cards;
 		this.toolbarContainer = elements.toolbarContainer;
+
+		// The search input is a launcher: focusing or submitting it forwards
+		// to the Command Palette, seeded with any typed text.
+		const openCommandPalette = () => {
+			const filter = elements.searchInput.value.trim();
+			elements.searchInput.value = '';
+			elements.searchInput.blur();
+			this.quickInputService.quickAccess.show(filter ? `>${filter}` : '>');
+		};
+		this._register(addDisposableListener(elements.searchInput, EventType.FOCUS, openCommandPalette));
+		this._register(addDisposableListener(elements.searchInput, EventType.KEY_DOWN, e => {
+			if (e.key === 'Enter') {
+				openCommandPalette();
+			}
+		}));
 
 		this._register(this.instantiationService.createInstance(MenuWorkbenchToolBar, this.toolbarContainer, MenuId.EditorGroupWatermarkToolbar, {
 			hiddenItemStrategy: HiddenItemStrategy.NoHide,
@@ -187,7 +189,7 @@ export class EditorGroupWatermark extends Disposable {
 
 		this._register(this.storageService.onWillSaveState(e => {
 			if (e.reason === WillSaveStateReason.SHUTDOWN) {
-				const entries = [...emptyWindowEntries, ...workspaceEntries, ...otherEntries];
+				const entries = [...emptyWindowEntries, ...workspaceEntries];
 				for (const entry of entries) {
 					const when = isWeb ? entry.when?.web : entry.when?.native;
 					if (when) {
@@ -203,7 +205,7 @@ export class EditorGroupWatermark extends Disposable {
 	private render(): void {
 		this.enabled = this.configurationService.getValue<boolean>(EditorGroupWatermark.SETTINGS_KEY);
 
-		clearNode(this.shortcuts);
+		clearNode(this.cards);
 		this.transientDisposables.clear();
 		this.shortcutDisposables.clear();
 
@@ -212,42 +214,37 @@ export class EditorGroupWatermark extends Disposable {
 		}
 
 		const entries = this.filterEntries(this.workbenchState !== WorkbenchState.EMPTY ? workspaceEntries : emptyWindowEntries);
-		if (entries.length < EditorGroupWatermark.MINIMUM_ENTRIES) {
-			const additionalEntries = this.filterEntries(otherEntries);
-			shuffle(additionalEntries);
-			entries.push(...additionalEntries.slice(0, EditorGroupWatermark.MINIMUM_ENTRIES - entries.length));
+		if (!entries.length) {
+			return;
 		}
 
-		const box = append(this.shortcuts, $('.watermark-box'));
+		const cardDisposables = this.transientDisposables.add(new DisposableStore());
 
 		const update = () => {
-			clearNode(box);
+			clearNode(this.cards);
 			this.shortcutDisposables.clear();
+			cardDisposables.clear();
 
-			const shortcuts = new Map<string, { entry: WatermarkEntry; keybinding: ResolvedKeybinding }>();
 			for (const entry of entries) {
-				const keybinding = this.keybindingService.lookupKeybinding(entry.id);
-				if (keybinding) {
-					shortcuts.set(entry.id, { entry, keybinding });
-				}
-			}
+				const card = append(this.cards, $('button.watermark-card', { type: 'button' }));
 
-			const actionBar = this.shortcutDisposables.add(new ActionBar(box, {
-				orientation: ActionsOrientation.VERTICAL,
-				ariaLabel: localize('watermark.shortcuts', "Editor Shortcuts"),
-				actionViewItemProvider: action => {
-					const shortcut = shortcuts.get(action.id);
-					return shortcut ? this.instantiationService.createInstance(WatermarkActionViewItem, action, shortcut.entry.icon, shortcut.keybinding) : undefined;
-				},
-			}));
-			this.shortcutDisposables.add(actionBar.onDidRun(e => {
-				if (e.error && !isCancellationError(e.error)) {
-					this.notificationService.error(e.error);
-				}
-			}));
+				const icon = append(card, $('span.watermark-card-icon'));
+				icon.classList.add(...ThemeIcon.asClassNameArray(entry.icon));
 
-			for (const { entry } of shortcuts.values()) {
-				actionBar.push(this.shortcutDisposables.add(new Action(entry.id, entry.text, undefined, true, () => this.commandService.executeCommand(entry.id))));
+				const text = append(card, $('span.watermark-card-text'));
+				const label = append(text, $('span.watermark-card-label'));
+				label.textContent = entry.label;
+				const description = append(text, $('span.watermark-card-description'));
+				description.textContent = entry.description;
+
+				const keys = this.keybindingService.lookupKeybinding(entry.id);
+				if (keys) {
+					const keybindingContainer = append(card, $('span.watermark-card-keybinding'));
+					const keybindingLabel = this.shortcutDisposables.add(new KeybindingLabel(keybindingContainer, OS, { renderUnboundKeybindings: true, ...defaultKeybindingLabelStyles }));
+					keybindingLabel.set(keys);
+				}
+
+				cardDisposables.add(addDisposableListener(card, EventType.CLICK, () => this.commandService.executeCommand(entry.id)));
 			}
 		};
 
@@ -265,35 +262,9 @@ export class EditorGroupWatermark extends Disposable {
 				const contextKey = isWeb ? entry.when?.web : entry.when?.native;
 				return !contextKey /* works without context */ || this.contextKeyService.contextMatchesRules(contextKey);
 			})
-			.filter(entry => !!CommandsRegistry.getCommand(entry.id))
-			.filter(entry => !!this.keybindingService.lookupKeybinding(entry.id));
+			.filter(entry => !!CommandsRegistry.getCommand(entry.id));
 
 		return filteredEntries;
 	}
 }
 
-class WatermarkActionViewItem extends BaseActionViewItem {
-
-	constructor(
-		action: IAction,
-		private readonly icon: ThemeIcon,
-		private readonly keybinding: ResolvedKeybinding,
-		@IHoverService private readonly hoverService: IHoverService,
-	) {
-		super(undefined, action);
-	}
-
-	override render(container: HTMLElement): void {
-		const row = append(container, $('a.action-label.watermark-entry'));
-		super.render(row);
-		row.setAttribute('role', 'button');
-		row.setAttribute('aria-label', localize('watermark.shortcutAriaLabel', "{0} ({1})", this._action.label, this.keybinding.getAriaLabel()));
-
-		const icon = append(row, renderIcon(this.icon));
-		icon.classList.add('watermark-icon');
-		icon.setAttribute('aria-hidden', 'true');
-		append(row, $('span.watermark-label')).textContent = this._action.label;
-		this._register(new KeybindingLabel(append(row, $('span.watermark-keybinding')), OS, defaultKeybindingLabelStyles)).set(this.keybinding);
-		this._register(this.hoverService.setupDelayedHover(row, { content: this._action.label }));
-	}
-}

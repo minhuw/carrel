@@ -27,7 +27,7 @@ import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { isDark } from '../../../../../platform/theme/common/theme.js';
 import { IThemeService } from '../../../../../platform/theme/common/themeService.js';
 import { IEditorService } from '../../../../services/editor/common/editorService.js';
-import { IExtensionService, isProposedApiEnabled } from '../../../../services/extensions/common/extensions.js';
+import { IExtensionService } from '../../../../services/extensions/common/extensions.js';
 import { ExtensionsRegistry } from '../../../../services/extensions/common/extensionsRegistry.js';
 import { ChatEditorInput } from '../widgetHosts/editor/chatEditorInput.js';
 import { IChatAgentAttachmentCapabilities, IChatAgentData, IChatAgentService } from '../../common/participants/chatAgents.js';
@@ -372,9 +372,6 @@ export class ChatSessionsService extends Disposable implements IChatSessionsServ
 
 		this._register(extensionPoint.setHandler(extensions => {
 			for (const ext of extensions) {
-				if (!isProposedApiEnabled(ext.description, 'chatSessionsProvider')) {
-					continue;
-				}
 				if (!Array.isArray(ext.value)) {
 					continue;
 				}

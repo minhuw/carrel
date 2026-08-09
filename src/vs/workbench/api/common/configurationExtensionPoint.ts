@@ -8,7 +8,7 @@ import * as objects from '../../../base/common/objects.js';
 import { Registry } from '../../../platform/registry/common/platform.js';
 import { IJSONSchema } from '../../../base/common/jsonSchema.js';
 import { ExtensionsRegistry, IExtensionPointUser } from '../../services/extensions/common/extensionsRegistry.js';
-import { IConfigurationNode, IConfigurationRegistry, Extensions, validateProperty, ConfigurationScope, OVERRIDE_PROPERTY_REGEX, IConfigurationDefaults, configurationDefaultsSchemaId, IConfigurationDelta, getDefaultValue, getAllConfigurationProperties, parseScope, EXTENSION_UNIFICATION_EXTENSION_IDS, overrideIdentifiersFromKey } from '../../../platform/configuration/common/configurationRegistry.js';
+import { IConfigurationNode, IConfigurationRegistry, Extensions, validateProperty, ConfigurationScope, OVERRIDE_PROPERTY_REGEX, IConfigurationDefaults, configurationDefaultsSchemaId, IConfigurationDelta, getDefaultValue, getAllConfigurationProperties, parseScope, overrideIdentifiersFromKey } from '../../../platform/configuration/common/configurationRegistry.js';
 import { IJSONContributionRegistry, Extensions as JSONExtensions } from '../../../platform/jsonschemas/common/jsonContributionRegistry.js';
 import { workspaceSettingsSchemaId, launchSchemaId, tasksSchemaId } from '../../services/configuration/common/configuration.js';
 import { hasKey, isObject, isUndefined } from '../../../base/common/types.js';
@@ -146,21 +146,6 @@ const configurationEntrySchema: IJSONSchema = {
 								additionalItems: true,
 								markdownDescription: nls.localize('scope.tags', 'A list of tags under which to place the setting. The tag can then be searched up in the Settings editor. For example, specifying the `experimental` tag allows one to find the setting by searching `@tag:experimental`.'),
 							},
-							agentsWindow: {
-								type: 'object',
-								markdownDescription: nls.localize('scope.agentsWindow', "Configuration overrides for the Agents window. Allows specifying a different default value and read-only behavior for this setting when running in the Agents window.\n\n**Note**: This is a proposed API. To use it, extensions must include `agentsWindowConfiguration` in their `enabledApiProposals`."),
-								properties: {
-									'default': {
-										description: nls.localize('scope.agentsWindow.default', 'The default value for this setting in the Agents window.'),
-									},
-									readOnly: {
-										type: 'boolean',
-										description: nls.localize('scope.agentsWindow.readOnly', 'When true, this setting cannot be changed by the user in the Agents window.'),
-										default: false,
-									}
-								},
-								additionalProperties: false
-							}
 						}
 					}
 				]
@@ -296,7 +281,7 @@ configurationExtPoint.setHandler((extensions, { added, removed }) => {
 					extension.collector.warn(message);
 					continue;
 				}
-				if (seenProperties.has(key) && !EXTENSION_UNIFICATION_EXTENSION_IDS.has(extension.description.identifier.value.toLowerCase())) {
+				if (seenProperties.has(key)) {
 					delete properties[key];
 					extension.collector.warn(nls.localize('config.property.duplicate', "Cannot register '{0}'. This property is already registered.", key));
 					continue;
@@ -321,10 +306,6 @@ configurationExtPoint.setHandler((extensions, { added, removed }) => {
 					propertyConfiguration.experiment = {
 						mode: 'startup'
 					};
-				}
-				if (propertyConfiguration.agentsWindow) {
-					extension.collector.error(nls.localize('config.property.agentsWindow.proposed', "Extension '{0}' CANNOT use 'agentsWindow' property on configuration '{1}' without enabling the 'agentsWindowConfiguration' API proposal.", extension.description.identifier.value, key));
-					delete propertyConfiguration.agentsWindow;
 				}
 				if (propertyConfiguration.agentHost) {
 					extension.collector.error(nls.localize('config.property.agentHost.unsupported', "Extension '{0}' CANNOT use the 'agentHost' property on configuration '{1}'.", extension.description.identifier.value, key));

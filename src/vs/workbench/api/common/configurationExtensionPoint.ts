@@ -10,7 +10,7 @@ import { IJSONSchema } from '../../../base/common/jsonSchema.js';
 import { ExtensionsRegistry, IExtensionPointUser } from '../../services/extensions/common/extensionsRegistry.js';
 import { IConfigurationNode, IConfigurationRegistry, Extensions, validateProperty, ConfigurationScope, OVERRIDE_PROPERTY_REGEX, IConfigurationDefaults, configurationDefaultsSchemaId, IConfigurationDelta, getDefaultValue, getAllConfigurationProperties, parseScope, EXTENSION_UNIFICATION_EXTENSION_IDS, overrideIdentifiersFromKey } from '../../../platform/configuration/common/configurationRegistry.js';
 import { IJSONContributionRegistry, Extensions as JSONExtensions } from '../../../platform/jsonschemas/common/jsonContributionRegistry.js';
-import { workspaceSettingsSchemaId, launchSchemaId, tasksSchemaId, MCP_CONFIGURATION_KEY, mcpSchemaId } from '../../services/configuration/common/configuration.js';
+import { workspaceSettingsSchemaId, launchSchemaId, tasksSchemaId } from '../../services/configuration/common/configuration.js';
 import { hasKey, isObject, isUndefined } from '../../../base/common/types.js';
 import { ExtensionIdentifierMap, IExtensionManifest } from '../../../platform/extensions/common/extensions.js';
 import { IStringDictionary } from '../../../base/common/collections.js';

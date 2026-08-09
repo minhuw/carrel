@@ -13,7 +13,6 @@ import { IAICustomizationWorkspaceService } from '../../../../workbench/contrib/
 import { IPromptsService, PromptsStorage, IPromptPath } from '../../../../workbench/contrib/chat/common/promptSyntax/service/promptsService.js';
 import { PromptsType } from '../../../../workbench/contrib/chat/common/promptSyntax/promptTypes.js';
 import { AICustomizationManagementSection } from '../../../../workbench/contrib/chat/browser/aiCustomization/aiCustomizationManagement.js';
-import { IMcpService } from '../../../../workbench/contrib/mcp/common/mcpTypes.js';
 
 const PROMPT_SECTIONS: { section: AICustomizationManagementSection; type: PromptsType }[] = [
 	{ section: AICustomizationManagementSection.Agents, type: PromptsType.agent },
@@ -32,8 +31,7 @@ class CustomizationsDebugLogContribution extends Disposable implements IWorkbenc
 		@ILoggerService loggerService: ILoggerService,
 		@IPromptsService private readonly _promptsService: IPromptsService,
 		@IAICustomizationWorkspaceService private readonly _workspaceService: IAICustomizationWorkspaceService,
-		@IWorkspaceContextService private readonly _workspaceContextService: IWorkspaceContextService,
-		@IMcpService private readonly _mcpService: IMcpService
+		@IWorkspaceContextService private readonly _workspaceContextService: IWorkspaceContextService
 	) {
 		super();
 		this._logger = this._register(loggerService.createLogger('customizationsDebug', { name: 'Customizations Debug' }));
@@ -43,10 +41,6 @@ class CustomizationsDebugLogContribution extends Disposable implements IWorkbenc
 		this._register(this._workspaceContextService.onDidChangeWorkspaceFolders(() => this._logSnapshot()));
 		this._register(autorun(reader => {
 			this._workspaceService.activeProjectRoot.read(reader);
-			this._logSnapshot();
-		}));
-		this._register(autorun(reader => {
-			this._mcpService.servers.read(reader);
 			this._logSnapshot();
 		}));
 	}
@@ -92,22 +86,6 @@ class CustomizationsDebugLogContribution extends Disposable implements IWorkbenc
 			await this._logSectionDetails(section, type);
 		}
 
-		// MCP Servers
-		this._logMcpServers();
-	}
-
-	private _logMcpServers(): void {
-		const servers = this._mcpService.servers.get();
-		this._logger.info(`  -- MCP Servers (${servers.length}) --`);
-		if (servers.length === 0) {
-			this._logger.info('     (none registered)');
-		}
-		for (const server of servers) {
-			const state = server.connectionState.get();
-			const stateStr = state?.state ?? 'unknown';
-			this._logger.info(`     ${server.definition.label} [${stateStr}] id=${server.definition.id}`);
-		}
-		this._logger.info('');
 	}
 
 	private async _logSectionRow(section: AICustomizationManagementSection, type: PromptsType): Promise<void> {

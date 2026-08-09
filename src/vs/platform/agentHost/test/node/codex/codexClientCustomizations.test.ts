@@ -7,7 +7,7 @@ import assert from 'assert';
 import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { PluginFormat, type IMcpServerDefinition, type IParsedPlugin, type IParsedSkill } from '../../../../agentPlugins/common/pluginParsers.js';
-import { McpServerType, type IMcpServerConfiguration } from '../../../../mcp/common/mcpPlatformTypes.js';
+import { McpServerType, type IMcpServerConfiguration } from '../../../../agentPlugins/common/mcpServerConfigTypes.js';
 import type { ISyncedCustomization } from '../../../common/agentPluginManager.js';
 import { CustomizationType, McpServerStatus, type PluginCustomization } from '../../../common/state/protocol/channels-session/state.js';
 import { CodexClientCustomizationStore, codexMcpServersFromPlugins, codexSkillRootsFromPlugins, type ICodexClientPlugin } from '../../../node/codex/codexClientCustomizations.js';

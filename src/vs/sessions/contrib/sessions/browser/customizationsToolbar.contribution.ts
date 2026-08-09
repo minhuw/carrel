@@ -17,11 +17,10 @@ import { IWorkbenchContribution, registerWorkbenchContribution2, WorkbenchPhase 
 import { AICustomizationManagementEditor } from '../../../../workbench/contrib/chat/browser/aiCustomization/aiCustomizationManagementEditor.js';
 import { AICustomizationManagementEditorInput } from '../../../../workbench/contrib/chat/browser/aiCustomization/aiCustomizationManagementEditorInput.js';
 import { IAICustomizationItemsModel, ItemsModelSection } from '../../../../workbench/contrib/chat/browser/aiCustomization/aiCustomizationItemsModel.js';
-import { IMcpService } from '../../../../workbench/contrib/mcp/common/mcpTypes.js';
 import { ILanguageModelToolsService } from '../../../../workbench/contrib/chat/common/tools/languageModelToolsService.js';
 import { AGENT_HOST_COPILOT_CLI_SESSION_TYPE, countEnabledCustomizationTools, IAgentHostToolSetEnablementService } from '../../../../workbench/contrib/chat/browser/agentSessions/agentHost/agentHostToolSetEnablementService.js';
 import { Menus } from '../../../browser/menus.js';
-import { agentIcon, instructionsIcon, mcpServerIcon, pluginIcon, skillIcon, hookIcon, toolsIcon } from '../../../../workbench/contrib/chat/browser/aiCustomization/aiCustomizationIcons.js';
+import { agentIcon, instructionsIcon, pluginIcon, skillIcon, hookIcon, toolsIcon } from '../../../../workbench/contrib/chat/browser/aiCustomization/aiCustomizationIcons.js';
 import { ActionViewItem, IBaseActionViewItemOptions } from '../../../../base/browser/ui/actionbar/actionViewItems.js';
 import { IAction } from '../../../../base/common/actions.js';
 import { $, append } from '../../../../base/browser/dom.js';
@@ -43,7 +42,6 @@ export interface ICustomizationItemConfig {
 	readonly section?: typeof AICustomizationManagementSection[keyof typeof AICustomizationManagementSection];
 	/** If set, count comes from `IAICustomizationItemsModel.getCount(modelSection)`. */
 	readonly modelSection?: ItemsModelSection;
-	readonly isMcp?: boolean;
 	readonly isPlugins?: boolean;
 	readonly isTools?: boolean;
 	/** Additional `when` clause beyond the standard harness-visibility gate. */
@@ -94,13 +92,6 @@ export const CUSTOMIZATION_ITEMS: ICustomizationItemConfig[] = [
 		icon: hookIcon,
 		section: AICustomizationManagementSection.Hooks,
 		modelSection: AICustomizationManagementSection.Hooks,
-	},
-	{
-		id: 'sessions.customization.mcpServers',
-		label: localize('mcpServers', "MCP Servers"),
-		icon: mcpServerIcon,
-		section: AICustomizationManagementSection.McpServers,
-		isMcp: true,
 	},
 	{
 		id: 'sessions.customization.plugins',
@@ -167,7 +158,6 @@ export class CustomizationLinkViewItem extends ActionViewItem {
 		options: IBaseActionViewItemOptions,
 		private readonly _config: ICustomizationItemConfig,
 		@IAICustomizationItemsModel private readonly _itemsModel: IAICustomizationItemsModel,
-		@IMcpService private readonly _mcpService: IMcpService,
 		@ILanguageModelToolsService private readonly _toolsService: ILanguageModelToolsService,
 		@IAgentHostToolSetEnablementService private readonly _toolEnablementService: IAgentHostToolSetEnablementService,
 	) {
@@ -216,9 +206,6 @@ export class CustomizationLinkViewItem extends ActionViewItem {
 	private _readCount(reader: Parameters<Parameters<typeof autorun>[0]>[0]): number {
 		if (this._config.modelSection) {
 			return this._itemsModel.getCount(this._config.modelSection).read(reader);
-		}
-		if (this._config.isMcp) {
-			return this._mcpService.servers.read(reader).length;
 		}
 		if (this._config.isPlugins) {
 			return this._itemsModel.getPluginCount().read(reader);

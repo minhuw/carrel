@@ -137,11 +137,6 @@ import { IAuxiliaryWindowsMainService } from '../../platform/auxiliaryWindow/ele
 import { AuxiliaryWindowsMainService } from '../../platform/auxiliaryWindow/electron-main/auxiliaryWindowsMainService.js';
 import { normalizeNFC } from '../../base/common/normalization.js';
 import { ICSSDevelopmentService, CSSDevelopmentService } from '../../platform/cssDev/node/cssDevService.js';
-import { INativeMcpDiscoveryHelperService, NativeMcpDiscoveryHelperChannelName } from '../../platform/mcp/common/nativeMcpDiscoveryHelper.js';
-import { NativeMcpDiscoveryHelperService } from '../../platform/mcp/node/nativeMcpDiscoveryHelperService.js';
-import { IMcpGatewayService, McpGatewayChannelName } from '../../platform/mcp/common/mcpGateway.js';
-import { McpGatewayService } from '../../platform/mcp/node/mcpGatewayService.js';
-import { McpGatewayChannel } from '../../platform/mcp/node/mcpGatewayChannel.js';
 import { IWebContentExtractorService } from '../../platform/webContentExtractor/common/webContentExtractor.js';
 import { NativeWebContentExtractorService } from '../../platform/webContentExtractor/electron-main/webContentExtractorService.js';
 import { AgentNetworkFilterService, IAgentNetworkFilterService } from '../../platform/networkFilter/common/networkFilterService.js';
@@ -1290,10 +1285,6 @@ export class CodeApplication extends Disposable {
 		// Proxy Auth
 		services.set(IProxyAuthService, new SyncDescriptor(ProxyAuthService));
 
-		// MCP
-		services.set(INativeMcpDiscoveryHelperService, new SyncDescriptor(NativeMcpDiscoveryHelperService));
-		services.set(IMcpGatewayService, new SyncDescriptor(McpGatewayService));
-
 		// Dev Only: CSS service (for ESM)
 		services.set(ICSSDevelopmentService, new SyncDescriptor(CSSDevelopmentService, undefined, true));
 
@@ -1432,12 +1423,6 @@ export class CodeApplication extends Disposable {
 		// Sandbox Helper
 		const sandboxHelperChannel = ProxyChannel.fromService(accessor.get(ISandboxHelperMainService), disposables);
 		mainProcessElectronServer.registerChannel('sandboxHelper', sandboxHelperChannel);
-
-		// MCP
-		const mcpDiscoveryChannel = ProxyChannel.fromService(accessor.get(INativeMcpDiscoveryHelperService), disposables);
-		mainProcessElectronServer.registerChannel(NativeMcpDiscoveryHelperChannelName, mcpDiscoveryChannel);
-		const mcpGatewayChannel = this._register(new McpGatewayChannel(mainProcessElectronServer, accessor.get(IMcpGatewayService), accessor.get(ILoggerMainService)));
-		mainProcessElectronServer.registerChannel(McpGatewayChannelName, mcpGatewayChannel);
 
 		// Logger
 		const loggerChannel = this._register(new LoggerChannel(accessor.get(ILoggerMainService)));

@@ -41,7 +41,6 @@ import { AICustomizationManagementEditorInput } from './aiCustomizationManagemen
 import { aiCustomizationManagementSectionRegistry, IAICustomizationManagementSectionWidget } from './aiCustomizationManagementSectionRegistry.js';
 import { AICustomizationListWidget } from './aiCustomizationListWidget.js';
 import { IAICustomizationItemsModel, ITEMS_MODEL_SECTIONS } from './aiCustomizationItemsModel.js';
-import { McpListWidget } from './mcpListWidget.js';
 import { PluginListWidget } from './pluginListWidget.js';
 import { ToolsListWidget } from './toolsListWidget.js';
 import { AGENT_HOST_COPILOT_CLI_SESSION_TYPE } from '../agentSessions/agentHost/agentHostToolSetEnablementService.js';
@@ -92,10 +91,8 @@ import { IQuickInputService, IQuickPickItem } from '../../../../../platform/quic
 import { defaultButtonStyles, defaultCheckboxStyles, defaultInputBoxStyles } from '../../../../../platform/theme/browser/defaultStyles.js';
 import { getDefaultHoverDelegate } from '../../../../../base/browser/ui/hover/hoverDelegateFactory.js';
 import { ScrollbarVisibility } from '../../../../../base/common/scrollable.js';
-import { IWorkbenchMcpServer } from '../../../mcp/common/mcpTypes.js';
 import { IAgentPluginItem } from '../agentPluginEditor/agentPluginItems.js';
 import { IExtension } from '../../../extensions/common/extensions.js';
-import { EmbeddedMcpServerDetail } from './embeddedMcpServerDetail.js';
 import { EmbeddedAgentPluginDetail } from './embeddedAgentPluginDetail.js';
 import { EmbeddedExtensionToolsDetail } from './embeddedExtensionToolsDetail.js';
 import { ICustomizationHarnessService, type ICustomizationSourceFolder } from '../../common/customizationHarnessService.js';
@@ -282,12 +279,10 @@ export class AICustomizationManagementEditor extends EditorPane {
 	private sectionsList!: WorkbenchList<ISectionItem>;
 	private contentContainer!: HTMLElement;
 	private listWidget!: AICustomizationListWidget;
-	private mcpListWidget: McpListWidget | undefined;
 	private pluginListWidget: PluginListWidget | undefined;
 	private modelsWidget: ChatModelsWidget | undefined;
 	private toolsListWidget: ToolsListWidget | undefined;
 	private promptsContentContainer!: HTMLElement;
-	private mcpContentContainer: HTMLElement | undefined;
 	private pluginContentContainer: HTMLElement | undefined;
 	private modelsContentContainer: HTMLElement | undefined;
 	private toolsContentContainer: HTMLElement | undefined;
@@ -327,7 +322,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 	private currentEditingReadOnly = false;
 	private editorReturnViewMode: 'list' | 'migration' = 'list';
 	private currentModelRef: IReference<IResolvedTextEditorModel> | undefined;
-	private viewMode: 'list' | 'migration' | 'editor' | 'mcpDetail' | 'pluginDetail' | 'toolsDetail' = 'list';
+	private viewMode: 'list' | 'migration' | 'editor' | 'pluginDetail' | 'toolsDetail' = 'list';
 	private migrationContentContainer: HTMLElement | undefined;
 	private migrationListContainer: HTMLElement | undefined;
 	private migrationListScrollable: DomScrollableElement | undefined;
@@ -338,11 +333,6 @@ export class AICustomizationManagementEditor extends EditorPane {
 	private readonly collapsedPromptMigrationGroups = new Set<string>();
 	private selectedPromptMigrationUris = new ResourceSet();
 	private readonly migrationPageDisposables = this._register(new DisposableStore());
-
-	// Embedded MCP server detail view
-	private mcpDetailContainer: HTMLElement | undefined;
-	private embeddedMcpDetail: EmbeddedMcpServerDetail | undefined;
-	private readonly mcpDetailDisposables = this._register(new DisposableStore());
 
 	// Embedded plugin detail view
 	private pluginDetailContainer: HTMLElement | undefined;
@@ -512,7 +502,6 @@ export class AICustomizationManagementEditor extends EditorPane {
 				this.contentContainer.style.width = `${width}px`;
 				if (height !== undefined) {
 					this.listWidget.layout(height - 16, width - 24);
-					this.mcpListWidget?.layout(height - 16, width - 24);
 					this.pluginListWidget?.layout(height - 16, width - 24);
 					this.toolsListWidget?.layout(height - 16, width - 24);
 					const modelsFooterHeight = this.modelsFooterElement?.offsetHeight || 80;
@@ -537,7 +526,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 							});
 						}
 					}
-					// Embedded MCP/plugin detail panes use a plain DOM widget that flows with
+					// Embedded plugin detail panes use a plain DOM widget that flows with
 					// the container; no explicit layout call is needed here.
 				}
 			},
@@ -957,30 +946,6 @@ export class AICustomizationManagementEditor extends EditorPane {
 			}));
 		}
 
-		// Container for MCP content
-		if (hasSections.has(AICustomizationManagementSection.McpServers)) {
-			this.mcpContentContainer = DOM.append(contentInner, $('.mcp-content-container'));
-			this.mcpListWidget = this.editorDisposables.add(this.instantiationService.createInstance(McpListWidget));
-			this.mcpListWidget.setCloseCustomizationEditor(async () => {
-				if (this.input) {
-					await this.group.closeEditor(this.input);
-				}
-			});
-			this.mcpContentContainer.appendChild(this.mcpListWidget.element);
-
-			// Embedded MCP server detail view
-			this.mcpDetailContainer = DOM.append(contentInner, $('.mcp-detail-container'));
-			this.createEmbeddedMcpDetail();
-
-			this.editorDisposables.add(this.mcpListWidget.onDidSelectServer(server => {
-				this.showEmbeddedMcpDetail(server);
-			}));
-
-			this.editorDisposables.add(this.mcpListWidget.onDidRequestShowPlugin(item => {
-				this.showPluginDetail(item);
-			}));
-		}
-
 		// Container for Plugins content
 		if (hasSections.has(AICustomizationManagementSection.Plugins)) {
 			this.pluginContentContainer = DOM.append(contentInner, $('.plugin-content-container'));
@@ -1036,12 +1001,6 @@ export class AICustomizationManagementEditor extends EditorPane {
 				this.updateSectionCount(this.selectedSection, count);
 			}
 		}));
-		if (this.mcpListWidget) {
-			this.editorDisposables.add(this.mcpListWidget.onDidChangeItemCount(count => {
-				this.updateSectionCount(AICustomizationManagementSection.McpServers, count);
-			}));
-			this.mcpListWidget.fireItemCount();
-		}
 		if (this.pluginListWidget) {
 			this.editorDisposables.add(this.pluginListWidget.onDidChangeItemCount(count => {
 				this.updateSectionCount(AICustomizationManagementSection.Plugins, count);
@@ -1595,9 +1554,6 @@ export class AICustomizationManagementEditor extends EditorPane {
 		if (this.viewMode === 'migration') {
 			this.viewMode = 'list';
 		}
-		if (this.viewMode === 'mcpDetail') {
-			this.goBackFromMcpDetail();
-		}
 		if (this.viewMode === 'pluginDetail') {
 			this.goBackFromPluginDetail();
 		}
@@ -1633,9 +1589,6 @@ export class AICustomizationManagementEditor extends EditorPane {
 		if (this.viewMode === 'migration') {
 			this.viewMode = 'list';
 		}
-		if (this.viewMode === 'mcpDetail') {
-			this.goBackFromMcpDetail();
-		}
 		if (this.viewMode === 'pluginDetail') {
 			this.goBackFromPluginDetail();
 		}
@@ -1669,18 +1622,14 @@ export class AICustomizationManagementEditor extends EditorPane {
 
 		// Activate marketplace browse mode if requested
 		if (options?.showMarketplace) {
-			if (section === AICustomizationManagementSection.McpServers) {
-				this.mcpListWidget?.showBrowseMarketplace();
-			} else if (section === AICustomizationManagementSection.Plugins) {
+			if (section === AICustomizationManagementSection.Plugins) {
 				this.pluginListWidget?.showBrowseMarketplace();
 			}
 		}
 
 		// Move focus to the search input so keyboard users can immediately
 		// filter without extra Tab traversal (parity with mouse-click flow).
-		if (section === AICustomizationManagementSection.McpServers) {
-			this.mcpListWidget?.focusSearch();
-		} else if (section === AICustomizationManagementSection.Plugins) {
+		if (section === AICustomizationManagementSection.Plugins) {
 			this.pluginListWidget?.focusSearch();
 		} else if (section === AICustomizationManagementSection.Models) {
 			this.modelsWidget?.focusSearch();
@@ -1722,14 +1671,12 @@ export class AICustomizationManagementEditor extends EditorPane {
 	private updateContentVisibility(): void {
 		const isEditorMode = this.viewMode === 'editor';
 		const isMigrationMode = this.viewMode === 'migration';
-		const isMcpDetailMode = this.viewMode === 'mcpDetail';
 		const isPluginDetailMode = this.viewMode === 'pluginDetail';
 		const isToolsDetailMode = this.viewMode === 'toolsDetail';
-		const isDetailMode = isMcpDetailMode || isPluginDetailMode || isToolsDetailMode;
+		const isDetailMode = isPluginDetailMode || isToolsDetailMode;
 		const isWelcome = this.selectedSection === undefined;
 		const isPromptsSection = this.selectedSection !== undefined && this.isPromptsSection(this.selectedSection);
 		const isModelsSection = this.selectedSection === AICustomizationManagementSection.Models;
-		const isMcpSection = this.selectedSection === AICustomizationManagementSection.McpServers;
 		const isPluginsSection = this.selectedSection === AICustomizationManagementSection.Plugins;
 		const isToolsSection = this.selectedSection === AICustomizationManagementSection.Tools;
 
@@ -1744,12 +1691,6 @@ export class AICustomizationManagementEditor extends EditorPane {
 		}
 		if (this.modelsContentContainer) {
 			this.modelsContentContainer.style.display = !isEditorMode && !isMigrationMode && !isDetailMode && isModelsSection ? '' : 'none';
-		}
-		if (this.mcpContentContainer) {
-			this.mcpContentContainer.style.display = !isEditorMode && !isMigrationMode && !isDetailMode && isMcpSection ? '' : 'none';
-		}
-		if (this.mcpDetailContainer) {
-			this.mcpDetailContainer.style.display = isMcpDetailMode ? '' : 'none';
 		}
 		if (this.pluginContentContainer) {
 			this.pluginContentContainer.style.display = !isEditorMode && !isMigrationMode && !isDetailMode && isPluginsSection ? '' : 'none';
@@ -1959,9 +1900,6 @@ export class AICustomizationManagementEditor extends EditorPane {
 		if (this.viewMode === 'migration') {
 			this.viewMode = 'list';
 		}
-		if (this.viewMode === 'mcpDetail') {
-			this.goBackFromMcpDetail();
-		}
 		if (this.viewMode === 'pluginDetail') {
 			this.goBackFromPluginDetail();
 		}
@@ -2013,9 +1951,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 			this.welcomePage?.focus();
 			return;
 		}
-		if (this.selectedSection === AICustomizationManagementSection.McpServers) {
-			this.mcpListWidget?.focusSearch();
-		} else if (this.selectedSection === AICustomizationManagementSection.Plugins) {
+		if (this.selectedSection === AICustomizationManagementSection.Plugins) {
 			this.pluginListWidget?.focusSearch();
 		} else if (this.selectedSection === AICustomizationManagementSection.Models) {
 			this.modelsWidget?.focusSearch();
@@ -2043,9 +1979,6 @@ export class AICustomizationManagementEditor extends EditorPane {
 			if (this.viewMode === 'migration') {
 				this.viewMode = 'list';
 			}
-			if (this.viewMode === 'mcpDetail') {
-				this.goBackFromMcpDetail();
-			}
 			if (this.viewMode === 'pluginDetail') {
 				this.goBackFromPluginDetail();
 			}
@@ -2068,9 +2001,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 
 			// Activate marketplace browse mode if requested
 			if (options?.showMarketplace) {
-				if (sectionId === AICustomizationManagementSection.McpServers) {
-					this.mcpListWidget?.showBrowseMarketplace();
-				} else if (sectionId === AICustomizationManagementSection.Plugins) {
+				if (sectionId === AICustomizationManagementSection.Plugins) {
 					this.pluginListWidget?.showBrowseMarketplace();
 				}
 			}
@@ -2084,9 +2015,6 @@ export class AICustomizationManagementEditor extends EditorPane {
 
 		if (this.viewMode === 'editor') {
 			this.goBackToList();
-		}
-		if (this.viewMode === 'mcpDetail') {
-			this.goBackFromMcpDetail();
 		}
 		if (this.viewMode === 'pluginDetail') {
 			this.goBackFromPluginDetail();
@@ -2117,9 +2045,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 	 * Scrolls the active list widget so the last item is visible.
 	 */
 	public revealLastItem(): void {
-		if (this.selectedSection === AICustomizationManagementSection.McpServers) {
-			this.mcpListWidget?.revealLastItem();
-		} else if (this.selectedSection === AICustomizationManagementSection.Plugins) {
+		if (this.selectedSection === AICustomizationManagementSection.Plugins) {
 			this.pluginListWidget?.revealLastItem();
 		} else {
 			this.listWidget.revealLastItem();
@@ -2912,60 +2838,6 @@ export class AICustomizationManagementEditor extends EditorPane {
 		session.model.dispose();
 		this.builtinEditingSessions.delete(key);
 	}
-
-	//#region Embedded MCP Server Detail
-
-	private createEmbeddedMcpDetail(): void {
-		if (!this.mcpDetailContainer) {
-			return;
-		}
-
-		// Container for the compact MCP detail component
-		const detailBody = DOM.append(this.mcpDetailContainer, $('.mcp-detail-editor-container'));
-
-		this.embeddedMcpDetail = this.editorDisposables.add(this.instantiationService.createInstance(EmbeddedMcpServerDetail, detailBody));
-
-		// Back button rendered into the detail's leading slot
-		const backButton = DOM.append(this.embeddedMcpDetail.leadingSlot, $('button.editor-back-button'));
-		backButton.setAttribute('type', 'button');
-		backButton.setAttribute('aria-label', localize('backToMcpList', "Back to MCP servers"));
-		this.editorDisposables.add(this.hoverService.setupManagedHover(getDefaultHoverDelegate('element'), backButton, localize('backToMcpListTooltip', "Back to MCP servers")));
-		const backIconEl = DOM.append(backButton, $(`.codicon.codicon-${Codicon.arrowLeft.id}`));
-		backIconEl.setAttribute('aria-hidden', 'true');
-		this.editorDisposables.add(DOM.addDisposableListener(backButton, 'click', () => {
-			this.goBackFromMcpDetail();
-		}));
-	}
-
-	private async showEmbeddedMcpDetail(server: IWorkbenchMcpServer): Promise<void> {
-		if (!this.embeddedMcpDetail) {
-			return;
-		}
-
-		this.viewMode = 'mcpDetail';
-		this.updateContentVisibility();
-
-		this.mcpDetailDisposables.clear();
-		this.embeddedMcpDetail.setInput(server);
-
-		if (this.dimension) {
-			this.layout(this.dimension);
-		}
-	}
-
-	private goBackFromMcpDetail(): void {
-		this.mcpDetailDisposables.clear();
-		this.embeddedMcpDetail?.clearInput();
-		this.viewMode = 'list';
-		this.updateContentVisibility();
-
-		if (this.dimension) {
-			this.layout(this.dimension);
-		}
-		this.mcpListWidget?.focusSearch();
-	}
-
-	//#endregion
 
 	//#region Embedded Plugin Detail
 

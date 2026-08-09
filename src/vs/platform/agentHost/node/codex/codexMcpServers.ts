@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { McpServerType, type IMcpServerConfiguration } from '../../../mcp/common/mcpPlatformTypes.js';
+import { McpServerType, type IMcpServerConfiguration } from '../../../agentPlugins/common/mcpServerConfigTypes.js';
 import { McpServerStatus, type McpServerState } from '../../common/state/protocol/channels-session/state.js';
 import type { ISdkMcpServer } from '../shared/mcpCustomizationController.js';
 import type { McpServerStartupState } from './protocol/generated/v2/McpServerStartupState.js';

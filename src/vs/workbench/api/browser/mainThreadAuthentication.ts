@@ -29,10 +29,7 @@ import { IDynamicAuthenticationProviderStorageService } from '../../services/aut
 import { IClipboardService } from '../../../platform/clipboard/common/clipboardService.js';
 import { IQuickInputService } from '../../../platform/quickinput/common/quickInput.js';
 import { ISecretStorageService } from '../../../platform/secrets/common/secrets.js';
-import { mcpOAuthClientSecretStorageKey } from '../../contrib/mcp/common/mcpTypes.js';
 import { IProductService } from '../../../platform/product/common/productService.js';
-import { IConfigurationService } from '../../../platform/configuration/common/configuration.js';
-import { IMcpEnterpriseManagedAuthIdpConfig, mcpEnterpriseManagedAuthIdpSection } from '../../contrib/mcp/common/mcpConfiguration.js';
 
 export interface AuthenticationInteractiveOptions {
 	detail?: string;
@@ -135,7 +132,6 @@ export class MainThreadAuthentication extends Disposable implements MainThreadAu
 		@IDynamicAuthenticationProviderStorageService private readonly dynamicAuthProviderStorageService: IDynamicAuthenticationProviderStorageService,
 		@IClipboardService private readonly clipboardService: IClipboardService,
 		@IQuickInputService private readonly quickInputService: IQuickInputService,
-		@IConfigurationService private readonly configurationService: IConfigurationService,
 		@ISecretStorageService private readonly secretStorageService: ISecretStorageService,
 	) {
 		super();
@@ -193,7 +189,7 @@ export class MainThreadAuthentication extends Disposable implements MainThreadAu
 				// XAA requires a pre-provisioned (admin-approved) client_id at the IdP — there is no DCR
 				// fallback — so an explicit setting is the most reliable source. Typically delivered via
 				// enterprise policy; developers may hand-edit settings.json for local testing.
-				const configuredIdp = this.configurationService.getValue<IMcpEnterpriseManagedAuthIdpConfig | undefined>(mcpEnterpriseManagedAuthIdpSection) ?? {};
+				const configuredIdp: { clientId?: string; clientSecret?: string } = {};
 				const configuredClientId = configuredIdp.clientId?.trim() || undefined;
 				const configuredClientSecret = configuredIdp.clientSecret?.trim() || undefined;
 				const cached = await this.dynamicAuthProviderStorageService.getClientRegistration(authProviderId);
@@ -721,7 +717,7 @@ export class MainThreadAuthentication extends Disposable implements MainThreadAu
 			return undefined;
 		}
 		const trimmed = value.trim();
-		const key = mcpOAuthClientSecretStorageKey(resource, resourceClientId);
+		const key = `mcpOAuthClientSecret:${resource}:${resourceClientId}`;
 		try {
 			if (trimmed.length === 0) {
 				// Blank-on-confirm means "no client secret" (e.g. token_endpoint_auth_method=none).

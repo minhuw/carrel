@@ -8,7 +8,7 @@ import { Delayer } from '../../../../../../base/common/async.js';
 import { onUnexpectedError } from '../../../../../../base/common/errors.js';
 import { Event } from '../../../../../../base/common/event.js';
 import { equals } from '../../../../../../base/common/objects.js';
-import { autorun, derived, IObservable, ISettableObservable, observableValue } from '../../../../../../base/common/observable.js';
+import { derived, IObservable, ISettableObservable, observableValue } from '../../../../../../base/common/observable.js';
 import { InstantiationType, registerSingleton } from '../../../../../../platform/instantiation/common/extensions.js';
 import { createDecorator, IInstantiationService } from '../../../../../../platform/instantiation/common/instantiation.js';
 import { IStorageService } from '../../../../../../platform/storage/common/storage.js';
@@ -21,10 +21,8 @@ import { ICustomizationSyncProvider } from '../../../common/customizationHarness
 import { IAgentPluginService } from '../../../common/plugins/agentPluginService.js';
 import { IPromptsService } from '../../../common/promptSyntax/service/promptsService.js';
 import { ILanguageModelToolsService, IToolData, IToolSet } from '../../../common/tools/languageModelToolsService.js';
-import { IMcpService } from '../../../../mcp/common/mcpTypes.js';
-import { IConfigurationResolverService } from '../../../../../services/configurationResolver/common/configurationResolver.js';
 import { AgentCustomizationSyncProvider } from './agentCustomizationSyncProvider.js';
-import { type ILocalCustomizationSyncOptions, resolveCustomizationRefs, shouldSyncWorkspaceDotMcp } from './agentHostLocalCustomizations.js';
+import { type ILocalCustomizationSyncOptions, resolveCustomizationRefs } from './agentHostLocalCustomizations.js';
 import { toolDataToDefinition } from './agentHostToolUtils.js';
 import { IAgentHostToolSetEnablementService, isToolEnabledInSet } from './agentHostToolSetEnablementService.js';
 import { SyncedCustomizationBundler } from './syncedCustomizationBundler.js';
@@ -94,8 +92,6 @@ export class AgentHostActiveClientService extends Disposable implements IAgentHo
 		@IStorageService private readonly _storageService: IStorageService,
 		@IInstantiationService private readonly _instantiationService: IInstantiationService,
 		@IFileService private readonly _fileService: IFileService,
-		@IMcpService private readonly _mcpService: IMcpService,
-		@IConfigurationResolverService private readonly _configurationResolverService: IConfigurationResolverService,
 		@IAgentHostToolSetEnablementService private readonly _toolSetEnablementService: IAgentHostToolSetEnablementService,
 		@IWorkspaceContextService private readonly _workspaceContextService: IWorkspaceContextService,
 		@IConfigurationService private readonly _configurationService: IConfigurationService,
@@ -113,19 +109,11 @@ export class AgentHostActiveClientService extends Disposable implements IAgentHo
 		const syncProvider = store.add(new AgentCustomizationSyncProvider(sessionType, this._storageService));
 		const bundler = store.add(this._instantiationService.createInstance(SyncedCustomizationBundler, sessionType));
 		const customizations = observableValue<readonly ClientPluginCustomization[]>('agentCustomizations', []);
-		// Gate for seeding folder-root `.mcp.json` servers from every workspace
-		// folder (not just the session's primary). Evaluated fresh on each sync
-		// so folder/setting changes are reflected. See `shouldSyncWorkspaceDotMcp`.
-		const shouldIncludeWorkspaceDotMcp = () => shouldSyncWorkspaceDotMcp(
-			sessionType,
-			this._workspaceContextService.getWorkspace().folders.length,
-			this._configurationService.getValue(AgentHostCopilotMultiRootEnabledSettingId) === true,
-		);
 		let updateSeq = 0;
 		const updateCustomizations = async () => {
 			const seq = ++updateSeq;
 			try {
-				const refs = await resolveCustomizationRefs(this._fileService, this._promptsService, syncProvider, this._agentPluginService, this._mcpService, this._configurationResolverService, bundler, sessionType, shouldIncludeWorkspaceDotMcp(), options);
+				const refs = await resolveCustomizationRefs(this._fileService, this._promptsService, syncProvider, this._agentPluginService, bundler, sessionType, options);
 				if (seq !== updateSeq) {
 					return;
 				}
@@ -151,15 +139,6 @@ export class AgentHostActiveClientService extends Disposable implements IAgentHo
 			this._promptsService.onDidChangeSkills,
 			this._promptsService.onDidChangeInstructions,
 		)(() => scheduleUpdate()));
-		// Re-resolve when MCP servers configured in VS Code change (added,
-		// removed, enabled/disabled, or reconfigured) so they stay in sync.
-		store.add(autorun(reader => {
-			for (const server of this._mcpService.servers.read(reader)) {
-				server.enablement.read(reader);
-				server.readDefinitions().read(reader);
-			}
-			scheduleUpdate();
-		}));
 		// Re-resolve when the multi-root gate inputs change so folder-root
 		// `.mcp.json` seeding stays correct without waiting for another trigger:
 		// workspace-folder add/remove (folder count / new folder's servers) and

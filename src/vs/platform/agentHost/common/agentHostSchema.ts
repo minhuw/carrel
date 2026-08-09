@@ -6,7 +6,7 @@
 import { localize } from '../../../nls.js';
 import { structuralEquals } from '../../../base/common/equals.js';
 import { ConfigurationTarget, type IConfigurationService, type IConfigurationValue } from '../../configuration/common/configuration.js';
-import type { IMcpServerConfiguration } from '../../mcp/common/mcpPlatformTypes.js';
+import type { IMcpServerConfiguration } from '../../agentPlugins/common/mcpServerConfigTypes.js';
 import { TelemetryConfiguration, TelemetryLevel } from '../../telemetry/common/telemetry.js';
 import { SessionConfigKey } from './sessionConfigKeys.js';
 import type { SessionConfigPropertySchema, SessionConfigSchema } from './state/protocol/commands.js';

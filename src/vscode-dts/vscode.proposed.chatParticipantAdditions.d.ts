@@ -250,30 +250,6 @@ declare module 'vscode' {
 		};
 	}
 
-	export class McpToolInvocationContentData {
-		/**
-		 * The mime type which determines how the data property is interpreted.
-		 */
-		mimeType: string;
-
-		/**
-		 * The byte data for this part.
-		 */
-		data: Uint8Array;
-
-		/**
-		 * Construct a generic data part with the given content.
-		 * @param data The byte data for this part.
-		 * @param mimeType The mime type of the data.
-		 */
-		constructor(data: Uint8Array, mimeType: string);
-	}
-
-	export interface ChatMcpToolInvocationData {
-		input: string;
-		output: McpToolInvocationContentData[];
-	}
-
 	export enum ChatTodoStatus {
 		NotStarted = 1,
 		InProgress = 2,
@@ -348,7 +324,7 @@ declare module 'vscode' {
 		pastTenseMessage?: string | MarkdownString;
 		isConfirmed?: boolean;
 		isComplete?: boolean;
-		toolSpecificData?: ChatTerminalToolInvocationData | ChatMcpToolInvocationData | ChatTodoToolInvocationData | ChatSimpleToolResultData | ChatToolResourcesInvocationData | ChatSubagentToolInvocationData;
+		toolSpecificData?: ChatTerminalToolInvocationData | ChatTodoToolInvocationData | ChatSimpleToolResultData | ChatToolResourcesInvocationData | ChatSubagentToolInvocationData;
 		subAgentInvocationId?: string;
 		presentation?: 'hidden' | 'hiddenAfterComplete' | undefined;
 
@@ -773,27 +749,8 @@ declare module 'vscode' {
 		private constructor(id: string, label: string);
 	}
 
-	export class LanguageModelToolMCPSource {
-		/**
-		 * Editor-configured label of the MCP server that published the tool.
-		 */
-		readonly label: string;
-
-		/**
-		 * Server-defined name of the MCP server.
-		 */
-		readonly name: string;
-
-		/**
-		 * Server-defined instructions for MCP tool use.
-		 */
-		readonly instructions?: string;
-
-		private constructor(label: string, name: string, instructions?: string);
-	}
-
 	export interface LanguageModelToolInformation {
-		source: LanguageModelToolExtensionSource | LanguageModelToolMCPSource | undefined;
+		source: LanguageModelToolExtensionSource | undefined;
 	}
 
 	// TODO@API fit this into the stream

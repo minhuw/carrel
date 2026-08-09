@@ -15,13 +15,11 @@ import { InMemoryFileSystemProvider } from '../../../../../../platform/files/com
 import { NullLogService } from '../../../../../../platform/log/common/log.js';
 import { PromptsType } from '../../../common/promptSyntax/promptTypes.js';
 import { IPromptPath, PromptsStorage } from '../../../common/promptSyntax/service/promptsService.js';
-import { McpCollectionSortOrder, McpServerTransportType } from '../../../../mcp/common/mcpTypes.js';
 import {
 	validatePluginName,
 	getResourceLabel,
 	getResourceFileName,
 	serializeHookCommand,
-	serializeMcpLaunch,
 	writePluginToDisk,
 	updateMarketplaceIfNeeded,
 	type IResourceTreeItem,
@@ -214,76 +212,6 @@ suite('CreatePluginAction helpers', () => {
 		});
 	});
 
-	suite('serializeMcpLaunch', () => {
-
-		test('serializes stdio launch', () => {
-			assert.deepStrictEqual(
-				serializeMcpLaunch({
-					type: McpServerTransportType.Stdio,
-					command: 'node',
-					args: ['server.js'],
-					cwd: '/workspace',
-					env: { NODE_ENV: 'production' },
-					envFile: undefined,
-					sandbox: undefined,
-				}),
-				{
-					type: 'stdio',
-					command: 'node',
-					args: ['server.js'],
-					cwd: '/workspace',
-					env: { NODE_ENV: 'production' },
-				}
-			);
-		});
-
-		test('omits empty args and env for stdio', () => {
-			assert.deepStrictEqual(
-				serializeMcpLaunch({
-					type: McpServerTransportType.Stdio,
-					command: 'server',
-					args: [],
-					cwd: undefined,
-					env: {},
-					envFile: undefined,
-					sandbox: undefined,
-				}),
-				{
-					type: 'stdio',
-					command: 'server',
-				}
-			);
-		});
-
-		test('serializes http launch', () => {
-			assert.deepStrictEqual(
-				serializeMcpLaunch({
-					type: McpServerTransportType.HTTP,
-					uri: URI.parse('http://localhost:3000'),
-					headers: [['Authorization', 'Bearer token']],
-				}),
-				{
-					type: 'http',
-					url: 'http://localhost:3000/',
-					headers: { Authorization: 'Bearer token' },
-				}
-			);
-		});
-
-		test('omits empty headers for http', () => {
-			assert.deepStrictEqual(
-				serializeMcpLaunch({
-					type: McpServerTransportType.HTTP,
-					uri: URI.parse('http://localhost:3000'),
-					headers: [],
-				}),
-				{
-					type: 'http',
-					url: 'http://localhost:3000/',
-				}
-			);
-		});
-	});
 });
 
 suite('writePluginToDisk', () => {
@@ -463,45 +391,12 @@ suite('writePluginToDisk', () => {
 		});
 	});
 
-	test('exports MCP servers to .mcp.json', async () => {
+	test('skips MCP server export (MCP support removed)', async () => {
 		const pluginRoot = URI.joinPath(root, 'test-plugin');
 		await writePluginToDisk(fileService, pluginRoot, 'test-plugin', [
-			makeResourceItem({
-				label: 'my-server',
-				resourceType: 'mcp',
-				mcpServer: {
-					collection: {
-						id: 'col1',
-						label: 'Test Collection',
-						order: McpCollectionSortOrder.User,
-					} as IResourceTreeItem['mcpServer'] extends undefined ? never : NonNullable<IResourceTreeItem['mcpServer']>['collection'],
-					definition: {
-						id: 'def1',
-						label: 'my-server',
-						launch: {
-							type: McpServerTransportType.Stdio,
-							command: 'npx',
-							args: ['-y', 'my-mcp-server'],
-							cwd: undefined,
-							env: {},
-							envFile: undefined,
-							sandbox: undefined,
-						},
-						cacheNonce: '1',
-					} as IResourceTreeItem['mcpServer'] extends undefined ? never : NonNullable<IResourceTreeItem['mcpServer']>['definition'],
-				},
-			}),
 		]);
 
-		assert.deepStrictEqual(await readJson(URI.joinPath(pluginRoot, '.mcp.json')), {
-			mcpServers: {
-				'my-server': {
-					type: 'stdio',
-					command: 'npx',
-					args: ['-y', 'my-mcp-server'],
-				}
-			}
-		});
+		assert.ok(!(await fileService.exists(URI.joinPath(pluginRoot, '.mcp.json'))));
 	});
 
 	test('strips namespace prefix from plugin resource names', async () => {

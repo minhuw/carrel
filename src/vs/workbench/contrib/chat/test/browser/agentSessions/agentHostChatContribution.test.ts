@@ -39,9 +39,6 @@ import { IProgress, IProgressNotificationOptions, IProgressService, IProgressSte
 import { ITelemetryService } from '../../../../../../platform/telemetry/common/telemetry.js';
 import { NullTelemetryService } from '../../../../../../platform/telemetry/common/telemetryUtils.js';
 import { IAuthenticationService } from '../../../../../services/authentication/common/authentication.js';
-import { IAuthenticationMcpAccessService } from '../../../../../services/authentication/browser/authenticationMcpAccessService.js';
-import { IAuthenticationMcpService } from '../../../../../services/authentication/browser/authenticationMcpService.js';
-import { IAuthenticationMcpUsageService } from '../../../../../services/authentication/browser/authenticationMcpUsageService.js';
 import { ChatEntitlement, IChatEntitlementService } from '../../../../../services/chat/common/chatEntitlementService.js';
 import { IChatAgentData, IChatAgentImplementation, IChatAgentRequest, IChatAgentService } from '../../../common/participants/chatAgents.js';
 import { CHAT_SUBAGENT_RESOURCE_QUERY_PARAM, ChatAIDisabledSettingId, ChatAgentLocation, ChatConfiguration, ChatModeKind } from '../../../common/constants.js';
@@ -10791,7 +10788,7 @@ suite('AgentHostChatContribution', () => {
 		});
 
 		test('silently authenticates an existing session without an active turn', async () => {
-			const { sessionHandler, agentHostService, instantiationService } = createContribution(disposables, {
+			const { sessionHandler, agentHostService } = createContribution(disposables, {
 				authServiceOverride: {
 					getOrActivateProviderIdForServer: async () => 'notion',
 					getSessions: async () => [{
@@ -10801,15 +10798,6 @@ suite('AgentHostChatContribution', () => {
 						scopes: [],
 					}],
 				},
-			});
-			instantiationService.stub(IAuthenticationMcpAccessService, {
-				isAccessAllowedForUrl: () => true,
-			});
-			instantiationService.stub(IAuthenticationMcpService, {
-				getAccountPreference: () => 'Notion',
-			});
-			instantiationService.stub(IAuthenticationMcpUsageService, {
-				addAccountUsage: () => { },
 			});
 			const backendSession = AgentSession.uri('copilot', 'background-mcp-auth');
 			const sessionResource = URI.from({ scheme: 'agent-host-copilot', path: '/background-mcp-auth' });
@@ -10862,7 +10850,7 @@ suite('AgentHostChatContribution', () => {
 		test('deduplicates concurrent silent authentication across sessions', async () => {
 			const sessionsGate = new DeferredPromise<void>();
 			let sessionRequests = 0;
-			const { sessionHandler, agentHostService, instantiationService } = createContribution(disposables, {
+			const { sessionHandler, agentHostService } = createContribution(disposables, {
 				authServiceOverride: {
 					getOrActivateProviderIdForServer: async () => 'notion',
 					getSessions: async () => {
@@ -10876,15 +10864,6 @@ suite('AgentHostChatContribution', () => {
 						}];
 					},
 				},
-			});
-			instantiationService.stub(IAuthenticationMcpAccessService, {
-				isAccessAllowedForUrl: () => true,
-			});
-			instantiationService.stub(IAuthenticationMcpService, {
-				getAccountPreference: () => 'Notion',
-			});
-			instantiationService.stub(IAuthenticationMcpUsageService, {
-				addAccountUsage: () => { },
 			});
 			const sessionResources = ['background-mcp-auth-1', 'background-mcp-auth-2'].map(id => {
 				const backendSession = AgentSession.uri('copilot', id);

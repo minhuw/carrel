@@ -17,7 +17,7 @@ import { AgentHostCopilotSdkLogLevelSettingId, AgentHostCustomTerminalToolEnable
 import { DEFAULT_LOCAL_TRANSCRIPTION_MODEL } from '../../../../platform/localTranscription/common/localTranscription.js';
 import { AgentNetworkFilterService, IAgentNetworkFilterService } from '../../../../platform/networkFilter/common/networkFilterService.js';
 import { AgentNetworkDomainSettingId } from '../../../../platform/networkFilter/common/settings.js';
-import { COPILOT_ALLOWED_MCP_SERVERS_KEY, COPILOT_ALLOW_MANAGED_HOOKS_ONLY_CONFIG, COPILOT_ALLOW_MANAGED_HOOKS_ONLY_KEY, COPILOT_ALLOW_MANAGED_MCP_SERVERS_ONLY_CONFIG, COPILOT_ALLOW_MANAGED_MCP_SERVERS_ONLY_KEY, COPILOT_DENIED_MCP_SERVERS_KEY, COPILOT_DISABLE_BYPASS_PERMISSIONS_MODE_KEY, COPILOT_ENABLED_PLUGINS_KEY, COPILOT_EXTRA_MARKETPLACES_KEY, COPILOT_MODEL_KEY, COPILOT_STRICT_MARKETPLACES_KEY, COPILOT_STRICT_PLUGIN_ONLY_CUSTOMIZATION_CONFIG, COPILOT_STRICT_PLUGIN_ONLY_CUSTOMIZATION_KEY, managedModelValue, managedSettingValue } from '../../../../platform/policy/common/copilotManagedSettings.js';
+import { COPILOT_ALLOW_MANAGED_HOOKS_ONLY_CONFIG, COPILOT_ALLOW_MANAGED_HOOKS_ONLY_KEY, COPILOT_DISABLE_BYPASS_PERMISSIONS_MODE_KEY, COPILOT_ENABLED_PLUGINS_KEY, COPILOT_EXTRA_MARKETPLACES_KEY, COPILOT_MODEL_KEY, COPILOT_STRICT_MARKETPLACES_KEY, COPILOT_STRICT_PLUGIN_ONLY_CUSTOMIZATION_CONFIG, COPILOT_STRICT_PLUGIN_ONLY_CUSTOMIZATION_KEY, managedModelValue, managedSettingValue } from '../../../../platform/policy/common/copilotManagedSettings.js';
 import { AgentSandboxEnabledValue, AgentSandboxSettingId } from '../../../../platform/sandbox/common/settings.js';
 import { ChatSessionArchiveActionWordingSettingId } from '../../../../platform/chat/common/sessionArchiveActions.js';
 import { registerEditorFeature } from '../../../../editor/common/editorFeatures.js';
@@ -30,7 +30,6 @@ import { SyncDescriptor } from '../../../../platform/instantiation/common/descri
 import { InstantiationType, registerSingleton } from '../../../../platform/instantiation/common/extensions.js';
 import { IInstantiationService, ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
 import { IContextKey, IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
-import { McpAccessValue, McpAutoStartValue, mcpAccessConfig, mcpAllowedServersConfig, mcpAutoStartConfig, mcpDeniedServersConfig, mcpGalleryServiceEnablementConfig, mcpGalleryServiceUrlConfig, mcpAppsEnabledConfig } from '../../../../platform/mcp/common/mcpManagement.js';
 import product from '../../../../platform/product/common/product.js';
 import { Registry } from '../../../../platform/registry/common/platform.js';
 import { EditorPaneDescriptor, IEditorPaneRegistry } from '../../../browser/editor.js';
@@ -43,8 +42,6 @@ import { ChatEntitlement, IChatEntitlementService } from '../../../services/chat
 import { IEditorResolverService, RegisteredEditorPriority } from '../../../services/editor/common/editorResolverService.js';
 import { IPathService } from '../../../services/path/common/pathService.js';
 import { IViewsService } from '../../../services/views/common/viewsService.js';
-import { AddConfigurationType, AssistedTypes } from '../../mcp/browser/mcpCommandsAddConfiguration.js';
-import { allDiscoverySources, discoverySourceSettingsLabel, McpCollisionBehavior, mcpDiscoverySection, mcpEnterpriseManagedAuthIdpSection, mcpServerCollisionBehaviorSection, mcpServerSamplingSection } from '../../mcp/common/mcpConfiguration.js';
 import { ChatAgentNameService, ChatAgentService, IChatAgentNameService, IChatAgentService } from '../common/participants/chatAgents.js';
 import { CodeMapperService, ICodeMapperService } from '../common/editing/chatCodeMapperService.js';
 import '../common/widget/chatColors.js';
@@ -949,256 +946,6 @@ configurationRegistry.registerConfiguration({
 			markdownDescription: nls.localize('chat.turnStatusPills', "Controls whether agent status pills are shown above the chat input while a turn is in progress and inside the completed response. Only applies to agent sessions."),
 			default: true,
 		},
-		[mcpAccessConfig]: {
-			type: 'string',
-			description: nls.localize('chat.mcp.access', "Controls access to installed Model Context Protocol servers."),
-			enum: [
-				McpAccessValue.None,
-				McpAccessValue.Registry,
-				McpAccessValue.All
-			],
-			enumDescriptions: [
-				nls.localize('chat.mcp.access.none', "No access to MCP servers."),
-				nls.localize('chat.mcp.access.registry', "Allows access to MCP servers listed in the registry that VS Code is connected to."),
-				nls.localize('chat.mcp.access.any', "Allow access to any installed MCP server.")
-			],
-			default: McpAccessValue.All,
-			policy: {
-				name: 'ChatMCP',
-				category: PolicyCategory.InteractiveSession,
-				minimumVersion: '1.99',
-				value: (policyData) => {
-					if (policyData.mcp === false) {
-						return McpAccessValue.None;
-					}
-					if (policyData.mcpAccess === 'registry_only') {
-						return McpAccessValue.Registry;
-					}
-					return undefined;
-				},
-				localization: {
-					description: {
-						key: 'chat.mcp.access',
-						value: nls.localize('chat.mcp.access', "Controls access to installed Model Context Protocol servers.")
-					},
-					enumDescriptions: [
-						{
-							key: 'chat.mcp.access.none', value: nls.localize('chat.mcp.access.none', "No access to MCP servers."),
-						},
-						{
-							key: 'chat.mcp.access.registry', value: nls.localize('chat.mcp.access.registry', "Allows access to MCP servers listed in the registry that VS Code is connected to."),
-						},
-						{
-							key: 'chat.mcp.access.any', value: nls.localize('chat.mcp.access.any', "Allow access to any installed MCP server.")
-						}
-					]
-				},
-			}
-		},
-		[mcpAllowedServersConfig]: {
-			type: ['array', 'null'],
-			items: {
-				type: 'object',
-				additionalProperties: false,
-				properties: {
-					serverName: { type: 'string', minLength: 1, description: nls.localize('chat.mcp.allowedServers.serverName', "Match a server by its configured name.") },
-					serverUrl: { type: 'string', minLength: 1, description: nls.localize('chat.mcp.allowedServers.serverUrl', "Match a remote server by its URL. Supports `*` wildcards, for example `https://*.example.com/*`.") },
-					serverCommand: { type: 'array', minItems: 1, items: { type: 'string' }, description: nls.localize('chat.mcp.allowedServers.serverCommand', "Match a local server by its exact command invocation, given as the command followed by its arguments.") },
-				},
-				oneOf: [
-					{ required: ['serverName'] },
-					{ required: ['serverUrl'] },
-					{ required: ['serverCommand'] },
-				],
-			},
-			markdownDescription: nls.localize('chat.mcp.allowedServers', "Enterprise-managed allowlist that controls which Model Context Protocol servers may be installed and run. When set, only servers matching an entry are permitted; any other server is blocked. Servers can be matched by name, remote URL pattern (with `*` wildcards), or local command invocation. Omit entirely to allow all servers (subject to the deny list). Delivered via enterprise policy for governance; this setting is not surfaced to end users."),
-			default: null,
-			scope: ConfigurationScope.APPLICATION,
-			// Governance-only: delivered via the `ChatAllowedMcpServers` enterprise policy and hidden
-			// from the Settings UI so it is not configurable by end users.
-			included: false,
-			policy: {
-				name: 'ChatAllowedMcpServers',
-				category: PolicyCategory.InteractiveSession,
-				minimumVersion: '1.130',
-				value: managedSettingValue(COPILOT_ALLOWED_MCP_SERVERS_KEY),
-				managedSettings: {
-					[COPILOT_ALLOWED_MCP_SERVERS_KEY]: { type: 'string' },
-				},
-				localization: {
-					description: {
-						key: 'chat.mcp.allowedServers.policy',
-						value: nls.localize('chat.mcp.allowedServers.policy', "Allowlist of Model Context Protocol servers. When set, only servers matching an entry may be installed or run; omit entirely to allow all servers (subject to the deny list).")
-					}
-				},
-			}
-		},
-		[mcpDeniedServersConfig]: {
-			type: ['array', 'null'],
-			items: {
-				type: 'object',
-				additionalProperties: false,
-				properties: {
-					serverName: { type: 'string', minLength: 1, description: nls.localize('chat.mcp.deniedServers.serverName', "Match a server by its configured name.") },
-					serverUrl: { type: 'string', minLength: 1, description: nls.localize('chat.mcp.deniedServers.serverUrl', "Match a remote server by its URL. Supports `*` wildcards, for example `https://*.example.com/*`.") },
-					serverCommand: { type: 'array', minItems: 1, items: { type: 'string' }, description: nls.localize('chat.mcp.deniedServers.serverCommand', "Match a local server by its exact command invocation, given as the command followed by its arguments.") },
-				},
-				oneOf: [
-					{ required: ['serverName'] },
-					{ required: ['serverUrl'] },
-					{ required: ['serverCommand'] },
-				],
-			},
-			markdownDescription: nls.localize('chat.mcp.deniedServers', "Enterprise-managed denylist of Model Context Protocol servers. Servers matching any entry are unconditionally blocked from being installed or run, even if they also match the allow list — deny rules always take precedence. Servers can be matched by name, remote URL pattern (with `*` wildcards), or local command invocation. Delivered via enterprise policy for governance; this setting is not surfaced to end users."),
-			default: null,
-			scope: ConfigurationScope.APPLICATION,
-			// Governance-only: delivered via the `ChatDeniedMcpServers` enterprise policy and hidden
-			// from the Settings UI so it is not configurable by end users.
-			included: false,
-			policy: {
-				name: 'ChatDeniedMcpServers',
-				category: PolicyCategory.InteractiveSession,
-				minimumVersion: '1.130',
-				value: managedSettingValue(COPILOT_DENIED_MCP_SERVERS_KEY),
-				managedSettings: {
-					[COPILOT_DENIED_MCP_SERVERS_KEY]: { type: 'string' },
-				},
-				localization: {
-					description: {
-						key: 'chat.mcp.deniedServers.policy',
-						value: nls.localize('chat.mcp.deniedServers.policy', "Denylist of Model Context Protocol servers. Servers matching any entry are blocked from being installed or run, even if they also match the allow list; deny rules always take precedence.")
-					}
-				},
-			}
-		},
-		[COPILOT_ALLOW_MANAGED_MCP_SERVERS_ONLY_CONFIG]: {
-			type: 'boolean',
-			default: false,
-			scope: ConfigurationScope.APPLICATION,
-			included: false,
-			description: nls.localize('chat.mcp.allowManagedServersOnly', "Use only the enterprise-managed MCP allowlist when deciding which servers may run."),
-			policy: {
-				name: 'ChatAllowManagedMcpServersOnly',
-				category: PolicyCategory.InteractiveSession,
-				minimumVersion: '1.132',
-				value: managedSettingValue(COPILOT_ALLOW_MANAGED_MCP_SERVERS_ONLY_KEY),
-				managedSettings: {
-					[COPILOT_ALLOW_MANAGED_MCP_SERVERS_ONLY_KEY]: { type: 'boolean' },
-				},
-				localization: {
-					description: {
-						key: 'chat.mcp.allowManagedServersOnly.policy',
-						value: nls.localize('chat.mcp.allowManagedServersOnly.policy', "Use only the enterprise-managed MCP allowlist when deciding which servers may run.")
-					}
-				},
-			}
-		},
-		[mcpAutoStartConfig]: {
-			type: 'string',
-			description: nls.localize('chat.mcp.autostart', "Controls whether MCP servers should be automatically started when the chat messages are submitted."),
-			default: McpAutoStartValue.NewAndOutdated,
-			enum: [
-				McpAutoStartValue.Never,
-				McpAutoStartValue.OnlyNew,
-				McpAutoStartValue.NewAndOutdated
-			],
-			enumDescriptions: [
-				nls.localize('chat.mcp.autostart.never', "Never automatically start MCP servers."),
-				nls.localize('chat.mcp.autostart.onlyNew', "Only automatically start new MCP servers that have never been run."),
-				nls.localize('chat.mcp.autostart.newAndOutdated', "Automatically start new and outdated MCP servers that are not yet running.")
-			],
-			tags: ['experimental'],
-		},
-		[mcpAppsEnabledConfig]: {
-			type: 'boolean',
-			description: nls.localize('chat.mcp.ui.enabled', "Controls whether MCP servers can provide custom UI for tool invocations."),
-			default: true,
-			tags: ['experimental'],
-		},
-		[mcpEnterpriseManagedAuthIdpSection]: {
-			type: 'object',
-			default: {},
-			scope: ConfigurationScope.APPLICATION,
-			tags: ['preview', 'experimental'],
-			additionalProperties: false,
-			included: false,
-			properties: {
-				issuer: {
-					type: 'string',
-					format: 'uri',
-					markdownDescription: nls.localize('mcp.enterpriseManagedAuth.idp.issuer', "The OAuth/OIDC issuer URL of the SSO authorization server. Must be an `https://` URL."),
-				},
-				clientId: {
-					type: 'string',
-					markdownDescription: nls.localize('mcp.enterpriseManagedAuth.idp.clientId', "The OAuth client ID registered with the SSO issuer for this device."),
-				},
-				clientSecret: {
-					type: 'string',
-					markdownDescription: nls.localize('mcp.enterpriseManagedAuth.idp.clientSecret', "The OAuth client secret paired with `clientId`. Intended for local development only."),
-				},
-			},
-			markdownDescription: nls.localize('mcp.enterpriseManagedAuth.idp', "(Preview) The OAuth/OIDC IdP configuration used for enterprise-managed Model Context Protocol (MCP) servers. Typically delivered via enterprise policy (Windows Group Policy / macOS managed preferences / Linux `/etc/vscode/policy.json`); developers may hand-edit `settings.json` for local testing. Properties: `issuer` (HTTPS URL), `clientId`, `clientSecret`."),
-			policy: {
-				name: 'McpEnterpriseManagedAuthIdp',
-				category: PolicyCategory.InteractiveSession,
-				minimumVersion: '1.122',
-				localization: {
-					description: {
-						key: 'mcp.enterpriseManagedAuth.idp.policy',
-						value: nls.localize('mcp.enterpriseManagedAuth.idp.policy', "The OAuth/OIDC IdP configuration used for enterprise-managed Model Context Protocol (MCP) server authentication."),
-					}
-				}
-			},
-		},
-		[mcpServerCollisionBehaviorSection]: {
-			type: 'string',
-			description: nls.localize('chat.mcp.collisionBehavior', "Controls behavior when multiple MCP servers are discovered with the same name. 'disable' disables lower-priority duplicates. 'suffix' appends numeric suffixes to disambiguate."),
-			enum: [
-				McpCollisionBehavior.Disable,
-				McpCollisionBehavior.Suffix,
-			],
-			enumDescriptions: [
-				nls.localize('chat.mcp.collisionBehavior.disable', "Disable lower-priority servers with duplicate names."),
-				nls.localize('chat.mcp.collisionBehavior.suffix', "Append numeric suffixes to servers with duplicate names."),
-			],
-			default: McpCollisionBehavior.Disable,
-		},
-		[mcpServerSamplingSection]: {
-			type: 'object',
-			description: nls.localize('chat.mcp.serverSampling', "Configures which models are exposed to MCP servers for sampling (making model requests in the background). This setting can be edited in a graphical way under the `{0}` command.", 'MCP: ' + nls.localize('mcp.list', 'List Servers')),
-			scope: ConfigurationScope.RESOURCE,
-			additionalProperties: {
-				type: 'object',
-				properties: {
-					allowedDuringChat: {
-						type: 'boolean',
-						description: nls.localize('chat.mcp.serverSampling.allowedDuringChat', "Whether this server is allowed to make sampling requests during its tool calls in a chat session."),
-						default: true,
-					},
-					allowedOutsideChat: {
-						type: 'boolean',
-						description: nls.localize('chat.mcp.serverSampling.allowedOutsideChat', "Whether this server is allowed to make sampling requests outside of a chat session."),
-						default: false,
-					},
-					allowedModels: {
-						type: 'array',
-						items: {
-							type: 'string',
-							description: nls.localize('chat.mcp.serverSampling.model', "A model the MCP server has access to."),
-						},
-					}
-				}
-			},
-		},
-		[AssistedTypes[AddConfigurationType.NuGetPackage].enabledConfigKey]: {
-			type: 'boolean',
-			description: nls.localize('chat.mcp.assisted.nuget.enabled.description', "Enables NuGet packages for AI-assisted MCP server installation. Used to install MCP servers by name from the central registry for .NET packages (NuGet.org)."),
-			default: false,
-			tags: ['experimental'],
-			experiment: {
-				mode: 'startup'
-			}
-		},
 		[ChatConfiguration.ExtensionToolsEnabled]: {
 			type: 'boolean',
 			description: nls.localize('chat.extensionToolsEnabled', "Enable using tools contributed by third-party extensions."),
@@ -1652,40 +1399,6 @@ configurationRegistry.registerConfiguration({
 			description: nls.localize('chat.codeBlock.showProgressAnimation.description', "When applying edits, show a progress animation in the code block pill. If disabled, shows the progress percentage instead."),
 			default: true,
 			tags: ['experimental'],
-		},
-		[mcpDiscoverySection]: {
-			type: 'object',
-			properties: Object.fromEntries(allDiscoverySources.map(k => [k, { type: 'boolean', description: discoverySourceSettingsLabel[k] }])),
-			additionalProperties: false,
-			default: Object.fromEntries(allDiscoverySources.map(k => [k, false])),
-			markdownDescription: nls.localize('mcp.discovery.enabled', "Configures discovery of Model Context Protocol servers from configuration from various other applications."),
-		},
-		[mcpGalleryServiceEnablementConfig]: {
-			type: 'boolean',
-			default: false,
-			tags: ['preview'],
-			description: nls.localize('chat.mcp.gallery.enabled', "Enables the default Marketplace for Model Context Protocol (MCP) servers."),
-			included: product.quality === 'stable'
-		},
-		[mcpGalleryServiceUrlConfig]: {
-			type: 'string',
-			description: nls.localize('mcp.gallery.serviceUrl', "Configure the MCP Gallery service URL to connect to"),
-			default: '',
-			scope: ConfigurationScope.APPLICATION,
-			tags: ['usesOnlineServices', 'advanced'],
-			included: false,
-			policy: {
-				name: 'McpGalleryServiceUrl',
-				category: PolicyCategory.InteractiveSession,
-				minimumVersion: '1.101',
-				value: (policyData) => policyData.mcpRegistryUrl,
-				localization: {
-					description: {
-						key: 'mcp.gallery.serviceUrl',
-						value: nls.localize('mcp.gallery.serviceUrl', "Configure the MCP Gallery service URL to connect to"),
-					}
-				}
-			},
 		},
 		[PromptsConfig.INSTRUCTIONS_LOCATION_KEY]: {
 			type: 'object',
@@ -2288,16 +2001,6 @@ Registry.as<IConfigurationMigrationRegistry>(Extensions.ConfigurationMigration).
 			['chat.useClaudeSkills', { value: undefined }],
 			['chat.useAgentSkills', { value }]
 		])
-	},
-	{
-		key: mcpDiscoverySection,
-		migrateFn: (value: unknown) => {
-			if (typeof value === 'boolean') {
-				return { value: Object.fromEntries(allDiscoverySources.map(k => [k, value])) };
-			}
-
-			return { value };
-		}
 	},
 	{
 		key: ChatConfiguration.NotifyWindowOnConfirmation,

@@ -754,6 +754,11 @@ const registry = Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Con
 					localize('layoutControlEnabledWeb', "Controls whether the layout control in the title bar is shown.") :
 					localize({ key: 'layoutControlEnabled', comment: ['{0}, {1} is a placeholder for a setting identifier.'] }, "Controls whether the layout control is shown in the custom title bar. This setting only has an effect when {0} is not set to {1}.", '`#window.customTitleBarVisibility#`', '`never`'),
 			},
+			'workbench.compactChrome': {
+				'type': 'boolean',
+				'default': true,
+				'markdownDescription': localize({ key: 'compactChrome', comment: ['{0}, {1} is a placeholder for a setting identifier.'] }, "Controls whether the compact chrome layout is used. When enabled, the custom title bar is removed and the macOS window controls (traffic lights) overlay the top of the workbench, giving the window a compact, unified look. Only applies on macOS desktop when {0} is {1}; ignored on other platforms.", '`#window.titleBarStyle#`', '`custom`'),
+			},
 			'workbench.layoutControl.type': {
 				'type': 'string',
 				'enum': ['menu', 'toggles', 'both'],

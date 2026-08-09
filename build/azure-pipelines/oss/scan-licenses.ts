@@ -567,8 +567,7 @@ export function isArchPackageName(name: string): boolean {
  * Platforms and architectures VS Code actually ships. Used by Section 5 to
  * skip arch packages for platforms we don't target (android, freebsd, etc.).
  *
- * Source of truth: build/azure-pipelines/product-build.yml build matrix +
- * build/agent-sdk/common.ts (KNOWN_VSCODE_PLATFORMS / VscodeBuildArch).
+ * Source of truth: build/azure-pipelines/product-build.yml build matrix.
  * "alpine" in build config = "linuxmusl" in npm package names.
  */
 const VSCODE_SHIPPED_PLATFORMS = new Set(['darwin', 'linux', 'linuxmusl', 'win32']);

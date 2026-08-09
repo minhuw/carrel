@@ -94,12 +94,6 @@ export async function main(argv: string[]): Promise<void> {
 		console.log(buildHelpMessage(product.nameLong, executable, product.version, OPTIONS));
 	}
 
-	// Help (chat)
-	else if (args.chat?.help) {
-		const executable = `${product.applicationName}${isWindows ? '.exe' : ''}`;
-		console.log(buildHelpMessage(product.nameLong, executable, product.version, OPTIONS.chat.options, { isChat: true }));
-	}
-
 	// Version Info
 	else if (args.version) {
 		console.log(buildVersionMessage(product.version, product.commit));
@@ -262,7 +256,7 @@ export async function main(argv: string[]): Promise<void> {
 			console.log(`State is temporarily stored. Relaunch this state with: ${product.applicationName} --user-data-dir "${tempUserDataDir}" --extensions-dir "${tempExtensionsDir}" --shared-data-dir "${tempSharedDataDir}" --agent-plugins-dir "${tempAgentPluginsDir}" --agents-user-data-dir "${tempAgentsUserDataDir}" --agents-extensions-dir "${tempAgentsExtensionsDir}"`);
 		}
 
-		const hasReadStdinArg = args._.some(arg => arg === '-') || args.chat?._.some(arg => arg === '-');
+		const hasReadStdinArg = args._.some(arg => arg === '-');
 		if (hasReadStdinArg) {
 			// remove the "-" argument when we read from stdin
 			args._ = args._.filter(a => a !== '-');
@@ -301,15 +295,10 @@ export async function main(argv: string[]): Promise<void> {
 						processCallbacks.push(() => readFromStdinDone.p);
 					}
 
-					if (args.chat) {
-						// Make sure to add tmp file as context to chat
-						addArg(argv, '--add-file', stdinFilePath);
-					} else {
-						// Make sure to open tmp file as editor but ignore
-						// it in the "recently open" list
-						addArg(argv, stdinFilePath);
-						addArg(argv, '--skip-add-to-recently-opened');
-					}
+					// Make sure to open tmp file as editor but ignore
+					// it in the "recently open" list
+					addArg(argv, stdinFilePath);
+					addArg(argv, '--skip-add-to-recently-opened');
 
 					console.log(`Reading from stdin via: ${stdinFilePath}`);
 				} catch (e) {
@@ -322,7 +311,7 @@ export async function main(argv: string[]): Promise<void> {
 				// if we detect that data flows into via stdin after a certain timeout.
 				processCallbacks.push(_ => stdinDataListener(1000).then(dataReceived => {
 					if (dataReceived) {
-						console.log(buildStdinMessage(product.applicationName, !!args.chat));
+						console.log(buildStdinMessage(product.applicationName, false));
 					}
 				}));
 			}

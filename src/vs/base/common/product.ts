@@ -65,25 +65,6 @@ export type ExtensionVirtualWorkspaceSupport = {
 };
 
 /**
- * Per-SDK configuration for downloading an agent SDK on demand. The
- * runtime substitutes `{sdkTarget}` in `urlTemplate` against the host's
- * `(platform, arch, libc)` triple via `resolveSdkTarget()` in the agent
- * SDK downloader.
- *
- * `urlTemplate` uses `format2()`-style named placeholders. Today only
- * `{sdkTarget}` is recognised; the build emits e.g.
- * `https://main.vscode-cdn.net/agent-sdk/claude/0.3.168/{sdkTarget}.tgz`
- * and the runtime substitutes `darwin-arm64`, `linux-x64-musl`, etc.
- *
- * See `src/vs/platform/agentHost/node/claude/roadmap.md` Phase 15 for
- * the rationale (macOS Universal compatibility, trust model).
- */
-export interface IAgentSdkProductConfig {
-	readonly version: string;
-	readonly urlTemplate: string;
-}
-
-/**
  * Configuration for downloading the on-device dictation native runtime (the
  * Foundry Local addon + core libraries) on demand. Produced per platform build
  * and stamped by `build/dictation-runtime/produce.ts`; consumed by
@@ -149,8 +130,6 @@ export interface IProductConfiguration {
 		readonly nlsBaseUrl: string;
 		readonly accessSKUs?: string[];
 	};
-
-	readonly agentSdks?: { readonly [packageId: string]: IAgentSdkProductConfig };
 
 	readonly copilotVersions?: {
 		readonly runtime: string;

@@ -25,16 +25,6 @@ export interface NativeParsedArgs {
 	};
 	'serve-web'?: INativeCliOptions;
 	'agent'?: INativeCliOptions;
-	chat?: {
-		_: string[];
-		'add-file'?: string[];
-		mode?: string;
-		maximize?: boolean;
-		'reuse-window'?: boolean;
-		'new-window'?: boolean;
-		profile?: string;
-		help?: boolean;
-	};
 
 	// arguments
 	_: string[];
@@ -89,8 +79,6 @@ export interface NativeParsedArgs {
 	debugRenderer?: boolean; // whether we expect a debugger (js-debug) to attach to the renderer, incl webviews+webworker
 	'inspect-ptyhost'?: string;
 	'inspect-brk-ptyhost'?: string;
-	'inspect-agenthost'?: string;
-	'inspect-brk-agenthost'?: string;
 	'inspect-sharedprocess'?: string;
 	'inspect-brk-sharedprocess'?: string;
 	'disable-extensions'?: boolean;

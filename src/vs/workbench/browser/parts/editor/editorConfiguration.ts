@@ -9,7 +9,7 @@ import { IWorkbenchContribution } from '../../../common/contributions.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { IConfigurationRegistry, Extensions as ConfigurationExtensions, IConfigurationNode, ConfigurationScope } from '../../../../platform/configuration/common/configurationRegistry.js';
 import { workbenchConfigurationNodeBase } from '../../../common/configuration.js';
-import { diffEditorsAssociationsAgentsWindowDefault, diffEditorsAssociationsSettingId, editorsAssociationsAgentsWindowDefault, editorsAssociationsSettingId, IEditorResolverService, markdownDefaultEditorAgentsWindowSettingId, RegisteredEditorInfo, RegisteredEditorPriority, toRegisteredEditorPriorityInfo } from '../../../services/editor/common/editorResolverService.js';
+import { diffEditorsAssociationsSettingId, editorsAssociationsSettingId, IEditorResolverService, RegisteredEditorInfo, RegisteredEditorPriority, toRegisteredEditorPriorityInfo } from '../../../services/editor/common/editorResolverService.js';
 import { IJSONSchemaMap } from '../../../../base/common/jsonSchema.js';
 import { IExtensionService } from '../../../services/extensions/common/extensions.js';
 import { coalesce } from '../../../../base/common/arrays.js';
@@ -78,7 +78,7 @@ export class DynamicEditorConfigurations extends Disposable implements IWorkbenc
 		@IEditorResolverService private readonly editorResolverService: IEditorResolverService,
 		@IExtensionService extensionService: IExtensionService,
 		@IWorkbenchEnvironmentService private readonly environmentService: IWorkbenchEnvironmentService,
-		@IConfigurationService private readonly configurationService: IConfigurationService
+		@IConfigurationService configurationService: IConfigurationService
 	) {
 		super();
 
@@ -99,12 +99,6 @@ export class DynamicEditorConfigurations extends Disposable implements IWorkbenc
 		// Registered editors (debounced to reduce perf overhead)
 		this._register(Event.debounce(this.editorResolverService.onDidChangeEditorRegistrations, (_, e) => e)(() => this.updateDynamicEditorConfigurations()));
 
-		// Re-register when the Agents window Markdown default editor setting changes
-		this._register(this.configurationService.onDidChangeConfiguration(e => {
-			if (e.affectsConfiguration(markdownDefaultEditorAgentsWindowSettingId)) {
-				this.updateDynamicEditorConfigurations();
-			}
-		}));
 	}
 
 	private updateDynamicEditorConfigurations(): void {
@@ -159,7 +153,6 @@ export class DynamicEditorConfigurations extends Disposable implements IWorkbenc
 
 		// Registers setting for editorAssociations
 		const oldEditorAssociationsConfigurationNode = this.editorAssociationsConfigurationNode;
-		const markdownDefaultEditorEnabled = this.configurationService.getValue<boolean>(markdownDefaultEditorAgentsWindowSettingId) === true;
 		this.editorAssociationsConfigurationNode = {
 			...workbenchConfigurationNodeBase,
 			properties: {
@@ -172,9 +165,6 @@ export class DynamicEditorConfigurations extends Disposable implements IWorkbenc
 							enum: binaryEditorCandidates,
 						}
 					},
-					agentsWindow: {
-						default: editorsAssociationsAgentsWindowDefault({ markdownDefaultEditor: markdownDefaultEditorEnabled })
-					}
 				}
 			}
 		};
@@ -193,9 +183,6 @@ export class DynamicEditorConfigurations extends Disposable implements IWorkbenc
 							enum: binaryEditorCandidates,
 						}
 					},
-					agentsWindow: {
-						default: diffEditorsAssociationsAgentsWindowDefault({ markdownDefaultEditor: markdownDefaultEditorEnabled })
-					}
 				}
 			}
 		};

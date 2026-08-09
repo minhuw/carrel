@@ -16,7 +16,6 @@ import { ICommandService } from '../../../../../platform/commands/common/command
 import { IInstantiationService } from '../../../../../platform/instantiation/common/instantiation.js';
 import { ICodeEditor } from '../../../../browser/editorBrowser.js';
 import { observableCodeEditor } from '../../../../browser/observableCodeEditor.js';
-import product from '../../../../../platform/product/common/product.js';
 import { EditorOption } from '../../../../common/config/editorOptions.js';
 import { CursorColumns } from '../../../../common/core/cursorColumns.js';
 import { LineRange } from '../../../../common/core/ranges/lineRange.js';
@@ -121,7 +120,7 @@ export class InlineCompletionsModel extends Disposable {
 		@IInlineCompletionsService private readonly _inlineCompletionsService: IInlineCompletionsService,
 	) {
 		super();
-		this._source = this._register(this._instantiationService.createInstance(InlineCompletionsSource, this.textModel, this._textModelVersionId, this._debounceValue, this.primaryPosition, product.defaultChatAgent?.completionsEnablementSetting));
+		this._source = this._register(this._instantiationService.createInstance(InlineCompletionsSource, this.textModel, this._textModelVersionId, this._debounceValue, this.primaryPosition));
 		this.lastTriggerKind = this._source.inlineCompletions.map(this, v => v?.request?.context.triggerKind);
 
 		this._editorObs = observableCodeEditor(this._editor);

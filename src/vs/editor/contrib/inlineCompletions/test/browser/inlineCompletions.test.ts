@@ -58,7 +58,6 @@ suite('Inline Completions', () => {
 					model._textModelVersionId,
 					{ get: () => 0, update: () => 0, default: () => 0 },
 					observableValue('testCursorPosition', editor.getPosition()!),
-					'github.copilot.enable',
 				));
 				const request = source.fetch([provider], undefined, {
 					triggerKind: InlineCompletionTriggerKind.Explicit,

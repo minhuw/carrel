@@ -169,6 +169,16 @@ export abstract class Part<MementoType extends object = object> extends Componen
 	}
 
 	/**
+	 * Carrel: hide or show the part's title area in the layout. Unlike a CSS
+	 * `display: none` (which leaves the part 35px short of its grid leaf),
+	 * this also stops the layout from reserving title height.
+	 */
+	protected setTitleAreaVisibility(visible: boolean): void {
+		this.partLayout?.setTitleVisibility(visible);
+		this.relayout();
+	}
+
+	/**
 	 * The dimension to use when the part re-lays out itself in response to internal
 	 * changes (e.g. title, header or footer visibility). Subclasses that reduce the
 	 * dimension passed to {@link layout} (for example to reserve space for a floating
@@ -224,6 +234,7 @@ class PartLayout {
 
 	private headerVisible: boolean = false;
 	private footerVisible: boolean = false;
+	private titleVisible: boolean = true;
 
 	constructor(
 		private options: IPartOptions,
@@ -234,7 +245,8 @@ class PartLayout {
 	layout(width: number, height: number): ILayoutContentResult {
 		// Title Size: Width (Fill), Height (Variable).
 		let titleSize: Dimension;
-		if (this.options.hasTitle) {
+		// Carrel: hidden titles reserve no height when the composite bar moves into the header.
+		if (this.options.hasTitle && this.titleVisible) {
 			const titleHeight = this.options.titleHeight?.() ?? (this.layoutService.isFloatingPanelsEnabled() ? PartLayout.AREA_HEIGHT_MODERN_UI : PartLayout.TITLE_HEIGHT);
 			titleSize = new Dimension(width, Math.min(height, titleHeight));
 		} else {
@@ -273,6 +285,10 @@ class PartLayout {
 		}
 
 		return { headerSize, titleSize, contentSize, footerSize };
+	}
+
+	setTitleVisibility(visible: boolean): void {
+		this.titleVisible = visible;
 	}
 
 	setFooterVisibility(visible: boolean): void {

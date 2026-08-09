@@ -17,7 +17,7 @@ import { Range } from '../../../../../editor/common/core/range.js';
 import { TextEdit } from '../../../../../editor/common/languages.js';
 import { ILanguageService } from '../../../../../editor/common/languages/language.js';
 import { ITextModel } from '../../../../../editor/common/model.js';
-import { EditDeltaInfo, EditSuggestionId } from '../../../../../editor/common/textModelEditSource.js';
+import { EditSuggestionId } from '../../../../../editor/common/textModelEditSource.js';
 import { localize } from '../../../../../nls.js';
 import { IDialogService } from '../../../../../platform/dialogs/common/dialogs.js';
 import { IFileService } from '../../../../../platform/files/common/files.js';
@@ -28,7 +28,6 @@ import { IProgressService, ProgressLocation } from '../../../../../platform/prog
 import { IQuickInputService } from '../../../../../platform/quickinput/common/quickInput.js';
 import { IEditorService } from '../../../../services/editor/common/editorService.js';
 import { ITextFileService } from '../../../../services/textfile/common/textfiles.js';
-import { IAiEditTelemetryService } from '../../../editTelemetry/browser/telemetry/aiEditTelemetry/aiEditTelemetryService.js';
 import { reviewEdits, reviewNotebookEdits } from './reviewEdits.js';
 import { insertCell } from '../../../notebook/browser/controller/cellOperations.js';
 import { IActiveNotebookEditor, INotebookEditor } from '../../../notebook/browser/notebookBrowser.js';
@@ -48,7 +47,6 @@ export class InsertCodeBlockOperation {
 		@IChatService private readonly chatService: IChatService,
 		@ILanguageService private readonly languageService: ILanguageService,
 		@IDialogService private readonly dialogService: IDialogService,
-		@IAiEditTelemetryService private readonly aiEditTelemetryService: IAiEditTelemetryService,
 	) {
 	}
 
@@ -75,22 +73,6 @@ export class InsertCodeBlockOperation {
 				totalLines: context.code.split('\n').length,
 				languageId: context.languageId,
 				modelId: request?.modelId ?? '',
-			});
-
-			const codeBlockInfo = context.element.model.codeBlockInfos?.at(context.codeBlockIndex);
-
-			this.aiEditTelemetryService.handleCodeAccepted({
-				acceptanceMethod: 'insertAtCursor',
-				suggestionId: codeBlockInfo?.suggestionId,
-				editDeltaInfo: EditDeltaInfo.fromText(context.code),
-				feature: 'sideBarChat',
-				languageId: context.languageId,
-				modeId: context.element.model.request?.modeInfo?.telemetryModeId,
-				modelId: request?.modelId,
-				presentation: 'codeBlock',
-				applyCodeBlockSuggestionId: undefined,
-				source: undefined,
-				sourceRequestId: undefined,
 			});
 		}
 	}

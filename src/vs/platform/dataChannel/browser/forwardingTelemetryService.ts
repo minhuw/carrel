@@ -76,7 +76,7 @@ export class InterceptingTelemetryService implements ITelemetryService {
 	}
 }
 
-export interface IEditTelemetryData {
+interface ITelemetryForwardData {
 	eventName: string;
 	data: Record<string, unknown>;
 }
@@ -94,7 +94,7 @@ export class DataChannelForwardingTelemetryService extends InterceptingTelemetry
 			}
 
 			if (forward) {
-				dataChannelService.getDataChannel<IEditTelemetryData>('editTelemetry').sendData({ eventName, data: data ?? {} });
+				dataChannelService.getDataChannel<ITelemetryForwardData>('editTelemetry').sendData({ eventName, data: data ?? {} });
 			}
 		});
 	}

@@ -69,7 +69,6 @@ import { StandardKeyboardEvent } from '../../../../base/browser/keyboardEvent.js
 import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { IExtensionGalleryManifest, IExtensionGalleryManifestService, ExtensionGalleryManifestStatus } from '../../../../platform/extensionManagement/common/extensionGalleryManifest.js';
 import { URI } from '../../../../base/common/uri.js';
-import { DEFAULT_ACCOUNT_SIGN_IN_COMMAND } from '../../../services/accounts/browser/defaultAccount.js';
 
 export const ExtensionsSortByContext = new RawContextKey<string>('extensionsSortByValue', '');
 export const SearchMarketplaceExtensionsContext = new RawContextKey<boolean>('searchMarketplaceExtensions', false);
@@ -146,18 +145,13 @@ export class ExtensionsViewletViewsContribution extends Disposable implements IW
 				ContextKeyExpr.or(
 					ContextKeyExpr.has('searchMarketplaceExtensions'), ContextKeyExpr.and(DefaultViewsContext)
 				),
-				ContextKeyExpr.or(CONTEXT_EXTENSIONS_GALLERY_STATUS.isEqualTo(ExtensionGalleryManifestStatus.RequiresSignIn), CONTEXT_EXTENSIONS_GALLERY_STATUS.isEqualTo(ExtensionGalleryManifestStatus.AccessDenied))
+				CONTEXT_EXTENSIONS_GALLERY_STATUS.isEqualTo(ExtensionGalleryManifestStatus.AccessDenied)
 			),
 			order: -1,
 		});
 
 		const viewRegistry = Registry.as<IViewsRegistry>(Extensions.ViewsRegistry);
 		viewRegistry.registerViews(viewDescriptors, this.container);
-
-		viewRegistry.registerViewWelcomeContent('workbench.views.extensions.marketplaceAccess', {
-			content: localize('sign in', "[Sign in to access Extensions Marketplace]({0})", `command:${DEFAULT_ACCOUNT_SIGN_IN_COMMAND}`),
-			when: CONTEXT_EXTENSIONS_GALLERY_STATUS.isEqualTo(ExtensionGalleryManifestStatus.RequiresSignIn)
-		});
 
 		viewRegistry.registerViewWelcomeContent('workbench.views.extensions.marketplaceAccess', {
 			content: localize('access denied', "Your account does not have access to the Extensions Marketplace. Please contact your administrator."),

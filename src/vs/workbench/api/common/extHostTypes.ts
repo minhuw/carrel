@@ -3039,10 +3039,6 @@ export class InteractiveWindowInput {
 	constructor(readonly uri: URI, readonly inputBoxUri: URI) { }
 }
 
-export class ChatEditorTabInput {
-	constructor() { }
-}
-
 export class TextMultiDiffTabInput {
 	constructor(readonly textDiffs: TextDiffTabInput[]) { }
 }

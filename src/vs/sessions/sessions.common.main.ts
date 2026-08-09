@@ -64,7 +64,6 @@ import '../workbench/browser/parts/statusbar/statusbarPart.js';
 
 import '../platform/actions/common/actions.contribution.js';
 import '../platform/undoRedo/common/undoRedoService.js';
-import '../platform/mcp/common/mcpResourceScannerService.js';
 import '../workbench/services/workspaces/common/editSessionIdentityService.js';
 import '../workbench/services/workspaces/common/canonicalUriService.js';
 import '../workbench/services/extensions/browser/extensionUrlHandler.js';
@@ -120,9 +119,6 @@ import '../workbench/services/authentication/browser/authenticationService.js';
 import '../workbench/services/authentication/browser/authenticationExtensionsService.js';
 import '../workbench/services/authentication/browser/authenticationUsageService.js';
 import '../workbench/services/authentication/browser/authenticationAccessService.js';
-import '../workbench/services/authentication/browser/authenticationMcpUsageService.js';
-import '../workbench/services/authentication/browser/authenticationMcpAccessService.js';
-import '../workbench/services/authentication/browser/authenticationMcpService.js';
 import '../workbench/services/authentication/browser/dynamicAuthenticationProviderStorageService.js';
 import '../workbench/services/authentication/browser/authenticationQueryService.js';
 import '../platform/hover/browser/hoverService.js';
@@ -171,9 +167,6 @@ import { ExtensionStorageService, IExtensionStorageService } from '../platform/e
 import { IUserDataSyncLogService } from '../platform/userDataSync/common/userDataSync.js';
 import { UserDataSyncLogService } from '../platform/userDataSync/common/userDataSyncLog.js';
 import { AllowedExtensionsService } from '../platform/extensionManagement/common/allowedExtensionsService.js';
-import { IAllowedMcpServersService, IMcpGalleryService } from '../platform/mcp/common/mcpManagement.js';
-import { McpGalleryService } from '../platform/mcp/common/mcpGalleryService.js';
-import { AllowedMcpServersService } from '../platform/mcp/common/allowedMcpServersService.js';
 import { IWebWorkerService } from '../platform/webWorker/browser/webWorkerService.js';
 import { WebWorkerService } from '../platform/webWorker/browser/webWorkerServiceImpl.js';
 import { ISessionsSetUpService, SessionsSetUpService } from './browser/sessionsSetUpService.js';
@@ -192,8 +185,6 @@ registerSingleton(ITextResourceConfigurationService, TextResourceConfigurationSe
 registerSingleton(IDownloadService, DownloadService, InstantiationType.Delayed);
 registerSingleton(IOpenerService, OpenerService, InstantiationType.Delayed);
 registerSingleton(IWebWorkerService, WebWorkerService, InstantiationType.Delayed);
-registerSingleton(IMcpGalleryService, McpGalleryService, InstantiationType.Delayed);
-registerSingleton(IAllowedMcpServersService, AllowedMcpServersService, InstantiationType.Delayed);
 registerSingleton(ISessionsSetUpService, SessionsSetUpService, InstantiationType.Delayed);
 
 //#endregion
@@ -224,7 +215,6 @@ import '../workbench/contrib/speech/browser/speech.contribution.js';
 // Chat
 import '../workbench/contrib/chat/browser/chat.shared.contribution.js';
 import '../workbench/contrib/chat/browser/chatInputWindow/chatInputWindow.contribution.js';
-import '../workbench/contrib/mcp/browser/mcp.contribution.js';
 import '../workbench/contrib/chat/browser/chatSessions/chatSessions.contribution.js';
 import '../workbench/contrib/chat/browser/contextContrib/chatContext.contribution.js';
 import '../workbench/contrib/imageCarousel/browser/imageCarousel.contribution.js';

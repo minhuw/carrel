@@ -21,13 +21,13 @@ import { IProductService } from '../../../../platform/product/common/productServ
 import { asText, IRequestService } from '../../../../platform/request/common/request.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../../../platform/storage/common/storage.js';
 import { ITelemetryService, TelemetryLevel } from '../../../../platform/telemetry/common/telemetry.js';
-import { AuthenticationSession, IAuthenticationService } from '../../authentication/common/authentication.js';
+import { AuthenticationSession, IAuthenticationService } from '../../../services/authentication/common/authentication.js';
 import { IOpenerService } from '../../../../platform/opener/common/opener.js';
 import { URI } from '../../../../base/common/uri.js';
 import Severity from '../../../../base/common/severity.js';
-import { IWorkbenchEnvironmentService } from '../../environment/common/environmentService.js';
+import { IWorkbenchEnvironmentService } from '../../../services/environment/common/environmentService.js';
 import { isWeb } from '../../../../base/common/platform.js';
-import { ILifecycleService } from '../../lifecycle/common/lifecycle.js';
+import { ILifecycleService } from '../../../services/lifecycle/common/lifecycle.js';
 import { Mutable } from '../../../../base/common/types.js';
 import { InstantiationType, registerSingleton } from '../../../../platform/instantiation/common/extensions.js';
 import { IObservable, observableFromEvent } from '../../../../base/common/observable.js';
@@ -178,8 +178,11 @@ export interface IChatSetupRequirement {
 }
 
 /**
- * Returns whether Chat requires setup before it can service a request.
- * The model picker uses a narrower condition that only surfaces interactive setup.
+ * Single source of truth for whether Chat still requires setup before it can
+ * service a request. Shared by the setup agent (which routes a sent message
+ * through setup) and the model picker (which surfaces a "Sign in to use Copilot"
+ * state instead of a misleading lone "Auto"). BYOK models and anonymous access
+ * intentionally satisfy the entitlement-based checks so those flows keep working.
  */
 export function chatRequiresSetup(context: IChatSetupRequirement): boolean {
 	return (

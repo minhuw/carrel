@@ -14,7 +14,7 @@ import {
 	getQuotaMessageForPlan,
 	IChatFetchErrorPayload,
 } from '../../common/chatErrorMessages.js';
-import { ChatEntitlement } from '../../../../services/chat/common/chatEntitlementService.js';
+import { ChatEntitlement } from '../../common/chatEntitlementService.js';
 import { ChatErrorLevel } from '../../common/chatService/chatService.js';
 import type { ErrorInfo } from '../../../../../platform/agentHost/common/state/protocol/state.js';
 

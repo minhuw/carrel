@@ -9,7 +9,7 @@ import { IConfigurationService } from '../../../../platform/configuration/common
 import { IContextKey, IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../../../platform/storage/common/storage.js';
 import { IWorkbenchContribution } from '../../../common/contributions.js';
-import { ChatEntitlementContextKeys } from '../../../services/chat/common/chatEntitlementService.js';
+import { ChatEntitlementContextKeys } from '../common/chatEntitlementService.js';
 import { IExtensionService } from '../../../services/extensions/common/extensions.js';
 import { ChatContextKeys } from '../common/actions/chatContextKeys.js';
 import { ChatAIDisabledSettingId } from '../common/constants.js';

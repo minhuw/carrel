@@ -39,7 +39,7 @@ import { ITelemetryService } from '../../../../../platform/telemetry/common/tele
 import { defaultButtonStyles, defaultCheckboxStyles, defaultSelectBoxStyles } from '../../../../../platform/theme/browser/defaultStyles.js';
 import { DomWidget } from '../../../../../platform/domWidget/browser/domWidget.js';
 import { EditorResourceAccessor, SideBySideEditor } from '../../../../common/editor.js';
-import { IChatEntitlementService, ChatEntitlementService, ChatEntitlement, IQuotaSnapshot, getChatPlanName } from '../../../../services/chat/common/chatEntitlementService.js';
+import { IChatEntitlementService, ChatEntitlementService, ChatEntitlement, IQuotaSnapshot, getChatPlanName } from '../../common/chatEntitlementService.js';
 import { IEditorService } from '../../../../services/editor/common/editorService.js';
 import { IContextViewService } from '../../../../../platform/contextview/browser/contextView.js';
 import { isNewUser } from './chatStatus.js';

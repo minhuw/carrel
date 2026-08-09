@@ -8,7 +8,7 @@ import { ContextKeyExpr, RawContextKey } from '../../../../../platform/contextke
 import { IsWebContext } from '../../../../../platform/contextkey/common/contextkeys.js';
 import { RemoteNameContext } from '../../../../common/contextkeys.js';
 import { ViewContainerLocation } from '../../../../common/views.js';
-import { ChatEntitlementContextKeys } from '../../../../services/chat/common/chatEntitlementService.js';
+import { ChatEntitlementContextKeys } from '../chatEntitlementService.js';
 import { ChatAccountPolicyGateActiveContext } from '../../../../services/policies/common/accountPolicyService.js';
 import { ChatAgentLocation, ChatModeKind, ChatPermissionLevel } from '../constants.js';
 

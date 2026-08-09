@@ -11,7 +11,7 @@ import { IWorkbenchLayoutService } from '../../../../../workbench/services/layou
 import { IChatSessionsService } from '../../../../../workbench/contrib/chat/common/chatSessionsService.js';
 import { ILanguageModelsService } from '../../../../../workbench/contrib/chat/common/languageModels.js';
 import { getSessionTypeAvailability, getSessionTypeUnavailableLabel, SessionTypeAvailability } from '../../../../../workbench/contrib/chat/browser/agentSessions/sessionTypeAvailability.js';
-import { IChatEntitlementService } from '../../../../../workbench/services/chat/common/chatEntitlementService.js';
+import { IChatEntitlementService } from '../../../../../workbench/contrib/chat/common/chatEntitlementService.js';
 import { IProviderSessionType, ISessionsManagementService } from '../../../../services/sessions/common/sessionsManagement.js';
 import { ISessionsProvidersService } from '../../../../services/sessions/browser/sessionsProvidersService.js';
 import { ISession } from '../../../../services/sessions/common/session.js';

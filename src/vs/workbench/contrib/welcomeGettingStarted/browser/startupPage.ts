@@ -34,7 +34,7 @@ import { getActiveElement } from '../../../../base/browser/dom.js';
 import { isWeb } from '../../../../base/common/platform.js';
 import { IOnboardingService } from '../../welcomeOnboarding/common/onboardingService.js';
 import { ONBOARDING_STORAGE_KEY } from '../../welcomeOnboarding/common/onboardingTypes.js';
-import { IChatEntitlementService } from '../../../services/chat/common/chatEntitlementService.js';
+import { IChatEntitlementService } from '../../chat/common/chatEntitlementService.js';
 
 export const restoreWalkthroughsConfigurationKey = 'workbench.welcomePage.restorableWalkthroughs';
 export type RestoreWalkthroughsConfigurationValue = { folder: string; category?: string; step?: string };

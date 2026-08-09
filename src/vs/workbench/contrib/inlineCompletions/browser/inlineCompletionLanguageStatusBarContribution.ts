@@ -11,7 +11,7 @@ import { isCodeEditor } from '../../../../editor/browser/editorBrowser.js';
 import { InlineCompletionsController } from '../../../../editor/contrib/inlineCompletions/browser/controller/inlineCompletionsController.js';
 import { localize } from '../../../../nls.js';
 import { IWorkbenchContribution } from '../../../common/contributions.js';
-import { IChatEntitlementService } from '../../../services/chat/common/chatEntitlementService.js';
+import { IChatEntitlementService } from '../../chat/common/chatEntitlementService.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
 import { ILanguageStatusService } from '../../../services/languageStatus/common/languageStatusService.js';
 

@@ -25,7 +25,7 @@ import { ILogService } from '../../../../../platform/log/common/log.js';
 import { INotificationService, Severity } from '../../../../../platform/notification/common/notification.js';
 import { IProductService } from '../../../../../platform/product/common/productService.js';
 import { ITextModelService } from '../../../../../editor/common/services/resolverService.js';
-import { IChatEntitlementService } from '../../../../services/chat/common/chatEntitlementService.js';
+import { IChatEntitlementService } from '../../common/chatEntitlementService.js';
 import { IOutputService } from '../../../../services/output/common/output.js';
 import { IPathService } from '../../../../services/path/common/pathService.js';
 import { IChatWidgetService } from '../chat.js';

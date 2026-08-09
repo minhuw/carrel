@@ -83,7 +83,7 @@ import { ISCMService } from '../../../../scm/common/scm.js';
 import { IWorkbenchLayoutService, Position } from '../../../../../services/layout/browser/layoutService.js';
 import { IViewDescriptorService, ViewContainerLocation } from '../../../../../common/views.js';
 import { ResourceLabels } from '../../../../../browser/labels.js';
-import { IChatEntitlementService } from '../../../../../services/chat/common/chatEntitlementService.js';
+import { IChatEntitlementService } from '../../../common/chatEntitlementService.js';
 import { ACTIVE_GROUP, IEditorService, SIDE_GROUP } from '../../../../../services/editor/common/editorService.js';
 import { AccessibilityVerbositySettingId } from '../../../../accessibility/browser/accessibilityConfiguration.js';
 import { AccessibilityCommandId } from '../../../../accessibility/common/accessibilityCommands.js';

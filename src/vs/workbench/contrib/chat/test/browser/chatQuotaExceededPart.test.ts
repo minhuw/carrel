@@ -13,7 +13,7 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 import { ICommandService } from '../../../../../platform/commands/common/commands.js';
 import { IMarkdownRenderer } from '../../../../../platform/markdown/browser/markdownRenderer.js';
 import { ITelemetryService } from '../../../../../platform/telemetry/common/telemetry.js';
-import { ChatEntitlement, IChatEntitlementService, IChatSentiment } from '../../../../services/chat/common/chatEntitlementService.js';
+import { ChatEntitlement, IChatEntitlementService, IChatSentiment } from '../../common/chatEntitlementService.js';
 import { IChatResponseErrorDetails } from '../../common/chatService/chatService.js';
 import { IChatErrorDetailsPart, IChatResponseViewModel } from '../../common/model/chatViewModel.js';
 import { ChatQuotaExceededPart } from '../../browser/widget/chatContentParts/chatQuotaExceededPart.js';

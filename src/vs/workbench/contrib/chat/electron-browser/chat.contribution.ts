@@ -25,7 +25,7 @@ import { INativeHostService } from '../../../../platform/native/common/native.js
 import { IWorkspaceTrustRequestService } from '../../../../platform/workspace/common/workspaceTrust.js';
 import { WorkbenchPhase, registerWorkbenchContribution2 } from '../../../common/contributions.js';
 import { ViewContainerLocation } from '../../../common/views.js';
-import { IChatEntitlementService } from '../../../services/chat/common/chatEntitlementService.js';
+import { IChatEntitlementService } from '../common/chatEntitlementService.js';
 import { INativeWorkbenchEnvironmentService } from '../../../services/environment/electron-browser/environmentService.js';
 import { IExtensionService } from '../../../services/extensions/common/extensions.js';
 import { IWorkbenchLayoutService } from '../../../services/layout/browser/layoutService.js';

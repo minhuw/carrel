@@ -30,7 +30,7 @@ import { IPathService } from '../../../../services/path/common/pathService.js';
 import { IWorkbenchAssignmentService } from '../../../../services/assignment/common/assignmentService.js';
 import { IWorkbenchLayoutService } from '../../../../services/layout/browser/layoutService.js';
 import { IWorkbenchEnvironmentService } from '../../../../services/environment/common/environmentService.js';
-import { ChatEntitlement, IChatEntitlementService } from '../../../../services/chat/common/chatEntitlementService.js';
+import { ChatEntitlement, IChatEntitlementService } from '../../../../contrib/chat/common/chatEntitlementService.js';
 import { INotebookDocumentService } from '../../../../services/notebook/common/notebookDocumentService.js';
 import { IViewDescriptorService } from '../../../../common/views.js';
 import { ISCMService } from '../../../../contrib/scm/common/scm.js';

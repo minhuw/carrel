@@ -7,7 +7,7 @@ import { IStringDictionary } from '../../../../../../../base/common/collections.
 import { IActionWidgetDropdownAction } from '../../../../../../../platform/actionWidget/browser/actionWidgetDropdown.js';
 import { IOpenerService } from '../../../../../../../platform/opener/common/opener.js';
 import { StateType } from '../../../../../../../platform/update/common/update.js';
-import { IChatEntitlementService } from '../../../../../../services/chat/common/chatEntitlementService.js';
+import { IChatEntitlementService } from '../../../../common/chatEntitlementService.js';
 import { IModelControlEntry, ILanguageModelChatMetadataAndIdentifier, ILanguageModelsService } from '../../../../common/languageModels.js';
 
 export interface IBuildModelPickerItemsOptions {

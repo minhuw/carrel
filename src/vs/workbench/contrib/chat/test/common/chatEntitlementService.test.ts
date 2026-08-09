@@ -13,7 +13,7 @@ import { MockContextKeyService } from '../../../../../platform/keybinding/test/c
 import { NullLogService } from '../../../../../platform/log/common/log.js';
 import { IProductService } from '../../../../../platform/product/common/productService.js';
 import { NullTelemetryService } from '../../../../../platform/telemetry/common/telemetryUtils.js';
-import { ChatEntitlementService, parseQuotas } from '../../../../services/chat/common/chatEntitlementService.js';
+import { ChatEntitlementService, parseQuotas } from '../../common/chatEntitlementService.js';
 import { IWorkbenchEnvironmentService } from '../../../../services/environment/common/environmentService.js';
 import { TestStorageService } from '../../../../test/common/workbenchTestServices.js';
 

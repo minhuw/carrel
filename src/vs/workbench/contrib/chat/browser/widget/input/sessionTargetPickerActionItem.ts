@@ -25,7 +25,7 @@ import { ITelemetryService } from '../../../../../../platform/telemetry/common/t
 import { IWorkspaceContextService } from '../../../../../../platform/workspace/common/workspace.js';
 import { IAgentHostEnablementService } from '../../../../../../platform/agentHost/common/agentHostEnablementService.js';
 import { IsSessionsWindowContext } from '../../../../../common/contextkeys.js';
-import { IChatEntitlementService } from '../../../../../services/chat/common/chatEntitlementService.js';
+import { IChatEntitlementService } from '../../../common/chatEntitlementService.js';
 import { IChatSessionsService } from '../../../common/chatSessionsService.js';
 import { ILanguageModelsService } from '../../../common/languageModels.js';
 import { AgentSessionProviders, AgentSessionTarget, getAgentSessionProvider, getAgentSessionProviderDescription, getAgentSessionProviderIcon, getAgentSessionProviderName, isFirstPartyAgentSessionProvider } from '../../agentSessions/agentSessions.js';

@@ -8,7 +8,7 @@ import { Disposable, DisposableStore, MutableDisposable, toDisposable } from '..
 import { localize } from '../../../../../nls.js';
 import { IWorkbenchContribution } from '../../../../common/contributions.js';
 import { IStatusbarEntry, IStatusbarEntryAccessor, IStatusbarService, ShowTooltipCommand, StatusbarAlignment, StatusbarEntryKind } from '../../../../services/statusbar/browser/statusbar.js';
-import { ChatEntitlement, ChatEntitlementContextKeys, ChatEntitlementService, IChatEntitlementService, isProUser } from '../../../../services/chat/common/chatEntitlementService.js';
+import { ChatEntitlement, ChatEntitlementContextKeys, ChatEntitlementService, IChatEntitlementService, isProUser } from '../../common/chatEntitlementService.js';
 import { CancellationToken, CancellationTokenSource } from '../../../../../base/common/cancellation.js';
 import { disposableLongTimeout, disposableTimeout } from '../../../../../base/common/async.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../../../../platform/storage/common/storage.js';

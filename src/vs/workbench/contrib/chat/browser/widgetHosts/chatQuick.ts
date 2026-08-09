@@ -22,7 +22,7 @@ import product from '../../../../../platform/product/common/product.js';
 import { IQuickInputService, IQuickWidget } from '../../../../../platform/quickinput/common/quickInput.js';
 import { editorBackground, inputBackground, quickInputBackground, quickInputForeground } from '../../../../../platform/theme/common/colorRegistry.js';
 import { EDITOR_DRAG_AND_DROP_BACKGROUND } from '../../../../common/theme.js';
-import { IChatEntitlementService } from '../../../../services/chat/common/chatEntitlementService.js';
+import { IChatEntitlementService } from '../../common/chatEntitlementService.js';
 import { IWorkbenchLayoutService } from '../../../../services/layout/browser/layoutService.js';
 import { isCellTextEditOperationArray } from '../../common/model/chatModel.js';
 import { ChatMode } from '../../common/chatModes.js';

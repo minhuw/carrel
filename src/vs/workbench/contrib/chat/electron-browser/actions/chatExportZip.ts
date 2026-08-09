@@ -12,7 +12,7 @@ import { IFileDialogService } from '../../../../../platform/dialogs/common/dialo
 import { IFileService } from '../../../../../platform/files/common/files.js';
 import { INativeHostService } from '../../../../../platform/native/common/native.js';
 import { INotificationService, Severity } from '../../../../../platform/notification/common/notification.js';
-import { ChatEntitlementContextKeys } from '../../../../services/chat/common/chatEntitlementService.js';
+import { ChatEntitlementContextKeys } from '../../common/chatEntitlementService.js';
 import { CHAT_CATEGORY } from '../../browser/actions/chatActions.js';
 import { IChatWidgetService } from '../../browser/chat.js';
 import { captureRepoInfo } from '../../browser/chatRepoInfo.js';

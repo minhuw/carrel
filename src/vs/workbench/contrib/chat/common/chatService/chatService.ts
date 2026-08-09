@@ -19,7 +19,6 @@ import { ISelection } from '../../../../../editor/common/core/selection.js';
 import { Command, Location, TextEdit } from '../../../../../editor/common/languages.js';
 import { FileType } from '../../../../../platform/files/common/files.js';
 import { createDecorator } from '../../../../../platform/instantiation/common/instantiation.js';
-import { IAutostartResult } from '../../../mcp/common/mcpTypes.js';
 import { ICellEditOperation } from '../../../notebook/common/notebookCommon.js';
 import { IWorkspaceSymbol } from '../../../search/common/search.js';
 import { IChatRequestVariableEntry } from '../attachments/chatVariableEntries.js';
@@ -1310,6 +1309,16 @@ export const enum AgentFeedbackReviewCommandId {
 	Delete = '_agentFeedbackReview.delete',
 	/** `(sessionOrChatResource, commentIds)` -> accepts (reveals) the given comments. */
 	Accept = '_agentFeedbackReview.accept',
+}
+
+/**
+ * Minimal stand-in for the removed MCP autostart result. MCP support has been
+ * removed; the shape is kept so serialized chat progress parts still compile.
+ */
+export interface IAutostartResult {
+	readonly working: boolean;
+	readonly starting: readonly { id: string; label: string }[];
+	readonly serversRequiringInteraction: readonly { id: string; label: string; errorMessage?: string }[];
 }
 
 export interface IChatMcpServersStarting {

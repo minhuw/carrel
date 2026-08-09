@@ -17,7 +17,7 @@ import { InMemoryFileSystemProvider } from '../../../../../../platform/files/com
 import { IInstantiationService } from '../../../../../../platform/instantiation/common/instantiation.js';
 import { TestInstantiationService } from '../../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
 import { ILogService, NullLogService } from '../../../../../../platform/log/common/log.js';
-import { McpServerType } from '../../../../../../platform/mcp/common/mcpPlatformTypes.js';
+import { McpServerType } from '../../../../../../platform/agentPlugins/common/mcpServerConfigTypes.js';
 import { IWorkspaceContextService } from '../../../../../../platform/workspace/common/workspace.js';
 import { testWorkspace } from '../../../../../../platform/workspace/test/common/testWorkspace.js';
 import { TestContextService } from '../../../../../test/common/workbenchTestServices.js';

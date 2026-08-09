@@ -56,8 +56,6 @@ import '../workbench/services/keybinding/electron-browser/nativeKeyboardLayout.j
 import '../workbench/services/path/electron-browser/pathService.js';
 import '../workbench/services/themes/electron-browser/nativeHostColorSchemeService.js';
 import '../workbench/services/extensionManagement/electron-browser/extensionManagementService.js';
-import '../workbench/services/mcp/electron-browser/mcpGalleryManifestService.js';
-import '../workbench/services/mcp/electron-browser/mcpWorkbenchManagementService.js';
 import '../workbench/services/encryption/electron-browser/encryptionService.js';
 import '../workbench/services/imageResize/electron-browser/imageResizeService.js';
 import '../workbench/services/secrets/electron-browser/secretStorageService.js';
@@ -209,8 +207,6 @@ import '../workbench/contrib/encryption/electron-browser/encryption.contribution
 // Emergency Alert
 import '../workbench/contrib/emergencyAlert/electron-browser/emergencyAlert.contribution.js';
 
-// MCP
-import '../workbench/contrib/mcp/electron-browser/mcp.contribution.js';
 
 // Policy Export
 import '../workbench/contrib/policyExport/electron-browser/policyExport.contribution.js';

@@ -11,13 +11,9 @@ import { type McpOAuthClient, type ProtectedResourceMetadata } from '../../../..
 import { ICommandService } from '../../../../../../platform/commands/common/commands.js';
 import { type AgentInfo } from '../../../../../../platform/agentHost/common/state/sessionState.js';
 import { ServicesAccessor } from '../../../../../../platform/instantiation/common/instantiation.js';
-import { ILabelService } from '../../../../../../platform/label/common/label.js';
 import { ILogService } from '../../../../../../platform/log/common/log.js';
 import { localize } from '../../../../../../nls.js';
-import { IAuthenticationMcpAccessService } from '../../../../../services/authentication/browser/authenticationMcpAccessService.js';
-import { IAuthenticationMcpService } from '../../../../../services/authentication/browser/authenticationMcpService.js';
-import { IAuthenticationMcpUsageService } from '../../../../../services/authentication/browser/authenticationMcpUsageService.js';
-import { AuthenticationSession, getDynamicAuthenticationProviderId, IAuthenticationService } from '../../../../../services/authentication/common/authentication.js';
+import { getDynamicAuthenticationProviderId, IAuthenticationService } from '../../../../../services/authentication/common/authentication.js';
 import { IDynamicAuthenticationProviderStorageService } from '../../../../../services/authentication/common/dynamicAuthenticationProviderStorage.js';
 import { CHAT_SETUP_ACTION_ID } from '../../actions/chatActions.js';
 import { IChatSetupResult } from '../../chatSetup/chatSetup.js';
@@ -227,11 +223,8 @@ export interface IAgentHostMcpAuthenticationOptionsBase {
 	readonly scopes: readonly string[];
 	readonly authorizationServerMetadataFetcher?: typeof fetchAuthorizationServerMetadata;
 	/**
-	 * Identifies the agent host backing this MCP server so remembered-auth
-	 * entries can be surfaced in their own section of the "Manage Trusted MCP
-	 * Servers" picker. When set, the resolved host label (via
-	 * {@link ILabelService.getHostLabel}) is recorded on the allowed-server
-	 * entry. Omit for non-agent-host callers.
+	 * Identifies the agent host backing this MCP server. Omit for
+	 * non-agent-host callers.
 	 */
 	readonly agentHost?: { readonly scheme: string; readonly authority: string };
 	readonly authenticate: (request: IAgentHostAuthenticateRequest) => Promise<unknown>;
@@ -356,14 +349,8 @@ export async function resolveMcpServerAuthentication(
 	options: IAgentHostMcpAuthenticationOptionsBase,
 ): Promise<boolean> {
 	const authenticationService = accessor.get(IAuthenticationService);
-	const authenticationMcpAccessService = accessor.get(IAuthenticationMcpAccessService);
-	const authenticationMcpService = accessor.get(IAuthenticationMcpService);
-	const authenticationMcpUsageService = accessor.get(IAuthenticationMcpUsageService);
 	const dynamicAuthenticationProviderStorageService = accessor.get(IDynamicAuthenticationProviderStorageService);
 	const logService = accessor.get(ILogService);
-	const agentHostMeta = options.agentHost
-		? { authority: options.agentHost.authority, label: accessor.get(ILabelService).getHostLabel(options.agentHost.scheme, options.agentHost.authority) }
-		: undefined;
 	// GitHub MCP supports demand-driven step-up auth, while other servers may reject authorization requests with no scopes.
 	const scopes = options.scopes.length > 0 || isGitHubMcpResource(protectedResource)
 		? options.scopes
@@ -397,9 +384,9 @@ export async function resolveMcpServerAuthentication(
 				...oauthClientOptions,
 				silent: !options.allowInteraction,
 			}, true);
-			const allowedSession = getAllowedMcpSession(providerId, sessions, authenticationMcpAccessService, authenticationMcpService, options);
-			if (allowedSession) {
-				await authenticateMcpSession(providerId, allowedSession, scopes, authenticationMcpAccessService, authenticationMcpService, authenticationMcpUsageService, logService, options, false, agentHostMeta);
+			if (sessions.length > 0) {
+				await forwardAuthenticationToken(options, options.mcpServerUrl, scopes, sessions[0].accessToken);
+				logService.info(`${options.logPrefix} MCP authentication succeeded for ${options.mcpServerName}`);
 				return true;
 			}
 
@@ -407,18 +394,14 @@ export async function resolveMcpServerAuthentication(
 				return false;
 			}
 
-			const provider = authenticationService.getProvider(providerId);
-			const session = sessions.length
-				? provider.supportsMultipleAccounts
-					? await authenticationMcpService.selectSession(providerId, options.mcpServerId, options.mcpServerName, [...scopes], sessions)
-					: sessions[0]
-				: await authenticationService.createSession(providerId, [...scopes], {
-					activateImmediate: true,
-					authorizationServer: authorizationServerUri,
-					resource: protectedResource.resource,
-					...oauthClientOptions,
-				});
-			await authenticateMcpSession(providerId, session, scopes, authenticationMcpAccessService, authenticationMcpService, authenticationMcpUsageService, logService, options, true, agentHostMeta);
+			const session = await authenticationService.createSession(providerId, [...scopes], {
+				activateImmediate: true,
+				authorizationServer: authorizationServerUri,
+				resource: protectedResource.resource,
+				...oauthClientOptions,
+			});
+			await forwardAuthenticationToken(options, options.mcpServerUrl, scopes, session.accessToken);
+			logService.info(`${options.logPrefix} MCP authentication succeeded for ${options.mcpServerName}`);
 			return true;
 		});
 		if (authenticated) {
@@ -498,45 +481,3 @@ async function getOrCreateProviderForMcpResource(
 	}
 }
 
-function getAllowedMcpSession(
-	providerId: string,
-	sessions: readonly AuthenticationSession[],
-	authenticationMcpAccessService: IAuthenticationMcpAccessService,
-	authenticationMcpService: IAuthenticationMcpService,
-	options: IAgentHostMcpAuthenticationOptionsBase,
-): AuthenticationSession | undefined {
-	const accountNamePreference = authenticationMcpService.getAccountPreference(options.mcpServerId, providerId);
-	if (accountNamePreference) {
-		const preferred = sessions.find(session => session.account.label === accountNamePreference);
-		if (preferred && authenticationMcpAccessService.isAccessAllowedForUrl(providerId, preferred.account.label, options.mcpServerId, options.mcpServerUrl)) {
-			return preferred;
-		}
-	}
-
-	if (sessions.length === 1 && authenticationMcpAccessService.isAccessAllowedForUrl(providerId, sessions[0].account.label, options.mcpServerId, options.mcpServerUrl)) {
-		return sessions[0];
-	}
-
-	return undefined;
-}
-
-async function authenticateMcpSession(
-	providerId: string,
-	session: AuthenticationSession,
-	scopes: readonly string[],
-	authenticationMcpAccessService: IAuthenticationMcpAccessService,
-	authenticationMcpService: IAuthenticationMcpService,
-	authenticationMcpUsageService: IAuthenticationMcpUsageService,
-	logService: ILogService,
-	options: IAgentHostMcpAuthenticationOptionsBase,
-	updateAccess: boolean,
-	agentHost: { readonly authority: string; readonly label: string } | undefined,
-): Promise<void> {
-	await forwardAuthenticationToken(options, options.mcpServerUrl, scopes, session.accessToken);
-	if (updateAccess) {
-		authenticationMcpAccessService.updateAllowedMcpServers(providerId, session.account.label, [{ id: options.mcpServerId, name: options.mcpServerName, allowed: true, url: options.mcpServerUrl, agentHost }]);
-		authenticationMcpService.updateAccountPreference(options.mcpServerId, providerId, session.account);
-	}
-	authenticationMcpUsageService.addAccountUsage(providerId, session.account.label, scopes, options.mcpServerId, options.mcpServerName);
-	logService.info(`${options.logPrefix} MCP authentication succeeded for ${options.mcpServerName}`);
-}

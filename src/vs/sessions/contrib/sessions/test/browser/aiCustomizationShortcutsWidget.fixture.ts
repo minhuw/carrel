@@ -12,7 +12,6 @@ import { Codicon } from '../../../../../base/common/codicons.js';
 import { mock } from '../../../../../base/test/common/mock.js';
 import { IActionViewItemFactory, IActionViewItemService } from '../../../../../platform/actions/browser/actionViewItemService.js';
 import { IMenu, IMenuActionOptions, IMenuService, isIMenuItem, MenuId, MenuItemAction, MenuRegistry, SubmenuItemAction } from '../../../../../platform/actions/common/actions.js';
-import { IMcpServer, IMcpService } from '../../../../../workbench/contrib/mcp/common/mcpTypes.js';
 import { IAgentPluginService } from '../../../../../workbench/contrib/chat/common/plugins/agentPluginService.js';
 import { ILanguageModelToolsService, IToolSet } from '../../../../../workbench/contrib/chat/common/tools/languageModelToolsService.js';
 import { IAgentHostToolSetEnablementService, IToolEnablementState } from '../../../../../workbench/contrib/chat/browser/agentSessions/agentHost/agentHostToolSetEnablementService.js';
@@ -149,14 +148,6 @@ function createMockItemsModel(counts?: ICustomizationCounts): IAICustomizationIt
 	}();
 }
 
-function createMockMcpService(serverCount: number = 0): IMcpService {
-	const MockServer = mock<IMcpServer>();
-	const servers = observableValue<readonly IMcpServer[]>('mockMcpServers', Array.from({ length: serverCount }, () => new MockServer()));
-	return new class extends mock<IMcpService>() {
-		override readonly servers = servers;
-	}();
-}
-
 function createMockHarnessService(hiddenSections: readonly string[] = []): ICustomizationHarnessService {
 	const descriptor: IHarnessDescriptor = {
 		id: 'fixture',
@@ -177,7 +168,7 @@ function createMockHarnessService(hiddenSections: readonly string[] = []): ICust
 // Render helper
 // ============================================================================
 
-function renderWidget(ctx: ComponentFixtureContext, options?: { mcpServerCount?: number; counts?: ICustomizationCounts; hiddenSections?: readonly string[]; height?: number }): void {
+function renderWidget(ctx: ComponentFixtureContext, options?: { counts?: ICustomizationCounts; hiddenSections?: readonly string[]; height?: number }): void {
 	ctx.container.style.width = '300px';
 	ctx.container.style.height = `${options?.height ?? 260}px`;
 	ctx.container.style.backgroundColor = 'var(--vscode-sideBar-background)';
@@ -201,7 +192,6 @@ function renderWidget(ctx: ComponentFixtureContext, options?: { mcpServerCount?:
 			}());
 			reg.defineInstance(IAICustomizationItemsModel, createMockItemsModel(options?.counts));
 			reg.defineInstance(ICustomizationHarnessService, createMockHarnessService(options?.hiddenSections));
-			reg.defineInstance(IMcpService, createMockMcpService(options?.mcpServerCount ?? 0));
 			reg.defineInstance(IAgentPluginService, new class extends mock<IAgentPluginService>() {
 				override readonly plugins = observableValue<readonly never[]>('mockPlugins', []);
 			}());
@@ -245,20 +235,9 @@ export default defineThemedFixtureGroup({ path: 'sessions/' }, {
 		render: (ctx) => renderWidget(ctx, { height: 129 }),
 	}),
 
-	WithMcpServers: defineComponentFixture({
-		labels: { kind: 'screenshot' },
-		render: (ctx) => renderWidget(ctx, { mcpServerCount: 3 }),
-	}),
-
-	MinimumHeightWithMcpServers: defineComponentFixture({
-		labels: { kind: 'screenshot' },
-		render: (ctx) => renderWidget(ctx, { mcpServerCount: 3, height: 129 }),
-	}),
-
 	WithCounts: defineComponentFixture({
 		labels: { kind: 'screenshot' },
 		render: (ctx) => renderWidget(ctx, {
-			mcpServerCount: 2,
 			counts: { agents: 2, skills: 30, instructions: 16, hooks: 4 },
 		}),
 	}),

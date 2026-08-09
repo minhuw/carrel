@@ -94,7 +94,6 @@ import './mainThreadProfileContentHandlers.js';
 import './mainThreadAiRelatedInformation.js';
 import './mainThreadAiEmbeddingVector.js';
 import './mainThreadAiSettingsSearch.js';
-import './mainThreadMcp.js';
 import './mainThreadChatContext.js';
 import './mainThreadChatDebug.js';
 import './mainThreadChatStatus.js';

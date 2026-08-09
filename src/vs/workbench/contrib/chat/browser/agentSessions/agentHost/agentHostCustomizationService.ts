@@ -21,7 +21,7 @@ import { CustomizationType, McpServerCustomization, McpServerStatus, type Custom
 import { AgentCustomization, ROOT_STATE_URI, StateComponents } from '../../../../../../platform/agentHost/common/state/sessionState.js';
 import { InstantiationType, registerSingleton } from '../../../../../../platform/instantiation/common/extensions.js';
 import { createDecorator, IInstantiationService } from '../../../../../../platform/instantiation/common/instantiation.js';
-import { IMcpServerConfiguration } from '../../../../../../platform/mcp/common/mcpPlatformTypes.js';
+import { IMcpServerConfiguration } from '../../../../../../platform/agentPlugins/common/mcpServerConfigTypes.js';
 import { ILogger, ILoggerService, ILogService } from '../../../../../../platform/log/common/log.js';
 import { IStorageService } from '../../../../../../platform/storage/common/storage.js';
 import { ContributionEnablementState, EnablementModel, isContributionEnabled } from '../../../common/enablement.js';

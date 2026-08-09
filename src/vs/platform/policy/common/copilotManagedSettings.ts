@@ -4,9 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Event } from '../../../base/common/event.js';
-import { IPolicyData } from '../../../base/common/defaultAccount.js';
 import { ExtraKnownMarketplacesConfigDict, IExtraKnownMarketplaceEntry, extraKnownMarketplacesToConfigDict } from '../../../base/common/managedSettings.js';
-import { IManagedSettingPolicyDefinition, IManagedSettingsPolicyDefinitions, ManagedSettingValue, ManagedSettingsData } from '../../../base/common/policy.js';
+import { IManagedSettingPolicyDefinition, IManagedSettingsPolicyDefinitions, IPolicyData, ManagedSettingValue, ManagedSettingsData } from '../../../base/common/policy.js';
 import { IStringDictionary } from '../../../base/common/collections.js';
 import { isEmptyObject, isObject, isString } from '../../../base/common/types.js';
 import { createDecorator } from '../../instantiation/common/instantiation.js';

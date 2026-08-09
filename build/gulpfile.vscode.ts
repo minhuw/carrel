@@ -232,9 +232,7 @@ function computeChecksum(filename: string): string {
 // (`foundry_local_napi.node`) inside its tarball, and its native core libraries
 // are fetched per-RID into `foundry-local-core/<platform>-<arch>/` at install
 // time. The addon requires a newer glibc than VS Code's minimum supported Linux
-// distros, so we deliberately do NOT ship any of this native payload: it is
-// downloaded on demand at runtime, only on supported platforms, into a per-user
-// cache (see `src/vs/platform/localTranscription/node/foundryLocalRuntime.ts`).
+// distros, so we deliberately do NOT ship any of this native payload.
 // Exclude every prebuilt addon and core library from the package here.
 function getFoundryLocalExcludeFilter(): string[] {
 	return [

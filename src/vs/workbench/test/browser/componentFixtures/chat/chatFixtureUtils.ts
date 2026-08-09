@@ -54,8 +54,6 @@ import { IChatResponseFileChangesService } from '../../../../contrib/chat/browse
 import { IChatPetService } from '../../../../contrib/chat/browser/chatPetService.js';
 import { ChatPetWidgetService, IChatPetWidgetService } from '../../../../contrib/chat/browser/widget/chatPetWidgetService.js';
 import { IChatOutputRendererService } from '../../../../contrib/chat/browser/chatOutputItemRenderer.js';
-import { IAiEditTelemetryService } from '../../../../contrib/editTelemetry/browser/telemetry/aiEditTelemetry/aiEditTelemetryService.js';
-import { EditSuggestionId } from '../../../../../editor/common/textModelEditSource.js';
 import { IChatAttachmentResolveService } from '../../../../contrib/chat/browser/attachments/chatAttachmentResolveService.js';
 import { ChatAttachmentWidgetRegistry, IChatAttachmentWidgetRegistry } from '../../../../contrib/chat/browser/attachments/chatAttachmentWidgetRegistry.js';
 import { IChatContextPickService } from '../../../../contrib/chat/browser/attachments/chatContextPickService.js';
@@ -326,10 +324,6 @@ export function registerChatFixtureServices(reg: ServiceRegistration, options: I
 	// code blocks fall back to the normal editor-backed CodeBlockPart.
 	reg.defineInstance(IChatOutputRendererService, new class extends mock<IChatOutputRendererService>() {
 		override hasCodeBlockRenderer() { return false; }
-	}());
-	// Chat code blocks generate a suggestion id for edit telemetry when the response completes.
-	reg.defineInstance(IAiEditTelemetryService, new class extends mock<IAiEditTelemetryService>() {
-		override createSuggestionId() { return EditSuggestionId.newId(); }
 	}());
 	reg.define(IChatAttachmentWidgetRegistry, ChatAttachmentWidgetRegistry);
 	reg.defineInstance(IChatAttachmentResolveService, new class extends mock<IChatAttachmentResolveService>() { }());

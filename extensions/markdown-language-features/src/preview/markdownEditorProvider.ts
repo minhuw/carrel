@@ -317,7 +317,6 @@ export class MarkdownEditorProvider extends Disposable implements vscode.CustomT
 		const quickDiff = originalDocument
 			? this.#wireDocumentDiff(originalDocument, document, editorWebview)
 			: this.#wireQuickDiff(document, editorWebview);
-		const comments = this.#wireComments(document, editorWebview);
 		const onDidGrantWorkspaceTrust = vscode.workspace.onDidGrantWorkspaceTrust(() => {
 			webviewReady = false;
 			this.#configureWebview(document, editorWebview);
@@ -370,7 +369,6 @@ export class MarkdownEditorProvider extends Disposable implements vscode.CustomT
 			onDocumentChange.dispose();
 			highlight.dispose();
 			quickDiff.dispose();
-			comments.dispose();
 			onDidGrantWorkspaceTrust.dispose();
 			onContributionsChanged.dispose();
 			onDidSaveTextDocument.dispose();
@@ -635,61 +633,6 @@ export class MarkdownEditorProvider extends Disposable implements vscode.CustomT
 
 		return vscode.Disposable.from(onMessage, onDocumentChange);
 	}
-
-	/**
-	 * Bridges the workbench's agent/session comments (the same store the code
-	 * editor renders its comments from) to the webview: existing comments are
-	 * forwarded for rendering, and comments the user adds in the Markdown editor
-	 * are written back to the shared store so they appear in the code editor too.
-	 * Comment ranges are converted between {@link vscode.Range} and the source
-	 * character offsets the webview works in.
-	 */
-	#wireComments(document: vscode.TextDocument, editorWebview: AuthenticatedWebview): vscode.Disposable {
-		const webview = editorWebview.webview;
-		const commentsProvider = vscode.window.createAgentEditorComments(document.uri);
-		let webviewReady = false;
-		let revealedCommentId: string | undefined;
-
-		const postComments = () => {
-			const comments = commentsProvider.comments.map(comment => ({
-				id: comment.id,
-				start: document.offsetAt(comment.range.start),
-				endExclusive: document.offsetAt(comment.range.end),
-				body: comment.body,
-				author: comment.author,
-			}));
-			editorWebview.postMessage({ type: 'comments', comments, acceptsComments: commentsProvider.acceptsComments });
-		};
-		const postReveal = () => {
-			if (webviewReady && revealedCommentId) {
-				editorWebview.postMessage({ type: 'revealComment', id: revealedCommentId });
-			}
-		};
-
-		const onChange = commentsProvider.onDidChange(postComments);
-		const onDidRevealComment = commentsProvider.onDidRevealComment(id => {
-			revealedCommentId = id;
-			postReveal();
-		});
-		const onMessage = webview.onDidReceiveMessage((message) => {
-			if (message.type === 'ready') {
-				webviewReady = true;
-				postComments();
-				postReveal();
-			} else if (message.type === 'addComment') {
-				const range = new vscode.Range(
-					document.positionAt(message.start),
-					document.positionAt(message.endExclusive),
-				);
-				commentsProvider.addComment(range, message.text);
-			} else if (message.type === 'deleteComment') {
-				commentsProvider.deleteComment(message.id);
-			}
-		});
-
-		return vscode.Disposable.from(commentsProvider, onChange, onDidRevealComment, onMessage);
-	}
-
 
 	/**
 	 * Proxies the webview's syntax highlighting requests to the

@@ -11,7 +11,7 @@ import { SessionsBrowserMain } from '../browser/web.main.js';
 import { Emitter, Event } from '../../base/common/event.js';
 import { CancellationToken } from '../../base/common/cancellation.js';
 import { IObservable, observableValue } from '../../base/common/observable.js';
-import { ChatEntitlement, IChatEntitlementService, IChatSentiment } from '../../workbench/services/chat/common/chatEntitlementService.js';
+import { ChatEntitlement, IChatEntitlementService, IChatSentiment } from '../../workbench/contrib/chat/common/chatEntitlementService.js';
 import { IDefaultAccountService } from '../../platform/defaultAccount/common/defaultAccount.js';
 import { IDefaultAccount, IDefaultAccountAuthenticationProvider, ICopilotTokenInfo, IPolicyData } from '../../base/common/defaultAccount.js';
 import { IChatAgentService, IChatAgentData, IChatAgentImplementation } from '../../workbench/contrib/chat/common/participants/chatAgents.js';

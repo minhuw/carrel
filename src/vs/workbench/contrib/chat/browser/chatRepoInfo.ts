@@ -14,7 +14,7 @@ import { detectEncodingFromBuffer } from '../../../services/textfile/common/enco
 import { ILogService } from '../../../../platform/log/common/log.js';
 import { Registry } from '../../../../platform/registry/common/platform.js';
 import { IWorkbenchContribution } from '../../../common/contributions.js';
-import { IChatEntitlementService } from '../../../services/chat/common/chatEntitlementService.js';
+import { IChatEntitlementService } from '../common/chatEntitlementService.js';
 import { ISCMService, ISCMResource } from '../../scm/common/scm.js';
 import { IChatService } from '../common/chatService/chatService.js';
 import { ChatConfiguration } from '../common/constants.js';

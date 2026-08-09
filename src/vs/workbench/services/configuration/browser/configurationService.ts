@@ -1361,7 +1361,7 @@ export class ConfigurationDefaultOverridesContribution extends Disposable implem
 		@IWorkbenchAssignmentService private readonly workbenchAssignmentService: IWorkbenchAssignmentService,
 		@IExtensionService private readonly extensionService: IExtensionService,
 		@IConfigurationService private readonly configurationService: WorkspaceService,
-		@IWorkbenchEnvironmentService private readonly environmentService: IWorkbenchEnvironmentService,
+		@IWorkbenchEnvironmentService environmentService: IWorkbenchEnvironmentService,
 		@ILogService private readonly logService: ILogService
 	) {
 		super();
@@ -1466,9 +1466,6 @@ export class ConfigurationDefaultOverridesContribution extends Disposable implem
 	private shouldOverride(value: unknown, schema: IConfigurationPropertySchema): boolean {
 		if (isUndefined(value)) {
 			return false;
-		}
-		if (this.environmentService.isSessionsWindow && schema.agentsWindow?.default !== undefined) {
-			return !equals(value, schema.agentsWindow?.default);
 		}
 		return !equals(value, schema.default);
 	}

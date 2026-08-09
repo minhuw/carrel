@@ -36,7 +36,7 @@ import { extHostNamedCustomer, IExtHostContext } from '../../services/extensions
 import { ExtHostContext, ExtHostLanguageFeaturesShape, HoverWithId, ICallHierarchyItemDto, ICodeActionDto, ICodeActionProviderMetadataDto, IdentifiableInlineCompletion, IdentifiableInlineCompletions, IDocumentDropEditDto, IDocumentDropEditProviderMetadata, IDocumentFilterDto, IIndentationRuleDto, IInlayHintDto, IInlineCompletionChangeHintDto, IInlineCompletionModelInfoDto, IInlineCompletionProviderOptionDto, ILanguageConfigurationDto, ILanguageWordDefinitionDto, ILinkDto, ILocationDto, ILocationLinkDto, IOnEnterRuleDto, IPasteEditDto, IPasteEditProviderMetadataDto, IRegExpDto, ISignatureHelpProviderMetadataDto, ISuggestDataDto, ISuggestDataDtoField, ISuggestResultDtoField, ITypeHierarchyItemDto, IWorkspaceSymbolDto, MainContext, MainThreadLanguageFeaturesShape } from '../common/extHost.protocol.js';
 import { InlineCompletionEndOfLifeReasonKind } from '../common/extHostTypes.js';
 import { IInstantiationService } from '../../../platform/instantiation/common/instantiation.js';
-import { DataChannelForwardingTelemetryService, forwardToChannelIf, isCopilotLikeExtension } from '../../../platform/dataChannel/browser/forwardingTelemetryService.js';
+import { DataChannelForwardingTelemetryService } from '../../../platform/dataChannel/browser/forwardingTelemetryService.js';
 import { EditDeltaInfo } from '../../../editor/common/textModelEditSource.js';
 import { IInlineCompletionsUnificationService } from '../../services/inlineCompletions/common/inlineCompletionsUnification.js';
 import { InlineCompletionEndOfLifeEvent, sendInlineCompletionsEndOfLifeTelemetry } from '../../../editor/contrib/inlineCompletions/browser/telemetry.js';
@@ -1454,7 +1454,6 @@ class ExtensionBackedInlineCompletionsProvider extends Disposable implements lan
 			longDistanceHintVisible: lifetimeSummary.longDistanceHintVisible,
 			longDistanceHintDistance: lifetimeSummary.longDistanceHintDistance,
 			isForAnotherDocument: lifetimeSummary.isForAnotherDocument,
-			...forwardToChannelIf(isCopilotLikeExtension(this.providerId.extensionId!)),
 		};
 
 		const dataChannelForwardingTelemetryService = this._instantiationService.createInstance(DataChannelForwardingTelemetryService);

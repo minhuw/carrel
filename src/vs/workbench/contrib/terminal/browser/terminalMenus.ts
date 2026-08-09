@@ -19,7 +19,6 @@ import { terminalStrings } from '../common/terminalStrings.js';
 import { ACTIVE_GROUP, AUX_WINDOW_GROUP, SIDE_GROUP } from '../../../services/editor/common/editorService.js';
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import { HasSpeechProvider } from '../../speech/common/speechService.js';
-import { ChatContextKeys } from '../../chat/common/actions/chatContextKeys.js';
 import { hasKey } from '../../../../base/common/types.js';
 
 export const enum TerminalContextMenuGroup {
@@ -37,16 +36,8 @@ export const enum TerminalMenuBarGroup {
 	Configure = '7_configure'
 }
 
-/**
- * True when a dictation engine is available for the terminal: either the
- * built-in on-device engine (with AI features enabled) or the speech
- * extension's provider. Used to gate the "Start Dictation" context menu entry
- * so it only shows when dictation can actually be started.
- */
-const TerminalDictationAvailable = ContextKeyExpr.or(
-	HasSpeechProvider,
-	ContextKeyExpr.and(ChatContextKeys.enabled, ChatContextKeys.speechToTextConfigured)
-);
+/** True when an extension-provided speech engine is available for terminal dictation. */
+const TerminalDictationAvailable = HasSpeechProvider;
 
 export function setupTerminalMenus(): void {
 	MenuRegistry.appendMenuItems(

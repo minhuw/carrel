@@ -24,18 +24,12 @@ import { IOpenerService } from '../../../../../../platform/opener/common/opener.
 import { ChatContextKeys } from '../../../common/actions/chatContextKeys.js';
 import { CHAT_SETUP_ACTION_ID } from '../../actions/chatActions.js';
 import { IChatTip, IChatTipService } from '../../chatTipService.js';
-import { ChatEntitlement, IChatEntitlementService } from '../../../../../services/chat/common/chatEntitlementService.js';
-import { ChatInputNoticeVariant, ChatInputNoticeWidget } from '../input/chatInputNoticeWidget.js';
+import { ChatEntitlement, IChatEntitlementService } from '../../../common/chatEntitlementService.js';
 
 const $ = dom.$;
 
 export class ChatTipContentPart extends Disposable {
-
-	private readonly _notice: ChatInputNoticeWidget;
-
-	public get domNode(): HTMLElement {
-		return this._notice.domNode;
-	}
+	public readonly domNode: HTMLElement;
 
 	private readonly _onDidHide = this._register(new Emitter<void>());
 	public readonly onDidHide = this._onDidHide.event;
@@ -60,13 +54,10 @@ export class ChatTipContentPart extends Disposable {
 	) {
 		super();
 
-		// Built detached: the presenter commits this part before parenting it, so
-		// a re-entrant render cannot leave a second tip in the container.
-		this._notice = this._register(new ChatInputNoticeWidget({
-			variant: ChatInputNoticeVariant.Tip,
-			className: 'chat-tip-widget',
-			ariaRoleDescription: localize('chatTipRoleDescription', "tip"),
-		}));
+		this.domNode = $('.chat-tip-widget');
+		this.domNode.tabIndex = 0;
+		this.domNode.setAttribute('role', 'region');
+		this.domNode.setAttribute('aria-roledescription', localize('chatTipRoleDescription', "tip"));
 
 		this._inChatTipContextKey = ChatContextKeys.inChatTip.bindTo(this._contextKeyService);
 		this._multipleChatTipsContextKey = ChatContextKeys.multipleChatTips.bindTo(this._contextKeyService);
@@ -113,11 +104,11 @@ export class ChatTipContentPart extends Disposable {
 	}
 
 	hasFocus(): boolean {
-		return this._notice.hasFocus();
+		return dom.isAncestorOfActiveElement(this.domNode);
 	}
 
 	focus(): void {
-		this._notice.focus();
+		this.domNode.focus();
 	}
 
 	private _renderTip(tip: IChatTip): void {
@@ -145,7 +136,7 @@ export class ChatTipContentPart extends Disposable {
 		const ariaLabel = hasLink
 			? localize('chatTipWithAction', "{0} Tab to reach the action.", textContent)
 			: textContent;
-		this._notice.setAriaLabel(ariaLabel);
+		this.domNode.setAttribute('aria-label', ariaLabel);
 	}
 
 	private async _handleTipAction(link: string, mdStr: IMarkdownString): Promise<void> {

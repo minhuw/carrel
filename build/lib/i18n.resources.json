@@ -607,10 +607,6 @@
 			"project": "vscode-workbench"
 		},
 		{
-			"name": "vs/workbench/contrib/mcp",
-			"project": "vscode-workbench"
-		},
-		{
 			"name": "vs/workbench/contrib/meteredConnection",
 			"project": "vscode-workbench"
 		},

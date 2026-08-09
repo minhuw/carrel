@@ -11,7 +11,7 @@ import { basename, dirname } from '../../../../../../base/common/resources.js';
 import { URI } from '../../../../../../base/common/uri.js';
 import { hash } from '../../../../../../base/common/hash.js';
 import { IFileService } from '../../../../../../platform/files/common/files.js';
-import { IMcpServerConfiguration } from '../../../../../../platform/mcp/common/mcpPlatformTypes.js';
+import { IMcpServerConfiguration } from '../../../../../../platform/agentPlugins/common/mcpServerConfigTypes.js';
 import { PromptsType } from '../../../common/promptSyntax/promptTypes.js';
 import { AICustomizationSource } from '../../../common/aiCustomizationWorkspaceService.js';
 import { toClientPluginMcpDefaultCwdsMeta, type ClientPluginMcpDefaultCwds } from '../../../../../../platform/agentHost/common/meta/clientPluginCustomizationMeta.js';

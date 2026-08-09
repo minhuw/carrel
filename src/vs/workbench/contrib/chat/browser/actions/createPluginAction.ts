@@ -24,8 +24,6 @@ import { InstalledAgentPluginsViewId } from '../chat.js';
 import { ChatContextKeys } from '../../common/actions/chatContextKeys.js';
 import { PromptsType } from '../../common/promptSyntax/promptTypes.js';
 import { IPromptPath, IPromptsService, PromptsStorage } from '../../common/promptSyntax/service/promptsService.js';
-import { IMcpRegistry } from '../../../mcp/common/mcpRegistryTypes.js';
-import { McpCollectionDefinition, McpCollectionSortOrder, McpServerDefinition, McpServerTransportType } from '../../../mcp/common/mcpTypes.js';
 import { CHAT_CATEGORY } from './chatActions.js';
 
 const VALID_PLUGIN_NAME = /^[a-z0-9]([a-z0-9\-.]*[a-z0-9])?$/;
@@ -47,12 +45,11 @@ export function validatePluginName(name: string): string | undefined {
 	return undefined;
 }
 
-type ResourceType = 'instruction' | 'prompt' | 'agent' | 'skill' | 'hook' | 'mcp';
+type ResourceType = 'instruction' | 'prompt' | 'agent' | 'skill' | 'hook';
 
 export interface IResourceTreeItem extends IQuickTreeItem {
 	readonly resourceType: ResourceType;
 	readonly promptPath?: IPromptPath;
-	readonly mcpServer?: { collection: McpCollectionDefinition; definition: McpServerDefinition };
 	children?: readonly IResourceTreeItem[];
 }
 
@@ -63,13 +60,6 @@ interface IGroupTreeItem extends IQuickTreeItem {
 
 function isUserDefined(storage: PromptsStorage): boolean {
 	return storage === PromptsStorage.local || storage === PromptsStorage.user;
-}
-
-function isUserDefinedMcpCollection(collection: McpCollectionDefinition): boolean {
-	const order = collection.order;
-	return order === McpCollectionSortOrder.User
-		|| order === McpCollectionSortOrder.WorkspaceFolder
-		|| order === McpCollectionSortOrder.Workspace;
 }
 
 /**
@@ -124,7 +114,6 @@ class CreatePluginAction extends Action2 {
 	override async run(accessor: ServicesAccessor): Promise<void> {
 		const quickInputService = accessor.get(IQuickInputService);
 		const promptsService = accessor.get(IPromptsService);
-		const mcpRegistry = accessor.get(IMcpRegistry);
 		const fileDialogService = accessor.get(IFileDialogService);
 		const fileService = accessor.get(IFileService);
 		const commandService = accessor.get(ICommandService);
@@ -145,8 +134,6 @@ class CreatePluginAction extends Action2 {
 				cts.dispose(true);
 			}
 		})();
-
-		const mcpCollections = mcpRegistry.collections.get();
 
 		// Step 2: Build tree items grouped by resource type
 		let showAll = false;
@@ -186,34 +173,6 @@ class CreatePluginAction extends Action2 {
 			addGroup(agents, 'agent', localize('agents', "Agents"), Codicon.copilot);
 			addGroup(skills, 'skill', localize('skills', "Skills"), Codicon.lightbulb);
 			addGroup(hooks, 'hook', localize('hooks', "Hooks"), Codicon.zap);
-
-			// MCP servers
-			const mcpChildren: IResourceTreeItem[] = [];
-			for (const collection of mcpCollections) {
-				if (!showAll && !isUserDefinedMcpCollection(collection)) {
-					continue;
-				}
-				const defs = collection.serverDefinitions.get();
-				for (const def of defs) {
-					mcpChildren.push({
-						label: def.label,
-						description: collection.label,
-						resourceType: 'mcp',
-						mcpServer: { collection, definition: def },
-						checked: false,
-					});
-				}
-			}
-			if (mcpChildren.length > 0) {
-				groups.push({
-					label: localize('mcpServers', "MCP Servers"),
-					iconClass: ThemeIcon.asClassName(Codicon.mcp),
-					checked: undefined,
-					collapsed: false,
-					pickable: false,
-					children: mcpChildren,
-				});
-			}
 
 			return groups;
 		};
@@ -340,7 +299,6 @@ export async function writePluginToDisk(
 		agent: selected.filter(i => i.resourceType === 'agent'),
 		skill: selected.filter(i => i.resourceType === 'skill'),
 		hook: selected.filter(i => i.resourceType === 'hook'),
-		mcp: selected.filter(i => i.resourceType === 'mcp'),
 	};
 
 	// Copy instructions → rules/
@@ -449,22 +407,6 @@ export async function writePluginToDisk(
 		);
 	}
 
-	// Export MCP servers → .mcp.json
-	if (byType.mcp.length > 0) {
-		const mcpServers: Record<string, object> = {};
-		for (const item of byType.mcp) {
-			if (!item.mcpServer) {
-				continue;
-			}
-			const def = item.mcpServer.definition;
-			mcpServers[def.label] = serializeMcpLaunch(def.launch);
-		}
-		const mcpJson = { mcpServers };
-		await fileService.writeFile(
-			joinPath(pluginRoot, '.mcp.json'),
-			VSBuffer.fromString(JSON.stringify(mcpJson, null, '\t'))
-		);
-	}
 }
 
 export function serializeHookCommand(cmd: Record<string, unknown>): Record<string, unknown> {
@@ -491,38 +433,6 @@ export function serializeHookCommand(cmd: Record<string, unknown>): Record<strin
 		result['timeout'] = cmd.timeout;
 	}
 	return result;
-}
-
-export function serializeMcpLaunch(launch: McpServerDefinition['launch']): object {
-	if (launch.type === McpServerTransportType.Stdio) {
-		const result: Record<string, unknown> = {
-			type: 'stdio',
-			command: launch.command,
-		};
-		if (launch.args.length > 0) {
-			result['args'] = [...launch.args];
-		}
-		if (launch.cwd) {
-			result['cwd'] = launch.cwd;
-		}
-		if (Object.keys(launch.env).length > 0) {
-			result['env'] = { ...launch.env };
-		}
-		return result;
-	} else {
-		const result: Record<string, unknown> = {
-			type: 'http',
-			url: launch.uri.toString(),
-		};
-		if (launch.headers.length > 0) {
-			const headers: Record<string, string> = {};
-			for (const [key, value] of launch.headers) {
-				headers[key] = value;
-			}
-			result['headers'] = headers;
-		}
-		return result;
-	}
 }
 
 export async function copyDirectory(fileService: IFileService, source: URI, target: URI): Promise<void> {

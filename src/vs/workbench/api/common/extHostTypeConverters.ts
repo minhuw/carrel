@@ -55,7 +55,6 @@ import { IToolInvocationContext, IToolResult, IToolResultInputOutputDetails, ITo
 import * as chatProvider from '../../contrib/chat/common/languageModels.js';
 import { IChatMessageDataPart, IChatResponseDataPart, IChatResponsePromptTsxPart, IChatResponseTextPart } from '../../contrib/chat/common/languageModels.js';
 import { DebugTreeItemCollapsibleState, IDebugVisualizationTreeItem } from '../../contrib/debug/common/debug.js';
-import { McpServerDefinition as McpServerDefinitionType, McpServerLaunch, McpServerTransportType } from '../../contrib/mcp/common/mcpTypes.js';
 import * as notebooks from '../../contrib/notebook/common/notebookCommon.js';
 import { CellEditType } from '../../contrib/notebook/common/notebookCommon.js';
 import { ICellRange } from '../../contrib/notebook/common/notebookRange.js';
@@ -2961,18 +2960,8 @@ export namespace ChatResponseMovePart {
 
 export namespace ChatToolInvocationPart {
 	export function from(part: vscode.ChatToolInvocationPart): IChatToolInvocationSerialized | IChatExternalToolInvocationUpdate {
-		// Check if toolSpecificData is ChatMcpToolInvocationData (has input and output)
-		// If so, convert to resultDetails for rendering via ChatInputOutputMarkdownProgressPart
 		let resultDetails: IToolResultInputOutputDetails | undefined;
-		let toolSpecificData: any;
-
-		if (part.toolSpecificData && isChatMcpToolInvocationData(part.toolSpecificData)) {
-			// Convert ChatMcpToolInvocationData to IToolResultInputOutputDetails
-			resultDetails = convertMcpToResultDetails(part.toolSpecificData, part.isError);
-			toolSpecificData = undefined; // MCP data goes to resultDetails, not toolSpecificData
-		} else {
-			toolSpecificData = part.toolSpecificData ? convertToolSpecificData(part.toolSpecificData) : undefined;
-		}
+		const toolSpecificData: any = part.toolSpecificData ? convertToolSpecificData(part.toolSpecificData) : undefined;
 
 		const presentation = part.presentation === 'hidden'
 			? ToolInvocationPresentation.Hidden
@@ -3013,28 +3002,6 @@ export namespace ChatToolInvocationPart {
 			resultDetails,
 			presentation,
 			subAgentInvocationId: part.subAgentInvocationId
-		};
-	}
-
-	function isChatMcpToolInvocationData(data: any): data is vscode.ChatMcpToolInvocationData {
-		return data !== null && typeof data === 'object' &&
-			'input' in data && typeof data.input === 'string' &&
-			'output' in data && Array.isArray(data.output);
-	}
-
-	function convertMcpToResultDetails(data: vscode.ChatMcpToolInvocationData, isError?: boolean): IToolResultInputOutputDetails {
-		return {
-			input: data.input,
-			output: data.output.map((o) => {
-				const isText = o.mimeType.startsWith('text/');
-				return {
-					type: 'embed' as const,
-					mimeType: o.mimeType,
-					value: isText ? VSBuffer.wrap(o.data).toString() : encodeBase64(VSBuffer.wrap(o.data)),
-					isText: isText,
-				};
-			}),
-			isError: isError ?? false,
 		};
 	}
 
@@ -4008,9 +3975,7 @@ export namespace DebugTreeItem {
 
 export namespace LanguageModelToolSource {
 	export function to(source: Dto<ToolDataSource>): vscode.LanguageModelToolInformation['source'] {
-		if (source.type === 'mcp') {
-			return new types.LanguageModelToolMCPSource(source.label, source.serverLabel || source.label, source.instructions);
-		} else if (source.type === 'extension') {
+		if (source.type === 'extension') {
 			return new types.LanguageModelToolExtensionSource(source.extensionId.value, source.label);
 		} else {
 			return undefined;
@@ -4182,61 +4147,6 @@ export namespace AiSettingsSearch {
 				return AiSettingsSearchResultKind.CANCELED;
 			default:
 				throw new Error('Unknown AiSettingsSearchResultKind');
-		}
-	}
-}
-
-export namespace McpServerDefinition {
-	function isHttpConfig(candidate: vscode.McpServerDefinition): candidate is vscode.McpHttpServerDefinition {
-		return !!(candidate as vscode.McpHttpServerDefinition).uri;
-	}
-
-	export function from(item: vscode.McpServerDefinition): McpServerLaunch.Serialized {
-		return McpServerLaunch.toSerialized(
-			isHttpConfig(item)
-				? {
-					type: McpServerTransportType.HTTP,
-					uri: item.uri,
-					headers: Object.entries(item.headers),
-					authentication: (item as vscode.McpHttpServerDefinition2).authentication ? {
-						providerId: (item as vscode.McpHttpServerDefinition2).authentication!.providerId,
-						scopes: (item as vscode.McpHttpServerDefinition2).authentication!.scopes
-					} : undefined,
-				}
-				: {
-					type: McpServerTransportType.Stdio,
-					cwd: item.cwd?.fsPath,
-					args: item.args,
-					command: item.command,
-					env: item.env,
-					envFile: undefined,
-					sandbox: undefined
-				}
-		);
-	}
-
-	/** Converts from the IPC DTO to the API type. */
-	export function to(dto: McpServerDefinitionType.Serialized): vscode.McpServerDefinition {
-		const launch = McpServerLaunch.fromSerialized(dto.launch);
-		if (launch.type === McpServerTransportType.HTTP) {
-			return new types.McpHttpServerDefinition(
-				dto.label,
-				launch.uri,
-				Object.fromEntries(launch.headers),
-				dto.cacheNonce === '$$NONE' ? undefined : dto.cacheNonce,
-			);
-		} else {
-			const result = new types.McpStdioServerDefinition(
-				dto.label,
-				launch.command,
-				[...launch.args],
-				Object.fromEntries(Object.entries(launch.env).map(([key, value]) => [key, value === null ? null : String(value)])),
-				dto.cacheNonce === '$$NONE' ? undefined : dto.cacheNonce,
-			);
-			if (launch.cwd) {
-				result.cwd = URI.file(launch.cwd);
-			}
-			return result;
 		}
 	}
 }

@@ -27,7 +27,7 @@ import { isLocation, type SymbolTag } from '../../../../../../editor/common/lang
 import { ILanguageService } from '../../../../../../editor/common/languages/language.js';
 import { IModelService } from '../../../../../../editor/common/services/model.js';
 import { ITextModelService } from '../../../../../../editor/common/services/resolverService.js';
-import { EditDeltaInfo } from '../../../../../../editor/common/textModelEditSource.js';
+import { EditDeltaInfo, EditSuggestionId } from '../../../../../../editor/common/textModelEditSource.js';
 import { localize } from '../../../../../../nls.js';
 import { getFlatContextMenuActions } from '../../../../../../platform/actions/browser/menuEntryActionViewItem.js';
 import { IMenuService, MenuId } from '../../../../../../platform/actions/common/actions.js';
@@ -41,13 +41,12 @@ import { ILabelService } from '../../../../../../platform/label/common/label.js'
 import { IMarkdownRenderer } from '../../../../../../platform/markdown/browser/markdownRenderer.js';
 import { IEditorService, SIDE_GROUP } from '../../../../../services/editor/common/editorService.js';
 import { AccessibilityWorkbenchSettingId } from '../../../../accessibility/browser/accessibilityConfiguration.js';
-import { IAiEditTelemetryService } from '../../../../editTelemetry/browser/telemetry/aiEditTelemetry/aiEditTelemetryService.js';
 import { MarkedKatexSupport } from '../../../../markdown/browser/markedKatexSupport.js';
 import { extractCodeblockUrisFromText, extractVulnerabilitiesFromText } from '../../../common/widget/annotations.js';
 import { IEditSessionEntryDiff } from '../../../common/editing/chatEditingService.js';
 import { IChatProgressRenderableResponseContent } from '../../../common/model/chatModel.js';
 import { IChatContentInlineReference, IChatMarkdownContent, IChatService, IChatUndoStop } from '../../../common/chatService/chatService.js';
-import { IChatSessionsService, isAgentHostSessionResource } from '../../../common/chatSessionsService.js';
+import { IChatSessionsService } from '../../../common/chatSessionsService.js';
 import { isRequestVM, isResponseVM } from '../../../common/model/chatViewModel.js';
 import { ChatConfiguration } from '../../../common/constants.js';
 import { IChatCodeBlockInfo } from '../../chat.js';
@@ -133,7 +132,6 @@ export class ChatMarkdownContentPart extends Disposable implements IChatContentP
 		@IContextKeyService contextKeyService: IContextKeyService,
 		@IConfigurationService configurationService: IConfigurationService,
 		@IInstantiationService private readonly instantiationService: IInstantiationService,
-		@IAiEditTelemetryService private readonly aiEditTelemetryService: IAiEditTelemetryService,
 		@IChatOutputRendererService private readonly chatOutputRendererService: IChatOutputRendererService,
 		@IChatSessionsService private readonly chatSessionsService: IChatSessionsService,
 	) {
@@ -372,20 +370,9 @@ export class ChatMarkdownContentPart extends Disposable implements IChatContentP
 
 			// Ideally this would happen earlier, but we need to parse the markdown.
 			if (isResponseVM(element) && !element.model.codeBlockInfos && element.model.isComplete) {
-				element.model.initializeCodeBlockInfos(this._codeblocks.map(info => {
+				element.model.initializeCodeBlockInfos(this._codeblocks.map(() => {
 					return {
-						suggestionId: this.aiEditTelemetryService.createSuggestionId({
-							presentation: 'codeBlock',
-							feature: 'sideBarChat',
-							editDeltaInfo: info.editDeltaInfo,
-							languageId: info.languageId,
-							modeId: element.model.request?.modeInfo?.telemetryModeId,
-							modelId: element.model.request?.modelId,
-							applyCodeBlockSuggestionId: undefined,
-							source: undefined,
-							sourceRequestId: undefined,
-							isAgentHostSession: isAgentHostSessionResource(element.sessionResource),
-						})
+						suggestionId: EditSuggestionId.newId()
 					};
 				}));
 			}

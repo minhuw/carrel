@@ -41,8 +41,6 @@ import { ILifecycleService } from '../../../../../services/lifecycle/common/life
 import { IViewsService } from '../../../../../services/views/common/viewsService.js';
 import { IWorkspaceEditingService } from '../../../../../services/workspaces/common/workspaceEditing.js';
 import { InMemoryTestFileService, mock, TestChatEntitlementService, TestContextService, TestExtensionService, TestStorageService } from '../../../../../test/common/workbenchTestServices.js';
-import { IMcpService } from '../../../../mcp/common/mcpTypes.js';
-import { TestMcpService } from '../../../../mcp/test/common/testMcpService.js';
 import { IChatRequestVariableEntry } from '../../../common/attachments/chatVariableEntries.js';
 import { IChatVariablesService } from '../../../common/attachments/chatVariables.js';
 import { getCustomizationMigrationHintDismissedStorageKey } from '../../../common/aiCustomizationWorkspaceService.js';
@@ -184,7 +182,6 @@ suite('ChatService', () => {
 		instantiationService = testDisposables.add(new TestInstantiationService(new ServiceCollection(
 			[IChatVariablesService, new MockChatVariablesService()],
 			[IWorkbenchAssignmentService, new NullWorkbenchAssignmentService()],
-			[IMcpService, new TestMcpService()],
 			[IPromptsService, new MockPromptsService()],
 			[ICustomizationMigrationService, mockObject<ICustomizationMigrationService>()({ _serviceBrand: undefined })],
 			[ILanguageModelToolsService, testDisposables.add(new MockLanguageModelToolsService())]

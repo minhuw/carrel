@@ -1,0 +1,36 @@
+{
+  "name": "theme-carrel",
+  "displayName": "Carrel Themes",
+  "description": "Carrel's signature unified chrome themes",
+  "categories": [
+    "Themes"
+  ],
+  "version": "1.0.0",
+  "publisher": "carrel",
+  "license": "MIT",
+  "engines": {
+    "vscode": "*"
+  },
+  "contributes": {
+    "themes": [
+      {
+        "id": "Carrel Dark",
+        "label": "Carrel Dark",
+        "uiTheme": "vs-dark",
+        "path": "./themes/carrel-dark-color-theme.json"
+      },
+      {
+        "id": "Carrel Midnight",
+        "label": "Carrel Midnight",
+        "uiTheme": "vs-dark",
+        "path": "./themes/carrel-midnight-color-theme.json"
+      },
+      {
+        "id": "Carrel Light",
+        "label": "Carrel Light",
+        "uiTheme": "vs",
+        "path": "./themes/carrel-light-color-theme.json"
+      }
+    ]
+  }
+}

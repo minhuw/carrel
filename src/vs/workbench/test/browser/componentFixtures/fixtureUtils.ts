@@ -12,10 +12,9 @@ import { ModifierKeyEmitter } from '../../../../base/browser/dom.js';
 // eslint-disable-next-line local/code-import-patterns
 import '../../../../../../build/vite/style.css';
 import '../../../browser/media/style.css';
-// Import auxiliaryBarPart.css here (before any contrib/chat CSS) so the cascade
-// matches the product: chat.css loads later and overrides the auxiliarybar
-// rules where applicable. Fixtures that wrap content in `.part.auxiliarybar`
-// rely on these rules to recolor inline editors with `--vscode-sideBar-background`.
+// Import auxiliaryBarPart.css here so the cascade matches the product.
+// Fixtures that wrap content in `.part.auxiliarybar` rely on these rules
+// to recolor inline editors with `--vscode-sideBar-background`.
 import '../../../browser/parts/auxiliarybar/media/auxiliaryBarPart.css';
 
 // Theme
@@ -58,7 +57,6 @@ import { TestTreeSitterLibraryService } from '../../../../editor/test/common/ser
 import { IAccessibilityService } from '../../../../platform/accessibility/common/accessibility.js';
 import { TestAccessibilityService } from '../../../../platform/accessibility/test/common/testAccessibilityService.js';
 import { IActionViewItemService, NullActionViewItemService } from '../../../../platform/actions/browser/actionViewItemService.js';
-import { IChatPhoneInputPresenter } from '../../../contrib/chat/browser/widget/input/chatPhoneInputPresenter.js';
 import { IMenuService } from '../../../../platform/actions/common/actions.js';
 import { IClipboardService } from '../../../../platform/clipboard/common/clipboardService.js';
 import { TestClipboardService } from '../../../../platform/clipboard/test/common/testClipboardService.js';
@@ -94,16 +92,6 @@ import { IAnyWorkspaceIdentifier } from '../../../../platform/workspace/common/w
 import { TestMenuService } from '../workbenchTestServices.js';
 import { IAccessibilitySignalService } from '../../../../platform/accessibilitySignal/browser/accessibilitySignalService.js';
 import { IResolvedTextEditorModel, ITextModelService } from '../../../../editor/common/services/resolverService.js';
-// eslint-disable-next-line local/code-import-patterns
-import { AGENT_FEEDBACK_NEW_SESSION_RESOURCE, IAgentFeedbackService } from '../../../../sessions/contrib/agentFeedback/browser/agentFeedbackService.js';
-import { IChatEditingService } from '../../../contrib/chat/common/editing/chatEditingService.js';
-// eslint-disable-next-line local/code-import-patterns
-import { ISessionsManagementService } from '../../../../sessions/services/sessions/common/sessionsManagement.js';
-// eslint-disable-next-line local/code-import-patterns
-import { ISessionsService } from '../../../../sessions/services/sessions/browser/sessionsService.js';
-// eslint-disable-next-line local/code-import-patterns
-import { ICodeReviewService, PRReviewStateKind } from '../../../../sessions/contrib/codeReview/browser/codeReviewService.js';
-import { constObservable } from '../../../../base/common/observable.js';
 
 // Editor
 import { ITextModel } from '../../../../editor/common/model.js';
@@ -607,66 +595,6 @@ export function createEditorServices(disposables: DisposableStore, options?: Cre
 
 	define(ITextModelService, FixtureTextModelService);
 
-	defineInstance(IAgentFeedbackService, {
-		_serviceBrand: undefined,
-		onDidChangeFeedback: Event.None,
-		onDidChangeNavigation: Event.None,
-		onDidChangeFeedbackScope: Event.None,
-		activeFeedbackSessionResource: constObservable(AGENT_FEEDBACK_NEW_SESSION_RESOURCE),
-		onDidAddFeedback: Event.None,
-		onDidConvertFeedback: Event.None,
-		onDidAddReply: Event.None,
-		onDidSubmitFeedback: Event.None,
-		onDidRevealSessionComment: Event.None,
-		addFeedback: () => undefined!,
-		removeFeedback: () => { },
-		updateFeedback: () => { },
-		acceptFeedback: () => { },
-		addReply: () => { },
-		getFeedback: () => [],
-		hasLoadedFeedback: () => true,
-		getSessionForFile: () => undefined,
-		getFeedbackSessionResource: () => undefined,
-		registerFeedbackResourceScope: () => toDisposable(() => { }),
-		getMostRecentSessionForResource: () => undefined,
-		revealFeedback: async () => { },
-		revealSessionComment: async () => { },
-		getNextFeedback: () => undefined,
-		getNextNavigableItem: () => undefined,
-		setNavigationAnchor: () => { },
-		getNavigationBearing: () => ({ activeIdx: -1, totalCount: 0 }),
-		clearFeedback: () => { },
-		markFeedbackSubmitted: () => { },
-		submitFeedback: async () => false,
-		addFeedbackAndSubmit: async () => { },
-		setFeedbackResolved: async () => { },
-	});
-
-	definePartialInstance(IChatEditingService, {
-		_serviceBrand: undefined,
-		editingSessionsObs: constObservable([]),
-		startOrContinueGlobalEditingSession: () => undefined!,
-		getEditingSession: () => undefined,
-	});
-
-	definePartialInstance(ISessionsManagementService, {
-		_serviceBrand: undefined,
-		getSession: () => undefined,
-		getSessions: () => [],
-	});
-
-	definePartialInstance(ISessionsService, {
-		_serviceBrand: undefined,
-		activeSession: constObservable(undefined),
-	});
-
-	definePartialInstance(ICodeReviewService, {
-		_serviceBrand: undefined,
-		getPRReviewState: () => constObservable({ kind: PRReviewStateKind.None }),
-		resolvePRReviewThread: async () => { },
-		markPRReviewCommentConverted: () => { },
-	});
-
 	// Allow additional services to override defaults
 	options?.additionalServices?.({
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -744,21 +672,7 @@ export function registerWorkbenchServices(registration: ServiceRegistration): vo
 	registration.define(IMenuService, TestMenuService);
 	registration.define(IActionViewItemService, NullActionViewItemService);
 
-	// No-op phone presenter so chat-input fixtures don't crash on
-	// `chatPhoneInputPresenter.enabled.get()`. The real impl is in
-	// `vs/sessions` and only attaches in the agents window — desktop
-	// fixtures see the no-op (`enabled === false`, sheet calls resolve
-	// immediately) which matches desktop runtime behavior.
-	registration.defineInstance(IChatPhoneInputPresenter, {
-		_serviceBrand: undefined,
-		enabled: constObservable(false),
-		showCombinedModeAndModelSheet: () => Promise.resolve(),
-		setImpl: () => ({ dispose: () => { } }),
-	});
-
-	// Workspace trust stubs so chat-input fixtures can instantiate the model
-	// picker (ModelPickerWidget reads workspace trust to detect Restricted Mode).
-	// Reports the workspace as trusted so the picker renders normally.
+	// Workspace trust stubs so fixtures can instantiate trust-aware widgets.
 	registration.defineInstance(IWorkspaceTrustManagementService, new class extends mock<IWorkspaceTrustManagementService>() {
 		override onDidChangeTrust = Event.None;
 		override readonly workspaceTrustInitialized = Promise.resolve();

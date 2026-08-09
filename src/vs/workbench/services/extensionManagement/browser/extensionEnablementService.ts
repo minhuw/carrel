@@ -33,7 +33,6 @@ import { isString } from '../../../../base/common/types.js';
 import { Delayer } from '../../../../base/common/async.js';
 import { IProductService } from '../../../../platform/product/common/productService.js';
 import { isWeb } from '../../../../base/common/platform.js';
-import { IDefaultAccountService } from '../../../../platform/defaultAccount/common/defaultAccount.js';
 
 const SOURCE = 'IWorkbenchExtensionEnablementService';
 
@@ -73,7 +72,6 @@ export class ExtensionEnablementService extends Disposable implements IWorkbench
 		@IConfigurationService private readonly configurationService: IConfigurationService,
 		@IExtensionManagementServerService private readonly extensionManagementServerService: IExtensionManagementServerService,
 		@IUserDataSyncEnablementService private readonly userDataSyncEnablementService: IUserDataSyncEnablementService,
-		@IDefaultAccountService private readonly defaultAccountService: IDefaultAccountService,
 		@IUserDataSyncAccountService private readonly userDataSyncAccountService: IUserDataSyncAccountService,
 		@ILifecycleService private readonly lifecycleService: ILifecycleService,
 		@INotificationService private readonly notificationService: INotificationService,
@@ -195,11 +193,6 @@ export class ExtensionEnablementService extends Disposable implements IWorkbench
 	private isDefaultOrSettingsSyncAuthProviderExtension(manifest: IExtensionManifest): boolean {
 		if (!isAuthenticationProviderExtension(manifest)) {
 			return false;
-		}
-
-		const defaultAccountAuthProvider = this.defaultAccountService.getDefaultAccountAuthenticationProvider();
-		if (manifest.contributes!.authentication!.some(a => a.id === defaultAccountAuthProvider.id)) {
-			return true;
 		}
 
 		if (this.userDataSyncEnablementService.isEnabled() && this.userDataSyncAccountService.account &&

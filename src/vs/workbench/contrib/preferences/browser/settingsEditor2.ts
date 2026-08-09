@@ -9,11 +9,10 @@ import { ActionBar } from '../../../../base/browser/ui/actionbar/actionbar.js';
 import * as aria from '../../../../base/browser/ui/aria/aria.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { Orientation, Sizing, SplitView } from '../../../../base/browser/ui/splitview/splitview.js';
-import { ToggleActionViewItem } from '../../../../base/browser/ui/toggle/toggle.js';
 import { ITreeElement } from '../../../../base/browser/ui/tree/tree.js';
 import { CodeWindow } from '../../../../base/browser/window.js';
 import { Action } from '../../../../base/common/actions.js';
-import { CancelablePromise, createCancelablePromise, Delayer, raceTimeout } from '../../../../base/common/async.js';
+import { Delayer, raceTimeout } from '../../../../base/common/async.js';
 import { CancellationToken, CancellationTokenSource } from '../../../../base/common/cancellation.js';
 import { Color } from '../../../../base/common/color.js';
 import { fromNow } from '../../../../base/common/date.js';
@@ -37,14 +36,13 @@ import { IContextKey, IContextKeyService } from '../../../../platform/contextkey
 import { IExtensionGalleryService, IExtensionManagementService, IGalleryExtension } from '../../../../platform/extensionManagement/common/extensionManagement.js';
 import { IExtensionManifest } from '../../../../platform/extensions/common/extensions.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
-import { IKeybindingService } from '../../../../platform/keybinding/common/keybinding.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
 import { IProductService } from '../../../../platform/product/common/productService.js';
 import { IEditorProgressService, IProgressRunner } from '../../../../platform/progress/common/progress.js';
 import { Registry } from '../../../../platform/registry/common/platform.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../../../platform/storage/common/storage.js';
 import { ITelemetryService } from '../../../../platform/telemetry/common/telemetry.js';
-import { defaultButtonStyles, defaultToggleStyles } from '../../../../platform/theme/browser/defaultStyles.js';
+import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import { asCssVariable, editorForeground } from '../../../../platform/theme/common/colorRegistry.js';
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
 import { IUserDataSyncEnablementService, IUserDataSyncService, SyncStatus } from '../../../../platform/userDataSync/common/userDataSync.js';
@@ -61,11 +59,11 @@ import { nullRange, Settings2EditorModel } from '../../../services/preferences/c
 import { IUserDataProfileService } from '../../../services/userDataProfile/common/userDataProfile.js';
 import { IUserDataSyncWorkbenchService } from '../../../services/userDataSync/common/userDataSync.js';
 import { SuggestEnabledInputWithHistory } from '../../codeEditor/browser/suggestEnabledInput/suggestEnabledInput.js';
-import { ADVANCED_SETTING_TAG, AGENTS_WINDOW_SETTING_TAG, CONTEXT_AI_SETTING_RESULTS_AVAILABLE, CONTEXT_SETTINGS_EDITOR, CONTEXT_SETTINGS_FIRST_ROW_FOCUS, CONTEXT_SETTINGS_ROW_FOCUS, CONTEXT_SETTINGS_SEARCH_FOCUS, CONTEXT_TOC_ROW_FOCUS, EMBEDDINGS_SEARCH_PROVIDER_NAME, ENABLE_LANGUAGE_FILTER, EXP_ASSIGNMENT_SETTING_TAG, EXTENSION_FETCH_TIMEOUT_MS, EXTENSION_SETTING_TAG, FEATURE_SETTING_TAG, FILTER_MODEL_SEARCH_PROVIDER_NAME, getExperimentalExtensionToggleData, ID_SETTING_TAG, IPreferencesSearchService, ISearchProvider, LANGUAGE_SETTING_TAG, LLM_RANKED_SEARCH_PROVIDER_NAME, MODIFIED_SETTING_TAG, POLICY_SETTING_TAG, REQUIRE_TRUSTED_WORKSPACE_SETTING_TAG, SETTINGS_EDITOR_COMMAND_CLEAR_SEARCH_RESULTS, SETTINGS_EDITOR_COMMAND_SHOW_AI_RESULTS, SETTINGS_EDITOR_COMMAND_SUGGEST_FILTERS, SETTINGS_EDITOR_COMMAND_TOGGLE_AI_SEARCH, STRING_MATCH_SEARCH_PROVIDER_NAME, TF_IDF_SEARCH_PROVIDER_NAME, WorkbenchSettingsEditorSettings, WORKSPACE_TRUST_SETTING_TAG } from '../common/preferences.js';
+import { ADVANCED_SETTING_TAG, CONTEXT_SETTINGS_EDITOR, CONTEXT_SETTINGS_FIRST_ROW_FOCUS, CONTEXT_SETTINGS_ROW_FOCUS, CONTEXT_SETTINGS_SEARCH_FOCUS, CONTEXT_TOC_ROW_FOCUS, ENABLE_LANGUAGE_FILTER, EXTENSION_FETCH_TIMEOUT_MS, EXTENSION_SETTING_TAG, FEATURE_SETTING_TAG, FILTER_MODEL_SEARCH_PROVIDER_NAME, getExperimentalExtensionToggleData, ID_SETTING_TAG, IPreferencesSearchService, ISearchProvider, LANGUAGE_SETTING_TAG, MODIFIED_SETTING_TAG, POLICY_SETTING_TAG, REQUIRE_TRUSTED_WORKSPACE_SETTING_TAG, SETTINGS_EDITOR_COMMAND_CLEAR_SEARCH_RESULTS, SETTINGS_EDITOR_COMMAND_SUGGEST_FILTERS, STRING_MATCH_SEARCH_PROVIDER_NAME, WORKSPACE_TRUST_SETTING_TAG } from '../common/preferences.js';
 import { settingsHeaderBorder, settingsSashBorder, settingsTextInputBorder } from '../common/settingsEditorColorRegistry.js';
 import { IWorkbenchEnvironmentService } from '../../../services/environment/common/environmentService.js';
 import './media/settingsEditor2.css';
-import { preferencesAiResultsIcon, preferencesClearInputIcon, preferencesFilterIcon } from './preferencesIcons.js';
+import { preferencesClearInputIcon, preferencesFilterIcon } from './preferencesIcons.js';
 import { SettingsTarget, SettingsTargetsWidget } from './preferencesWidgets.js';
 import { ISettingOverrideClickEvent } from './settingsEditorSettingIndicators.js';
 import { getCommonlyUsedData, ITOCEntry, tocData } from './settingsLayout.js';
@@ -110,8 +108,6 @@ const searchBoxPlaceholderWithHistory = localize({
 }, "Search settings ({0} for history)", '\u21C5');
 const SEARCH_TOC_BEHAVIOR_KEY = 'workbench.settings.settingsSearchTocBehavior';
 
-const SHOW_AI_RESULTS_ENABLED_LABEL = localize('showAiResultsEnabled', "Show AI-recommended results");
-const SHOW_AI_RESULTS_DISABLED_LABEL = localize('showAiResultsDisabled', "No AI results available at this time...");
 
 const SETTINGS_EDITOR_STATE_KEY = 'settingsEditorState';
 
@@ -206,7 +202,6 @@ export class SettingsEditor2 extends EditorPane {
 
 	private searchDelayer: Delayer<void>;
 	private searchInProgress: CancellationTokenSource | null = null;
-	private aiSearchPromise: CancelablePromise<void> | null = null;
 
 	/**
 	 * The trimmed query value that the currently rendered results reflect. Used to determine
@@ -215,7 +210,6 @@ export class SettingsEditor2 extends EditorPane {
 	 */
 	private renderedSearchQuery: string | undefined = '';
 
-	private showAiResultsAction: Action | null = null;
 
 	private searchInputDelayer: Delayer<void>;
 	private updatedConfigSchemaDelayer: Delayer<void>;
@@ -235,7 +229,6 @@ export class SettingsEditor2 extends EditorPane {
 	private settingFirstRowFocused: IContextKey<boolean>;
 	private inSettingsEditorContextKey: IContextKey<boolean>;
 	private searchFocusContextKey: IContextKey<boolean>;
-	private aiResultsAvailable: IContextKey<boolean>;
 
 	private scheduledRefreshes: Map<string, DisposableStore>;
 	private pendingAssignmentRefresh = false;
@@ -288,9 +281,7 @@ export class SettingsEditor2 extends EditorPane {
 		@IExtensionGalleryService private readonly extensionGalleryService: IExtensionGalleryService,
 		@IEditorProgressService private readonly editorProgressService: IEditorProgressService,
 		@IUserDataProfileService userDataProfileService: IUserDataProfileService,
-		@IKeybindingService private readonly keybindingService: IKeybindingService,
-		@IWorkbenchEnvironmentService private readonly environmentService: IWorkbenchEnvironmentService,
-		@IExperimentalSettingsService experimentalSettingsService: IExperimentalSettingsService,
+		@IWorkbenchEnvironmentService environmentService: IWorkbenchEnvironmentService,
 	) {
 		super(SettingsEditor2.ID, group, telemetryService, themeService, storageService);
 		this.searchDelayer = this._register(new Delayer(200));
@@ -307,7 +298,6 @@ export class SettingsEditor2 extends EditorPane {
 		this.tocRowFocused = CONTEXT_TOC_ROW_FOCUS.bindTo(contextKeyService);
 		this.settingRowFocused = CONTEXT_SETTINGS_ROW_FOCUS.bindTo(contextKeyService);
 		this.settingFirstRowFocused = CONTEXT_SETTINGS_FIRST_ROW_FOCUS.bindTo(contextKeyService);
-		this.aiResultsAvailable = CONTEXT_AI_SETTING_RESULTS_AVAILABLE.bindTo(contextKeyService);
 
 		this.scheduledRefreshes = new Map<string, DisposableStore>();
 
@@ -318,10 +308,6 @@ export class SettingsEditor2 extends EditorPane {
 			.split(this.DISMISSED_EXTENSION_SETTINGS_DELIMITER);
 
 		this._register(configurationService.onDidChangeConfiguration(e => {
-			if (e.affectedKeys.has(WorkbenchSettingsEditorSettings.ShowAISearchToggle)
-				|| e.affectedKeys.has(WorkbenchSettingsEditorSettings.EnableNaturalLanguageSearch)) {
-				this.updateAiSearchToggleVisibility();
-			}
 			if (e.affectsConfiguration(ALWAYS_SHOW_ADVANCED_SETTINGS_SETTING)) {
 				this.onConfigUpdate(undefined, true, true);
 			}
@@ -370,9 +356,6 @@ export class SettingsEditor2 extends EditorPane {
 		if (ENABLE_LANGUAGE_FILTER && !SettingsEditor2.SUGGESTIONS.includes(`@${LANGUAGE_SETTING_TAG}`)) {
 			SettingsEditor2.SUGGESTIONS.push(`@${LANGUAGE_SETTING_TAG}`);
 		}
-		if (this.environmentService.isSessionsWindow && !SettingsEditor2.SUGGESTIONS.includes(`@${AGENTS_WINDOW_SETTING_TAG}`)) {
-			SettingsEditor2.SUGGESTIONS.push(`@${AGENTS_WINDOW_SETTING_TAG}`);
-		}
 		this.inputChangeListener = this._register(new MutableDisposable());
 	}
 
@@ -407,39 +390,6 @@ export class SettingsEditor2 extends EditorPane {
 			return true;
 		}
 		return false;
-	}
-
-	private disableAiSearchToggle(): void {
-		if (this.showAiResultsAction) {
-			this.showAiResultsAction.checked = false;
-			this.showAiResultsAction.enabled = false;
-			this.aiResultsAvailable.set(false);
-			this.showAiResultsAction.label = SHOW_AI_RESULTS_DISABLED_LABEL;
-		}
-	}
-
-	private updateAiSearchToggleVisibility(): void {
-		if (!this.searchContainer || !this.showAiResultsAction || !this.searchInputActionBar) {
-			return;
-		}
-
-		const showAiToggle = this.configurationService.getValue<boolean>(WorkbenchSettingsEditorSettings.ShowAISearchToggle);
-		const enableNaturalLanguageSearch = this.configurationService.getValue<boolean>(WorkbenchSettingsEditorSettings.EnableNaturalLanguageSearch);
-		const canShowToggle = showAiToggle && enableNaturalLanguageSearch;
-
-		const alreadyVisible = this.searchInputActionBar.hasAction(this.showAiResultsAction);
-		if (!alreadyVisible && canShowToggle) {
-			this.searchInputActionBar.push(this.showAiResultsAction, {
-				index: 0,
-				label: false,
-				icon: true
-			});
-			this.searchContainer.classList.add('with-ai-toggle');
-		} else if (alreadyVisible) {
-			this.searchInputActionBar.pull(0);
-			this.searchContainer.classList.remove('with-ai-toggle');
-			this.showAiResultsAction.checked = false;
-		}
 	}
 
 	override get minimumWidth(): number { return SettingsEditor2.EDITOR_MIN_WIDTH; }
@@ -753,7 +703,6 @@ export class SettingsEditor2 extends EditorPane {
 	}
 
 	clearSearchResults(): void {
-		this.disableAiSearchToggle();
 		this.searchWidget.setValue('');
 		this.focusSearch();
 	}
@@ -803,13 +752,6 @@ export class SettingsEditor2 extends EditorPane {
 			async () => this.clearSearchResults()
 		));
 
-		const showAiResultActionClassNames = ['action-label', ThemeIcon.asClassName(preferencesAiResultsIcon)];
-		this.showAiResultsAction = this._register(new Action(SETTINGS_EDITOR_COMMAND_SHOW_AI_RESULTS,
-			SHOW_AI_RESULTS_DISABLED_LABEL, showAiResultActionClassNames.join(' '), true
-		));
-		this._register(this.showAiResultsAction.onDidChange(async () => {
-			await this.onDidToggleAiSearch();
-		}));
 
 		const filterAction = this._register(new Action(SETTINGS_EDITOR_COMMAND_SUGGEST_FILTERS,
 			localize('filterInput', "Filter Settings"), ThemeIcon.asClassName(preferencesFilterIcon)
@@ -893,10 +835,6 @@ export class SettingsEditor2 extends EditorPane {
 				if (action.id === filterAction.id) {
 					return this.instantiationService.createInstance(SettingsSearchFilterDropdownMenuActionViewItem, action, options, this.actionRunner, this.searchWidget);
 				}
-				if (this.showAiResultsAction && action.id === this.showAiResultsAction.id) {
-					const keybindingLabel = this.keybindingService.lookupKeybinding(SETTINGS_EDITOR_COMMAND_TOGGLE_AI_SEARCH)?.getLabel();
-					return new ToggleActionViewItem(null, action, { ...options, keybinding: keybindingLabel, toggleStyles: defaultToggleStyles });
-				}
 				return undefined;
 			}
 		}));
@@ -904,25 +842,6 @@ export class SettingsEditor2 extends EditorPane {
 		const actionsToPush = [clearInputAction, filterAction];
 		this.searchInputActionBar.push(actionsToPush, { label: false, icon: true });
 
-		this.disableAiSearchToggle();
-		this.updateAiSearchToggleVisibility();
-	}
-
-	toggleAiSearch(): void {
-		if (this.searchInputActionBar && this.showAiResultsAction && this.searchInputActionBar.hasAction(this.showAiResultsAction)) {
-			if (!this.showAiResultsAction.enabled) {
-				aria.status(localize('noAiResults', "No AI results available at this time."));
-			}
-			this.showAiResultsAction.checked = !this.showAiResultsAction.checked;
-		}
-	}
-
-	private async onDidToggleAiSearch(): Promise<void> {
-		if (this.searchResultModel && this.showAiResultsAction) {
-			this.searchResultModel.showAiResults = this.showAiResultsAction.checked ?? false;
-			this.renderResultCountMessages(false);
-			this.onDidFinishSearch(true, undefined);
-		}
 	}
 
 	private onDidSettingsTargetChange(target: SettingsTarget): void {
@@ -1378,11 +1297,7 @@ export class SettingsEditor2 extends EditorPane {
 				const rawResults = this.searchResultModel.getRawResults();
 				if (rawResults[SearchResultIdx.Local] && displayIndex >= 0) {
 					const settingInLocalResults = rawResults[SearchResultIdx.Local].filterMatches.some(m => m.setting.key === props.key);
-					groupId = settingInLocalResults ? 'local' : 'remote';
-				}
-				if (rawResults[SearchResultIdx.Remote]) {
-					const _nlpIndex = rawResults[SearchResultIdx.Remote].filterMatches.findIndex(m => m.setting.key === props.key);
-					nlpIndex = _nlpIndex >= 0 ? _nlpIndex : undefined;
+					groupId = settingInLocalResults ? 'local' : undefined;
 				}
 			}
 		}
@@ -1759,13 +1674,7 @@ export class SettingsEditor2 extends EditorPane {
 			}
 		}
 
-		if (this.pendingAssignmentRefresh) {
-			this.pendingAssignmentRefresh = false;
-			this.searchResultModel?.updateChildren();
-			this.refreshTOCTree();
-		}
-
-		this.renderResultCountMessages(false);
+		this.renderResultCountMessages();
 
 		if (key) {
 			// eslint-disable-next-line no-restricted-syntax
@@ -1942,14 +1851,14 @@ export class SettingsEditor2 extends EditorPane {
 					this.tocTree.expandAll();
 				}
 				this.refreshTOCTree();
-				this.renderResultCountMessages(false);
+				this.renderResultCountMessages();
 				this.refreshTree();
 				this.toggleTocBySearchBehaviorType();
 			} else if (!this.tocTreeDisposed) {
 				// Leaving search mode
 				this.tocTree.collapseAll();
 				this.refreshTOCTree();
-				this.renderResultCountMessages(false);
+				this.renderResultCountMessages();
 				this.refreshTree();
 				this.layoutSplitView(this.dimension);
 			}
@@ -2001,12 +1910,10 @@ export class SettingsEditor2 extends EditorPane {
 			if (searchInProgress.token.isCancellationRequested) {
 				return;
 			}
-			this.disableAiSearchToggle();
 			const localResults = await this.doLocalSearch(query, searchInProgress.token);
 			if (!this.searchResultModel || searchInProgress.token.isCancellationRequested) {
 				return;
 			}
-			this.searchResultModel.showAiResults = false;
 
 			if (localResults && localResults.filterMatches.length > 0) {
 				// The remote results might take a while and
@@ -2015,35 +1922,6 @@ export class SettingsEditor2 extends EditorPane {
 				this.onDidFinishSearch(expandResults, undefined);
 			}
 
-			if (!localResults || !localResults.exactMatch) {
-				await this.doRemoteSearch(query, searchInProgress.token);
-			}
-			if (searchInProgress.token.isCancellationRequested) {
-				return;
-			}
-
-			if (this.aiSearchPromise) {
-				this.aiSearchPromise.cancel();
-			}
-
-			// Kick off an AI search in the background if the toggle is shown.
-			// We purposely do not await it.
-			if (this.searchInputActionBar && this.showAiResultsAction && this.searchInputActionBar.hasAction(this.showAiResultsAction)) {
-				this.aiSearchPromise = createCancelablePromise(token => {
-					return this.doAiSearch(query, token).then((results) => {
-						if (results && this.showAiResultsAction) {
-							this.showAiResultsAction.enabled = true;
-							this.aiResultsAvailable.set(true);
-							this.showAiResultsAction.label = SHOW_AI_RESULTS_ENABLED_LABEL;
-							this.renderResultCountMessages(true);
-						}
-					}).catch(e => {
-						if (!isCancellationError(e)) {
-							this.logService.trace('Error during AI settings search:', e);
-						}
-					});
-				});
-			}
 
 			this.onDidFinishSearch(expandResults, progressRunner);
 		});
@@ -2066,60 +1944,6 @@ export class SettingsEditor2 extends EditorPane {
 	private doLocalSearch(query: string, token: CancellationToken): Promise<ISearchResult | null> {
 		const localSearchProvider = this.preferencesSearchService.getLocalSearchProvider(query);
 		return this.searchWithProvider(SearchResultIdx.Local, localSearchProvider, STRING_MATCH_SEARCH_PROVIDER_NAME, token);
-	}
-
-	private doRemoteSearch(query: string, token: CancellationToken): Promise<ISearchResult | null> {
-		const remoteSearchProvider = this.preferencesSearchService.getRemoteSearchProvider(query);
-		if (!remoteSearchProvider) {
-			return Promise.resolve(null);
-		}
-		return this.searchWithProvider(SearchResultIdx.Remote, remoteSearchProvider, TF_IDF_SEARCH_PROVIDER_NAME, token);
-	}
-
-	private async doAiSearch(query: string, token: CancellationToken): Promise<ISearchResult | null> {
-		const aiSearchProvider = this.preferencesSearchService.getAiSearchProvider(query);
-		if (!aiSearchProvider) {
-			return null;
-		}
-
-		const embeddingsResults = await this.searchWithProvider(SearchResultIdx.Embeddings, aiSearchProvider, EMBEDDINGS_SEARCH_PROVIDER_NAME, token);
-		if (!embeddingsResults || token.isCancellationRequested) {
-			return null;
-		}
-
-		const llmResults = await this.getLLMRankedResults(query, token);
-		if (token.isCancellationRequested) {
-			return null;
-		}
-
-		return {
-			filterMatches: embeddingsResults.filterMatches.concat(llmResults?.filterMatches ?? []),
-			exactMatch: false
-		};
-	}
-
-	private async getLLMRankedResults(query: string, token: CancellationToken): Promise<ISearchResult | null> {
-		const aiSearchProvider = this.preferencesSearchService.getAiSearchProvider(query);
-		if (!aiSearchProvider) {
-			return null;
-		}
-
-		const stopWatch = new StopWatch(false);
-		const result = await aiSearchProvider.getLLMRankedResults(token);
-		stopWatch.stop();
-
-		if (token.isCancellationRequested) {
-			return null;
-		}
-
-		// Only log the elapsed time if there are actual results.
-		if (result && result.filterMatches.length > 0) {
-			const elapsed = stopWatch.elapsed();
-			this.logSearchPerformance(LLM_RANKED_SEARCH_PROVIDER_NAME, elapsed);
-		}
-
-		this.searchResultModel!.setResult(SearchResultIdx.AiSelected, result);
-		return result;
 	}
 
 	private async searchWithProvider(type: SearchResultIdx, searchProvider: ISearchProvider, providerName: string, token: CancellationToken): Promise<ISearchResult | null> {
@@ -2165,7 +1989,7 @@ export class SettingsEditor2 extends EditorPane {
 		});
 	}
 
-	private renderResultCountMessages(showAiResultsMessage: boolean) {
+	private renderResultCountMessages() {
 		if (!this.currentSettingsModel) {
 			return;
 		}
@@ -2190,18 +2014,10 @@ export class SettingsEditor2 extends EditorPane {
 			const count = this.searchResultModel.getUniqueResultsCount();
 			let resultString: string;
 
-			if (showAiResultsMessage) {
-				switch (count) {
-					case 0: resultString = localize('noResultsWithAiAvailable', "No Settings Found. AI Results Available"); break;
-					case 1: resultString = localize('oneResultWithAiAvailable', "1 Setting Found. AI Results Available"); break;
-					default: resultString = localize('moreThanOneResultWithAiAvailable', "{0} Settings Found. AI Results Available", count);
-				}
-			} else {
-				switch (count) {
-					case 0: resultString = localize('noResults', "No Settings Found"); break;
-					case 1: resultString = localize('oneResult', "1 Setting Found"); break;
-					default: resultString = localize('moreThanOneResult', "{0} Settings Found", count);
-				}
+			switch (count) {
+				case 0: resultString = localize('noResults', "No Settings Found"); break;
+				case 1: resultString = localize('oneResult', "1 Setting Found"); break;
+				default: resultString = localize('moreThanOneResult', "{0} Settings Found", count);
 			}
 
 			this.searchResultLabel = resultString;

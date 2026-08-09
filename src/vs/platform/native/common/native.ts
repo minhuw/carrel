@@ -66,8 +66,7 @@ export interface IApplicationBadge {
  */
 export type INativeZipFile =
 	| { readonly path: string; readonly contents: string }
-	| { readonly path: string; readonly source: URI; readonly size: number }
-	| { readonly sourceArchive: URI };
+	| { readonly path: string; readonly source: URI; readonly size: number };
 
 export interface INativeZipOptions {
 	readonly maxSize?: number;

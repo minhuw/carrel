@@ -20,7 +20,7 @@ import { APPLICATION_SCOPES, FOLDER_SCOPES, IWorkbenchConfigurationService, LOCA
 import { IWorkbenchEnvironmentService } from '../../../services/environment/common/environmentService.js';
 import { IExtensionSetting, ISearchResult, ISetting, ISettingMatch, SettingMatchType, SettingValueType } from '../../../services/preferences/common/preferences.js';
 import { IUserDataProfileService } from '../../../services/userDataProfile/common/userDataProfile.js';
-import { AGENTS_WINDOW_SETTING_TAG, ENABLE_EXTENSION_TOGGLE_SETTINGS, ENABLE_LANGUAGE_FILTER, EXP_ASSIGNMENT_SETTING_TAG, MODIFIED_SETTING_TAG, POLICY_SETTING_TAG, REQUIRE_TRUSTED_WORKSPACE_SETTING_TAG, compareTwoNullableNumbers, wordifyKey } from '../common/preferences.js';
+import { ENABLE_EXTENSION_TOGGLE_SETTINGS, ENABLE_LANGUAGE_FILTER, MODIFIED_SETTING_TAG, POLICY_SETTING_TAG, REQUIRE_TRUSTED_WORKSPACE_SETTING_TAG, compareTwoNullableNumbers, wordifyKey } from '../common/preferences.js';
 import { SettingsTarget } from './preferencesWidgets.js';
 import { ITOCEntry, tocData } from './settingsLayout.js';
 import { IExperimentalSettingsService } from '../../../services/configuration/common/experimentalSettings.js';
@@ -155,11 +155,6 @@ export class SettingsTreeSettingElement extends SettingsTreeElement {
 	 */
 	hasPolicyValue = false;
 
-	/**
-	 * Whether the setting is read-only in the Agents window.
-	 */
-	isAgentsWindowReadOnly = false;
-
 	tags?: Set<string>;
 	overriddenScopeList: string[] = [];
 	overriddenDefaultsLanguageList: string[] = [];
@@ -182,8 +177,6 @@ export class SettingsTreeSettingElement extends SettingsTreeElement {
 		private readonly productService: IProductService,
 		private readonly userDataProfileService: IUserDataProfileService,
 		private readonly configurationService: IWorkbenchConfigurationService,
-		private readonly isSessionsWindow: boolean,
-		private readonly experimentalSettingsService: IExperimentalSettingsService,
 	) {
 		super(sanitizeId(parent.id + '_' + setting.key));
 		this.setting = setting;
@@ -380,19 +373,9 @@ export class SettingsTreeSettingElement extends SettingsTreeElement {
 			this.defaultValue = inspected.defaultValue;
 		}
 
-		let hasAgentsWindowOverride = false;
-		if (this.isSessionsWindow) {
-			const property = Registry.as<IConfigurationRegistry>(Extensions.Configuration).getConfigurationProperties()[this.setting.key];
-			hasAgentsWindowOverride = !!property?.agentsWindow;
-			this.isAgentsWindowReadOnly = !!property?.agentsWindow?.readOnly;
-			if (this.isAgentsWindowReadOnly) {
-				isConfigured = false;
-			}
-		}
-
 		this.value = displayValue;
 		this.isConfigured = isConfigured;
-		if (isConfigured || this.setting.tags || this.tags || this.setting.restricted || this.hasPolicyValue || hasAgentsWindowOverride || this.hasExPAssignment) {
+		if (isConfigured || this.setting.tags || this.tags || this.setting.restricted || this.hasPolicyValue) {
 			// Don't create an empty Set for all 1000 settings, only if needed
 			this.tags = new Set<string>();
 			if (isConfigured) {
@@ -413,9 +396,6 @@ export class SettingsTreeSettingElement extends SettingsTreeElement {
 				this.tags.add(POLICY_SETTING_TAG);
 			}
 
-			if (hasAgentsWindowOverride) {
-				this.tags.add(AGENTS_WINDOW_SETTING_TAG);
-			}
 		}
 	}
 
@@ -601,8 +581,6 @@ export class SettingsTreeModel implements IDisposable {
 		@ILanguageService private readonly _languageService: ILanguageService,
 		@IUserDataProfileService private readonly _userDataProfileService: IUserDataProfileService,
 		@IProductService private readonly _productService: IProductService,
-		@IWorkbenchEnvironmentService private readonly _environmentService: IWorkbenchEnvironmentService,
-		@IExperimentalSettingsService private readonly _experimentalSettingsService: IExperimentalSettingsService,
 	) {
 	}
 
@@ -718,9 +696,7 @@ export class SettingsTreeModel implements IDisposable {
 			this._languageService,
 			this._productService,
 			this._userDataProfileService,
-			this._configurationService,
-			this._environmentService.isSessionsWindow,
-			this._experimentalSettingsService);
+			this._configurationService);
 
 		const nameElements = this._treeElementsBySettingName.get(setting.key) ?? [];
 		nameElements.push(element);
@@ -994,19 +970,15 @@ function settingTypeEnumRenderable(_type: string | string[]) {
 
 export const enum SearchResultIdx {
 	Local = 0,
-	Remote = 1,
-	NewExtensions = 2,
-	Embeddings = 3,
-	AiSelected = 4
+	NewExtensions = 1
 }
 
 export class SearchResultModel extends SettingsTreeModel {
 	private rawSearchResults: ISearchResult[] | null = null;
-	private cachedUniqueSearchResults: Map<boolean, ISearchResult | null>;
+	private cachedUniqueSearchResult: ISearchResult | null | undefined;
 	private newExtensionSearchResults: ISearchResult | null = null;
 	private searchResultCount: number | null = null;
 	private settingsOrderByTocIndex: Map<string, number> | null;
-	private aiFilterEnabled: boolean = false;
 
 	readonly id = 'searchResultModel';
 
@@ -1021,15 +993,9 @@ export class SearchResultModel extends SettingsTreeModel {
 		@IProductService productService: IProductService,
 		@IExperimentalSettingsService experimentalSettingsService: IExperimentalSettingsService
 	) {
-		super(viewState, isWorkspaceTrusted, configurationService, languageService, userDataProfileService, productService, environmentService, experimentalSettingsService);
+		super(viewState, isWorkspaceTrusted, configurationService, languageService, userDataProfileService, productService);
 		this.settingsOrderByTocIndex = settingsOrderByTocIndex;
-		this.cachedUniqueSearchResults = new Map();
 		this.update({ id: 'searchResultModel', label: '' });
-	}
-
-	set showAiResults(show: boolean) {
-		this.aiFilterEnabled = show;
-		this.updateChildren();
 	}
 
 	private sortResults(filterMatches: ISettingMatch[]): ISettingMatch[] {
@@ -1072,9 +1038,8 @@ export class SearchResultModel extends SettingsTreeModel {
 	}
 
 	getUniqueSearchResults(): ISearchResult | null {
-		const cachedResults = this.cachedUniqueSearchResults.get(this.aiFilterEnabled);
-		if (cachedResults) {
-			return cachedResults;
+		if (this.cachedUniqueSearchResult !== undefined) {
+			return this.cachedUniqueSearchResult;
 		}
 
 		if (!this.rawSearchResults) {
@@ -1083,27 +1048,6 @@ export class SearchResultModel extends SettingsTreeModel {
 
 		let combinedFilterMatches: ISettingMatch[] = [];
 
-		if (this.aiFilterEnabled) {
-			const aiSelectedKeys = new Set<string>();
-			const aiSelectedResult = this.rawSearchResults[SearchResultIdx.AiSelected];
-			if (aiSelectedResult) {
-				aiSelectedResult.filterMatches.forEach(m => aiSelectedKeys.add(m.setting.key));
-				combinedFilterMatches = aiSelectedResult.filterMatches;
-			}
-
-			const embeddingsResult = this.rawSearchResults[SearchResultIdx.Embeddings];
-			if (embeddingsResult) {
-				embeddingsResult.filterMatches = embeddingsResult.filterMatches.filter(m => !aiSelectedKeys.has(m.setting.key));
-				combinedFilterMatches = combinedFilterMatches.concat(embeddingsResult.filterMatches);
-			}
-			const result = {
-				filterMatches: combinedFilterMatches,
-				exactMatch: false
-			};
-			this.cachedUniqueSearchResults.set(true, result);
-			return result;
-		}
-
 		const localMatchKeys = new Set<string>();
 		const localResult = this.rawSearchResults[SearchResultIdx.Local];
 		if (localResult) {
@@ -1111,19 +1055,12 @@ export class SearchResultModel extends SettingsTreeModel {
 			combinedFilterMatches = localResult.filterMatches;
 		}
 
-		const remoteResult = this.rawSearchResults[SearchResultIdx.Remote];
-		if (remoteResult) {
-			remoteResult.filterMatches = remoteResult.filterMatches.filter(m => !localMatchKeys.has(m.setting.key));
-			combinedFilterMatches = combinedFilterMatches.concat(remoteResult.filterMatches);
-
-			this.newExtensionSearchResults = this.rawSearchResults[SearchResultIdx.NewExtensions];
-		}
 		combinedFilterMatches = this.sortResults(combinedFilterMatches);
 		const result = {
 			filterMatches: combinedFilterMatches,
 			exactMatch: localResult.exactMatch // remote results should never have an exact match
 		};
-		this.cachedUniqueSearchResults.set(false, result);
+		this.cachedUniqueSearchResult = result;
 		return result;
 	}
 
@@ -1178,13 +1115,12 @@ export class SearchResultModel extends SettingsTreeModel {
 	}
 
 	setResult(order: SearchResultIdx, result: ISearchResult | null): void {
-		this.cachedUniqueSearchResults.clear();
+		this.cachedUniqueSearchResult = undefined;
 		this.newExtensionSearchResults = null;
 
 		if (this.rawSearchResults && order === SearchResultIdx.Local) {
 			// To prevent the Settings editor from showing
 			// stale remote results mid-search.
-			delete this.rawSearchResults[SearchResultIdx.Remote];
 		}
 
 		this.rawSearchResults ??= [];
@@ -1249,11 +1185,6 @@ export function parseQuery(query: string): IParsedQuery {
 
 	query = query.replace(`@${POLICY_SETTING_TAG}`, () => {
 		tags.push(POLICY_SETTING_TAG);
-		return '';
-	});
-
-	query = query.replace(`@${AGENTS_WINDOW_SETTING_TAG}`, () => {
-		tags.push(AGENTS_WINDOW_SETTING_TAG);
 		return '';
 	});
 

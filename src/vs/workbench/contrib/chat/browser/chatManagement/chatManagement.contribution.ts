@@ -20,7 +20,7 @@ import { EditorInput } from '../../../../common/editor/editorInput.js';
 import { IEditorService } from '../../../../services/editor/common/editorService.js';
 import { ResourceContextKey } from '../../../../common/contextkeys.js';
 import { ChatContextKeys } from '../../common/actions/chatContextKeys.js';
-import { ChatEntitlementContextKeys } from '../../../../services/chat/common/chatEntitlementService.js';
+import { ChatEntitlementContextKeys } from '../../common/chatEntitlementService.js';
 import { CONTEXT_MODELS_EDITOR, CONTEXT_MODELS_SEARCH_FOCUS, MANAGE_CHAT_COMMAND_ID } from '../../common/constants.js';
 import { CHAT_CATEGORY } from '../actions/chatActions.js';
 import { ModelsManagementEditor } from './chatManagementEditor.js';

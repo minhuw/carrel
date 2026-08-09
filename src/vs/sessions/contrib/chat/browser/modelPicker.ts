@@ -14,7 +14,7 @@ import { ITelemetryService } from '../../../../platform/telemetry/common/telemet
 import { IWorkspaceTrustManagementService } from '../../../../platform/workspace/common/workspaceTrust.js';
 import { IChatInputPickerOptions } from '../../../../workbench/contrib/chat/browser/widget/input/chatInputPickerActionItem.js';
 import { IModelPickerDelegate, ModelPickerActionItem } from '../../../../workbench/contrib/chat/browser/widget/input/modelPicker/modelPickerActionItem.js';
-import { IChatEntitlementService } from '../../../../workbench/services/chat/common/chatEntitlementService.js';
+import { IChatEntitlementService } from '../../../../workbench/contrib/chat/common/chatEntitlementService.js';
 import { Menus } from '../../../browser/menus.js';
 import { IsPhoneLayoutContext, SessionUsesCombinedConfigPickerContext } from '../../../common/contextkeys.js';
 import { ISessionContext } from '../../../services/sessions/browser/sessionContext.js';

@@ -10,7 +10,7 @@ import { ThemeIcon } from '../../../../../../../base/common/themables.js';
 import { localize } from '../../../../../../../nls.js';
 import { ActionListItemKind, IActionListItem } from '../../../../../../../platform/actionWidget/browser/actionList.js';
 import { IActionWidgetDropdownAction } from '../../../../../../../platform/actionWidget/browser/actionWidgetDropdown.js';
-import { ChatEntitlement } from '../../../../../../services/chat/common/chatEntitlementService.js';
+import { ChatEntitlement } from '../../../../common/chatEntitlementService.js';
 import { IModelControlEntry, ILanguageModelChatMetadata, ILanguageModelChatMetadataAndIdentifier } from '../../../../common/languageModels.js';
 import { buildModelToProviderGroupMap, createModelAction, createModelItem, createPinAction, createUnavailableModelItem, getProviderGroupForModel, getProviderGroupKey, getUnavailableReason, isVersionAtLeast, ProviderGroupKey } from './modelPickerItemPrimitives.js';
 import type { IBuildModelPickerItemsOptions } from './modelPickerItemTypes.js';

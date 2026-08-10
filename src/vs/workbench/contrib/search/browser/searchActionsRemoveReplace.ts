@@ -23,7 +23,6 @@ import { KeyCode, KeyMod } from '../../../../base/common/keyCodes.js';
 import { category, getElementsToOperateOn, getSearchView, shouldRefocus } from './searchActionsBase.js';
 import { equals } from '../../../../base/common/arrays.js';
 import { arrayContainsElementOrParent, RenderableMatch, ISearchResult, isSearchTreeFileMatch, isSearchTreeFolderMatch, isSearchTreeMatch, isSearchResult, isTextSearchHeading } from './searchTreeModel/searchTreeCommon.js';
-import { MatchInNotebook } from './notebookSearch/notebookSearchModel.js';
 import { AITextSearchHeadingImpl } from './AISearch/aiSearchModel.js';
 
 
@@ -309,7 +308,7 @@ async function performReplace(accessor: ServicesAccessor,
 
 			if (isSearchTreeMatch(nextFocusElement)) {
 				const useReplacePreview = configurationService.getValue<ISearchConfiguration>().search?.useReplacePreview;
-				if (!useReplacePreview || instantiationService.invokeFunction(accessor => hasToOpenFile(accessor, nextFocusElement!)) || nextFocusElement instanceof MatchInNotebook) {
+				if (!useReplacePreview || instantiationService.invokeFunction(accessor => hasToOpenFile(accessor, nextFocusElement!))) {
 					viewlet?.open(nextFocusElement, true);
 				} else {
 					instantiationService.invokeFunction(accessor => accessor.get(IReplaceService)).openReplacePreview(nextFocusElement, true);

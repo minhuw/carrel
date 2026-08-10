@@ -81,7 +81,6 @@ export interface WebviewInitInfo {
 }
 
 export const enum WebviewContentPurpose {
-	NotebookRenderer = 'notebookRenderer',
 	CustomEditor = 'customEditor',
 	WebviewView = 'webviewView',
 	ChatOutputItem = 'chatOutputItem',

@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IMatchInNotebook, isIMatchInNotebook } from './notebookSearch/notebookSearchModelBase.js';
 import { compareFileExtensions, compareFileNames, comparePaths } from '../../../../base/common/comparers.js';
 import { SearchSortOrder } from '../../../services/search/common/search.js';
 import { Range } from '../../../../editor/common/core/range.js';
@@ -79,37 +78,11 @@ export function searchMatchComparer(elementA: RenderableMatch, elementB: Rendera
 		}
 	}
 
-	if (isIMatchInNotebook(elementA) && isIMatchInNotebook(elementB)) {
-		return compareNotebookPos(elementA, elementB);
-	}
-
 	if (isSearchTreeMatch(elementA) && isSearchTreeMatch(elementB)) {
 		return Range.compareRangesUsingStarts(elementA.range(), elementB.range());
 	}
 
 	return 0;
-}
-
-function compareNotebookPos(match1: IMatchInNotebook, match2: IMatchInNotebook): number {
-	if (match1.cellIndex === match2.cellIndex) {
-
-		if (match1.webviewIndex !== undefined && match2.webviewIndex !== undefined) {
-			return match1.webviewIndex - match2.webviewIndex;
-		} else if (match1.webviewIndex === undefined && match2.webviewIndex === undefined) {
-			return Range.compareRangesUsingStarts(match1.range(), match2.range());
-		} else {
-			// webview matches should always be after content matches
-			if (match1.webviewIndex !== undefined) {
-				return 1;
-			} else {
-				return -1;
-			}
-		}
-	} else if (match1.cellIndex < match2.cellIndex) {
-		return -1;
-	} else {
-		return 1;
-	}
 }
 
 export function searchComparer(elementA: RenderableMatch, elementB: RenderableMatch, sortOrder: SearchSortOrder = SearchSortOrder.Default): number {

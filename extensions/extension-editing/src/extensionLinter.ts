@@ -19,7 +19,7 @@ const product = JSON.parse(fs.readFileSync(path.join(env.appRoot, 'product.json'
 const allowedBadgeProviders: string[] = (product.extensionAllowedBadgeProviders || []).map((s: string) => s.toLowerCase());
 const allowedBadgeProvidersRegex: RegExp[] = (product.extensionAllowedBadgeProvidersRegex || []).map((r: string) => new RegExp(r));
 const extensionEnabledApiProposals: Record<string, string[]> = product.extensionEnabledApiProposals ?? {};
-const reservedImplicitActivationEventPrefixes = ['onNotebookSerializer:'];
+const reservedImplicitActivationEventPrefixes: string[] = [];
 const redundantImplicitActivationEventPrefixes = ['onLanguage:', 'onView:', 'onAuthenticationRequest:', 'onCommand:', 'onCustomEditor:', 'onTerminalProfile:', 'onRenderer:', 'onTerminalQuickFixRequest:', 'onWalkthrough:'];
 
 function isTrustedSVGSource(uri: Uri): boolean {
@@ -569,15 +569,6 @@ function parseImplicitActivationEvents(tree: JsonNode): Set<string> {
 		const id = findNodeAtLocation(child, ['id']);
 		if (id && id.type === 'string') {
 			activationEvents.add(`onWalkthrough:${id.value}`);
-		}
-	});
-
-	// notebookRenderers
-	const notebookRenderers = findNodeAtLocation(tree, ['contributes', 'notebookRenderer']);
-	notebookRenderers?.children?.forEach(child => {
-		const id = findNodeAtLocation(child, ['id']);
-		if (id && id.type === 'string') {
-			activationEvents.add(`onRenderer:${id.value}`);
 		}
 	});
 

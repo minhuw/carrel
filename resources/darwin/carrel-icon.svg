@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="title desc">
+  <title id="title">Carrel application logo</title>
+  <desc id="desc">A warm white C-shaped study carrel surrounding an amber text cursor on a deep ink app tile.</desc>
+
+  <!-- Calm app tile -->
+  <rect width="1024" height="1024" rx="224" fill="#111827"/>
+  <rect x="48" y="48" width="928" height="928" rx="184" fill="#182235"/>
+
+  <!-- A study carrel in plan view, also reading as the initial C -->
+  <path
+    d="M 708 284 H 448 C 352 284 292 344 292 440 V 584 C 292 680 352 740 448 740 H 708"
+    fill="none"
+    stroke="#F4F0E8"
+    stroke-width="100"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <!-- The editor cursor inside the quiet workspace -->
+  <rect x="584" y="407" width="76" height="210" rx="38" fill="#F2B84B"/>
+</svg>

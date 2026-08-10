@@ -338,6 +338,10 @@ export class ExtensionManagementService extends AbstractExtensionManagementServi
 	}
 
 	private async downloadExtension(extension: IGalleryExtension, operation: InstallOperation, verifySignature: boolean, clientTargetPlatform?: TargetPlatform): Promise<{ readonly location: URI; readonly verificationStatus: ExtensionSignatureVerificationCode | undefined }> {
+		// Carrel: extensions come from Open VSX, which does not serve Microsoft
+		// marketplace signatures, so verification can never succeed here. Skip
+		// it unconditionally regardless of the extensions.verifySignature setting.
+		verifySignature = false;
 		if (verifySignature) {
 			const value = this.configurationService.getValue(VerifyExtensionSignatureConfigKey);
 			verifySignature = isBoolean(value) ? value : true;

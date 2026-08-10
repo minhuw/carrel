@@ -209,7 +209,6 @@ import './contrib/interactive/browser/interactive.contribution.js';
 import './contrib/replNotebook/browser/repl.contribution.js';
 
 // Testing
-import './contrib/testing/browser/testing.contribution.js';
 
 // Logs
 import './contrib/logs/common/logs.contribution.js';

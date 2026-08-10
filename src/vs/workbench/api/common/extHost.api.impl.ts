@@ -87,7 +87,6 @@ import { IExtHostTask } from './extHostTask.js';
 import { ExtHostTelemetryLogger, IExtHostTelemetry, isNewAppInstall } from './extHostTelemetry.js';
 import { IExtHostTerminalService, ITerminalInternalOptions } from './extHostTerminalService.js';
 import { IExtHostTerminalShellIntegration } from './extHostTerminalShellIntegration.js';
-import { IExtHostTesting } from './extHostTesting.js';
 import { ExtHostEditors } from './extHostTextEditors.js';
 import { ExtHostTheming } from './extHostTheming.js';
 import { ExtHostTimeline } from './extHostTimeline.js';
@@ -222,7 +221,6 @@ export function createApiFactoryAndRegisterActors(accessor: ServicesAccessor): I
 	const extHostWebviewPanels = rpcProtocol.set(ExtHostContext.ExtHostWebviewPanels, new ExtHostWebviewPanels(rpcProtocol, extHostWebviews, extHostWorkspace));
 	const extHostCustomEditors = rpcProtocol.set(ExtHostContext.ExtHostCustomEditors, new ExtHostCustomEditors(rpcProtocol, extHostDocuments, extensionStoragePaths, extHostWebviews, extHostWebviewPanels));
 	const extHostWebviewViews = rpcProtocol.set(ExtHostContext.ExtHostWebviewViews, new ExtHostWebviewViews(rpcProtocol, extHostWebviews));
-	const extHostTesting = rpcProtocol.set(ExtHostContext.ExtHostTesting, accessor.get(IExtHostTesting));
 	const extHostUriOpeners = rpcProtocol.set(ExtHostContext.ExtHostUriOpeners, new ExtHostUriOpeners(rpcProtocol));
 	const extHostProfileContentHandlers = rpcProtocol.set(ExtHostContext.ExtHostProfileContentHandlers, new ExtHostProfileContentHandlers(rpcProtocol));
 	rpcProtocol.set(ExtHostContext.ExtHostInteractive, new ExtHostInteractive(rpcProtocol, extHostNotebook, extHostDocumentsAndEditors, extHostCommands, extHostLogService));
@@ -531,33 +529,6 @@ export function createApiFactoryAndRegisterActors(accessor: ServicesAccessor): I
 			// allow to patch env-function when running tests
 			Object.freeze(env);
 		}
-
-		// namespace: tests
-		const tests: typeof vscode.tests = {
-			createTestController(provider, label, refreshHandler?: (token: vscode.CancellationToken) => Thenable<void> | void) {
-				return extHostTesting.createTestController(extension, provider, label, refreshHandler);
-			},
-			createTestObserver() {
-				checkProposedApiEnabled(extension, 'testObserver');
-				return extHostTesting.createTestObserver();
-			},
-			runTests(provider) {
-				checkProposedApiEnabled(extension, 'testObserver');
-				return extHostTesting.runTests(provider);
-			},
-			registerTestFollowupProvider(provider) {
-				checkProposedApiEnabled(extension, 'testObserver');
-				return extHostTesting.registerTestFollowupProvider(provider);
-			},
-			get onDidChangeTestResults() {
-				checkProposedApiEnabled(extension, 'testObserver');
-				return _asExtensionEvent(extHostTesting.onResultsChanged);
-			},
-			get testResults() {
-				checkProposedApiEnabled(extension, 'testObserver');
-				return extHostTesting.results;
-			},
-		};
 
 		// namespace: extensions
 		const extensionKind = initData.remote.isRemote
@@ -1574,7 +1545,6 @@ export function createApiFactoryAndRegisterActors(accessor: ServicesAccessor): I
 			scm,
 			speech,
 			tasks,
-			tests,
 			window,
 			workspace,
 			// types
@@ -1745,20 +1715,9 @@ export function createApiFactoryAndRegisterActors(accessor: ServicesAccessor): I
 			NotebookVariablesRequestKind: extHostTypes.NotebookVariablesRequestKind,
 			PortAttributes: extHostTypes.PortAttributes,
 			LinkedEditingRanges: extHostTypes.LinkedEditingRanges,
-			TestResultState: extHostTypes.TestResultState,
-			TestRunRequest: extHostTypes.TestRunRequest,
-			TestMessage: extHostTypes.TestMessage,
-			TestMessageStackFrame: extHostTypes.TestMessageStackFrame,
-			TestTag: extHostTypes.TestTag,
-			TestRunProfileKind: extHostTypes.TestRunProfileKind,
 			TextSearchCompleteMessageType: TextSearchCompleteMessageType,
 			DataTransfer: extHostTypes.DataTransfer,
 			DataTransferItem: extHostTypes.DataTransferItem,
-			TestCoverageCount: extHostTypes.TestCoverageCount,
-			FileCoverage: extHostTypes.FileCoverage,
-			StatementCoverage: extHostTypes.StatementCoverage,
-			BranchCoverage: extHostTypes.BranchCoverage,
-			DeclarationCoverage: extHostTypes.DeclarationCoverage,
 			WorkspaceTrustState: extHostTypes.WorkspaceTrustState,
 			LanguageStatusSeverity: extHostTypes.LanguageStatusSeverity,
 			QuickPickItemKind: extHostTypes.QuickPickItemKind,

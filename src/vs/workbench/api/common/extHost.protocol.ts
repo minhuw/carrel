@@ -64,7 +64,6 @@ import { InputValidationType } from '../../contrib/scm/common/scm.js';
 import { IWorkspaceSymbol, NotebookPriorityInfo } from '../../contrib/search/common/search.js';
 import { IRawClosedNotebookFileMatch } from '../../contrib/search/common/searchNotebookHelpers.js';
 import { IKeywordRecognitionEvent, ISpeechProviderMetadata, ISpeechToTextEvent, ITextToSpeechEvent } from '../../contrib/speech/common/speechService.js';
-import { CoverageDetails, ExtensionRunTestsRequest, ICallProfileRunHandler, IFileCoverage, ISerializedTestResults, IStartControllerTests, ITestItem, ITestMessage, ITestRunProfile, ITestRunTask, ResolvedTestRunRequest, TestControllerCapability, TestMessageFollowupRequest, TestMessageFollowupResponse, TestResultState, TestsDiffOp } from '../../contrib/testing/common/testTypes.js';
 import { Timeline, TimelineChangeEvent, TimelineOptions, TimelineProviderDescriptor } from '../../contrib/timeline/common/timeline.js';
 import { TypeHierarchyItem } from '../../contrib/typeHierarchy/common/typeHierarchy.js';
 import { AuthenticationSession, AuthenticationSessionAccount, AuthenticationSessionsChangeEvent, IAuthenticationConstraint, IAuthenticationCreateSessionOptions, IAuthenticationGetSessionsOptions, IAuthenticationWwwAuthenticateRequest } from '../../services/authentication/common/authentication.js';
@@ -2848,46 +2847,6 @@ export interface ExtHostTimelineShape {
 	$getTimeline(source: string, uri: UriComponents, options: TimelineOptions, token: CancellationToken): Promise<Dto<Timeline> | undefined>;
 }
 
-export const enum ExtHostTestingResource {
-	Workspace,
-	TextDocument
-}
-
-export interface ExtHostTestingShape {
-	$runControllerTests(req: IStartControllerTests[], token: CancellationToken): Promise<{ error?: string }[]>;
-	$startContinuousRun(req: ICallProfileRunHandler[], token: CancellationToken): Promise<{ error?: string }[]>;
-	$cancelExtensionTestRun(runId: string | undefined, taskId: string | undefined): void;
-	/** Handles a diff of tests, as a result of a subscribeToDiffs() call */
-	$acceptDiff(diff: TestsDiffOp.Serialized[]): void;
-	/** Expands a test item's children, by the given number of levels. */
-	$expandTest(testId: string, levels: number): Promise<void>;
-	/** Requests coverage details for a test run. Errors if not available. */
-	$getCoverageDetails(coverageId: string, testId: string | undefined, token: CancellationToken): Promise<CoverageDetails.Serialized[]>;
-	/** Disposes resources associated with a test run. */
-	$disposeRun(runId: string): void;
-	/** Configures a test run config. */
-	$configureRunProfile(controllerId: string, configId: number): void;
-	/** Asks the controller to refresh its tests */
-	$refreshTests(controllerId: string, token: CancellationToken): Promise<void>;
-	/** Ensures any pending test diffs are flushed */
-	$syncTests(): Promise<void>;
-	/** Sets the active test run profiles */
-	$setDefaultRunProfiles(profiles: Record</* controller id */string, /* profile id */ number[]>): void;
-	$getTestsRelatedToCode(uri: UriComponents, position: IPosition, token: CancellationToken): Promise<string[]>;
-	$getCodeRelatedToTest(testId: string, token: CancellationToken): Promise<ILocationDto[]>;
-
-	// --- test results:
-
-	/** Publishes that a test run finished. */
-	$publishTestResults(results: ISerializedTestResults[]): void;
-	/** Requests followup actions for a test (failure) message */
-	$provideTestFollowups(req: TestMessageFollowupRequest, token: CancellationToken): Promise<TestMessageFollowupResponse[]>;
-	/** Actions a followup actions for a test (failure) message */
-	$executeTestFollowup(id: number): Promise<void>;
-	/** Disposes followup actions for a test (failure) message */
-	$disposeTestFollowups(id: number[]): void;
-}
-
 export interface MainThreadDataChannelsShape extends IDisposable {
 }
 
@@ -2906,68 +2865,6 @@ export interface IStringDetails {
 	message: string;
 	args?: Record<string | number, any>;
 	comment?: string | string[];
-}
-
-export interface ITestControllerPatch {
-	label?: string;
-	capabilities?: TestControllerCapability;
-}
-
-export interface MainThreadTestingShape {
-	// --- test lifecycle:
-
-	/** Registers that there's a test controller with the given ID */
-	$registerTestController(controllerId: string, label: string, capability: TestControllerCapability): void;
-	/** Updates the label of an existing test controller. */
-	$updateController(controllerId: string, patch: ITestControllerPatch): void;
-	/** Diposes of the test controller with the given ID */
-	$unregisterTestController(controllerId: string): void;
-	/** Requests tests published to VS Code. */
-	$subscribeToDiffs(): void;
-	/** Stops requesting tests published to VS Code. */
-	$unsubscribeFromDiffs(): void;
-	/** Publishes that new tests were available on the given source. */
-	$publishDiff(controllerId: string, diff: TestsDiffOp.Serialized[]): void;
-	/** Gets coverage details from a test result. */
-	$getCoverageDetails(resultId: string, taskIndex: number, uri: UriComponents, token: CancellationToken): Promise<CoverageDetails.Serialized[]>;
-
-	// --- test run configurations:
-
-	/** Called when a new test run configuration is available */
-	$publishTestRunProfile(config: ITestRunProfile): void;
-	/** Updates an existing test run configuration */
-	$updateTestRunConfig(controllerId: string, configId: number, update: Partial<ITestRunProfile>): void;
-	/** Removes a previously-published test run config */
-	$removeTestProfile(controllerId: string, configId: number): void;
-
-
-	// --- test run handling:
-
-	/** Request by an extension to run tests. */
-	$runTests(req: ResolvedTestRunRequest, token: CancellationToken): Promise<string>;
-	/**
-	 * Adds tests to the run. The tests are given in descending depth. The first
-	 * item will be a previously-known test, or a test root.
-	 */
-	$addTestsToRun(controllerId: string, runId: string, tests: ITestItem.Serialized[]): void;
-	/** Updates the state of a test run in the given run. */
-	$updateTestStateInRun(runId: string, taskId: string, testId: string, state: TestResultState, duration?: number): void;
-	/** Appends a message to a test in the run. */
-	$appendTestMessagesInRun(runId: string, taskId: string, testId: string, messages: ITestMessage.Serialized[]): void;
-	/** Appends raw output to the test run.. */
-	$appendOutputToRun(runId: string, taskId: string, output: VSBuffer, location?: ILocationDto, testId?: string): void;
-	/** Triggered when coverage is added to test results. */
-	$appendCoverage(runId: string, taskId: string, coverage: IFileCoverage.Serialized): void;
-	/** Signals a task in a test run started. */
-	$startedTestRunTask(runId: string, task: ITestRunTask): void;
-	/** Signals a task in a test run ended. */
-	$finishedTestRunTask(runId: string, taskId: string): void;
-	/** Start a new extension-provided test run. */
-	$startedExtensionTestRun(req: ExtensionRunTestsRequest): void;
-	/** Signals that an extension-provided test run finished. */
-	$finishedExtensionTestRun(runId: string): void;
-	/** Marks a test (or controller) as retired in all results. */
-	$markTestRetired(testIds: string[] | undefined): void;
 }
 
 export interface GitRefQueryDto {
@@ -3115,7 +3012,6 @@ export const MainContext = {
 	MainThreadManagedSockets: createProxyIdentifier<MainThreadManagedSocketsShape>('MainThreadManagedSockets'),
 	MainThreadBrowserTunnelProxy: createProxyIdentifier<MainThreadBrowserTunnelProxyShape>('MainThreadBrowserTunnelProxy'),
 	MainThreadTimeline: createProxyIdentifier<MainThreadTimelineShape>('MainThreadTimeline'),
-	MainThreadTesting: createProxyIdentifier<MainThreadTestingShape>('MainThreadTesting'),
 	MainThreadLocalization: createProxyIdentifier<MainThreadLocalizationShape>('MainThreadLocalizationShape'),
 	MainThreadDataChannels: createProxyIdentifier<MainThreadDataChannelsShape>('MainThreadDataChannels'),
 	MainThreadBrowsers: createProxyIdentifier<MainThreadBrowsersShape>('MainThreadBrowsers'),
@@ -3180,7 +3076,6 @@ export const ExtHostContext = {
 	ExtHostBrowserTunnelProxy: createProxyIdentifier<ExtHostBrowserTunnelProxyShape>('ExtHostBrowserTunnelProxy'),
 	ExtHostAuthentication: createProxyIdentifier<ExtHostAuthenticationShape>('ExtHostAuthentication'),
 	ExtHostTimeline: createProxyIdentifier<ExtHostTimelineShape>('ExtHostTimeline'),
-	ExtHostTesting: createProxyIdentifier<ExtHostTestingShape>('ExtHostTesting'),
 	ExtHostTelemetry: createProxyIdentifier<ExtHostTelemetryShape>('ExtHostTelemetry'),
 	ExtHostMeteredConnection: createProxyIdentifier<ExtHostMeteredConnectionShape>('ExtHostMeteredConnection'),
 	ExtHostLocalization: createProxyIdentifier<ExtHostLocalizationShape>('ExtHostLocalization'),

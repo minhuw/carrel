@@ -13,7 +13,6 @@ import { ExtensionType } from '../../../../platform/extensions/common/extensions
 import { InstantiationType, registerSingleton } from '../../../../platform/instantiation/common/extensions.js';
 import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
 import { IProductService } from '../../../../platform/product/common/productService.js';
-import { IWorkbenchAssignmentService } from '../../assignment/common/assignmentService.js';
 import { EnablementState, IWorkbenchExtensionEnablementService } from '../../extensionManagement/common/extensionManagement.js';
 import { IExtensionService } from '../../extensions/common/extensions.js';
 
@@ -33,10 +32,6 @@ export interface IInlineCompletionsUnificationService {
 	readonly onDidStateChange: Event<void>;
 }
 
-const CODE_UNIFICATION_PREFIX = 'cmp-cht-';
-const EXTENSION_UNIFICATION_PREFIX = 'cmp-ext-';
-const CODE_UNIFICATION_FF = 'inlineCompletionsUnificationCode';
-const MODEL_UNIFICATION_FF = 'inlineCompletionsUnificationModel';
 
 export const isRunningUnificationExperiment = new RawContextKey<boolean>('isRunningUnificationExperiment', false);
 
@@ -60,7 +55,6 @@ export class InlineCompletionsUnificationImpl extends Disposable implements IInl
 	private readonly _chatExtensionId: string | undefined;
 
 	constructor(
-		@IWorkbenchAssignmentService private readonly _assignmentService: IWorkbenchAssignmentService,
 		@IContextKeyService private readonly _contextKeyService: IContextKeyService,
 		@IConfigurationService private readonly _configurationService: IConfigurationService,
 		@IWorkbenchExtensionEnablementService private readonly _extensionEnablementService: IWorkbenchExtensionEnablementService,
@@ -72,12 +66,6 @@ export class InlineCompletionsUnificationImpl extends Disposable implements IInl
 		const relevantExtensions = [this._completionsExtensionId, this._chatExtensionId].filter((id): id is string => !!id);
 
 		this.isRunningUnificationExperiment = isRunningUnificationExperiment.bindTo(this._contextKeyService);
-
-		this._assignmentService.addTelemetryAssignmentFilter({
-			id: 'inlineCompletionsUnification',
-			exclude: (assignment) => assignment.startsWith(EXTENSION_UNIFICATION_PREFIX) && this._state.extensionUnification !== this._configurationService.getValue<boolean>(ExtensionUnificationSetting),
-			onDidChange: Event.any(this._onDidChangeExtensionUnificationState.event, this._onDidChangeExtensionUnificationSetting.event)
-		});
 
 		this._register(this._extensionEnablementService.onEnablementChanged((extensions) => {
 			if (extensions.some(ext => relevantExtensions.includes(ext.identifier.id.toLowerCase()))) {
@@ -95,27 +83,14 @@ export class InlineCompletionsUnificationImpl extends Disposable implements IInl
 				this._update();
 			}
 		}));
-		this._register(this._assignmentService.onDidRefetchAssignments(() => this._update()));
 		this._update();
 	}
 
 	private async _update(): Promise<void> {
-		const [codeUnificationFF, modelUnificationFF, extensionUnificationEnabled] = await Promise.all([
-			this._assignmentService.getTreatment<boolean>(CODE_UNIFICATION_FF),
-			this._assignmentService.getTreatment<boolean>(MODEL_UNIFICATION_FF),
-			this._isExtensionUnificationActive()
-		]);
+		const extensionUnificationEnabled = await this._isExtensionUnificationActive();
 
-		const extensionStatesMatchUnificationSetting = this._configurationService.getValue<boolean>(ExtensionUnificationSetting) === extensionUnificationEnabled;
-
-		// Intentionally read the current experiments after fetching the treatments
-		const currentExperiments = await this._assignmentService.getCurrentExperiments();
-		const newState = new InlineCompletionsUnificationState(
-			codeUnificationFF === true,
-			modelUnificationFF === true,
-			extensionUnificationEnabled,
-			currentExperiments?.filter(exp => exp.startsWith(CODE_UNIFICATION_PREFIX) || (extensionStatesMatchUnificationSetting && exp.startsWith(EXTENSION_UNIFICATION_PREFIX))) ?? []
-		);
+		// No experiments are assigned, so the code and model unification flags stay off.
+		const newState = new InlineCompletionsUnificationState(false, false, extensionUnificationEnabled, []);
 		if (this._state.equals(newState)) {
 			return;
 		}

@@ -59,7 +59,6 @@ import './services/encryption/electron-browser/encryptionService.js';
 import './services/imageResize/electron-browser/imageResizeService.js';
 import './services/secrets/electron-browser/secretStorageService.js';
 import './services/localization/electron-browser/languagePackService.js';
-import './services/telemetry/electron-browser/telemetryService.js';
 import './services/extensions/electron-browser/extensionHostStarter.js';
 import '../platform/extensionResourceLoader/common/extensionResourceLoaderService.js';
 import './services/localization/electron-browser/localeService.js';
@@ -78,7 +77,6 @@ import '../platform/remote/electron-browser/sharedProcessTunnelService.js';
 import './services/tunnel/electron-browser/tunnelService.js';
 import '../platform/diagnostics/electron-browser/diagnosticsService.js';
 import '../platform/profiling/electron-browser/profilingService.js';
-import '../platform/telemetry/electron-browser/customEndpointTelemetryService.js';
 import '../platform/remoteTunnel/electron-browser/remoteTunnelService.js';
 import './services/files/electron-browser/elevatedFileService.js';
 import './services/search/electron-browser/searchService.js';
@@ -91,16 +89,20 @@ import '../platform/extensionManagement/electron-browser/extensionsProfileScanne
 import './services/process/electron-browser/processService.js';
 import './services/power/electron-browser/powerService.js';
 
-import { registerSingleton } from '../platform/instantiation/common/extensions.js';
+import { InstantiationType, registerSingleton } from '../platform/instantiation/common/extensions.js';
 import { IUserDataInitializationService, UserDataInitializationService } from './services/userData/browser/userDataInit.js';
 import { SyncDescriptor } from '../platform/instantiation/common/descriptors.js';
 import { IDownloadService } from '../platform/download/common/download.js';
 import { DownloadServiceChannelClient } from '../platform/download/common/downloadIpc.js';
+import { ICustomEndpointTelemetryService, ITelemetryService } from '../platform/telemetry/common/telemetry.js';
+import { NullEndpointTelemetryService, NullTelemetryServiceShape } from '../platform/telemetry/common/telemetryUtils.js';
 import { registerSharedProcessRemoteService } from '../platform/ipc/electron-browser/services.js';
 
 // Override the common download service after its module has initialized.
 registerSharedProcessRemoteService(IDownloadService, 'download', { channelClientCtor: DownloadServiceChannelClient });
 
+registerSingleton(ITelemetryService, NullTelemetryServiceShape, InstantiationType.Delayed);
+registerSingleton(ICustomEndpointTelemetryService, NullEndpointTelemetryService, InstantiationType.Delayed);
 registerSingleton(IUserDataInitializationService, new SyncDescriptor(UserDataInitializationService, [[]], true));
 
 

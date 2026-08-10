@@ -43,7 +43,6 @@ import { IOpenerService } from '../../../../../platform/opener/common/opener.js'
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { NullTelemetryService } from '../../../../../platform/telemetry/common/telemetryUtils.js';
 import { ITelemetryService } from '../../../../../platform/telemetry/common/telemetry.js';
-import { TestExperimentTriggerTelemetryService } from '../../../../../platform/telemetry/test/common/experimentTriggerTestUtils.js';
 import { IUntypedEditorInput } from '../../../../common/editor.js';
 import { EditorInput } from '../../../../common/editor/editorInput.js';
 import { AuxiliaryWindowMode, BeforeAuxiliaryWindowUnloadEvent, IAuxiliaryWindow, IAuxiliaryWindowOpenOptions, IAuxiliaryWindowService } from '../../../../services/auxiliaryWindow/browser/auxiliaryWindowService.js';
@@ -211,8 +210,7 @@ suite('NativeIssueFormService reporter windows', () => {
 			'issueReporter.wizard.openLocation': location,
 		});
 		instantiation.stub(IConfigurationService, configuration);
-		const telemetry = new TestExperimentTriggerTelemetryService();
-		instantiation.stub(ITelemetryService, telemetry);
+		instantiation.stub(ITelemetryService, NullTelemetryService);
 		instantiation.stub(ILogService, new NullLogService());
 		const lifecycle = store.add(new class extends TestLifecycleService {
 			private readonly vetoed = this._register(new Emitter<void>());
@@ -343,7 +341,7 @@ suite('NativeIssueFormService reporter windows', () => {
 		const service = store.add(instantiation.createInstance(TestNativeIssueFormService));
 		instantiation.stub(IIssueFormService, service);
 		return {
-			service, controls, configuration, confirmations, focusedOnConfirm, confirmStarted, screenshotStarted, opens, main, windows, windowOptions, focused, source, instantiation, readonlyUpdates, writes, lifecycle, keybindings, previews, telemetry, screenshotTool,
+			service, controls, configuration, confirmations, focusedOnConfirm, confirmStarted, screenshotStarted, opens, main, windows, windowOptions, focused, source, instantiation, readonlyUpdates, writes, lifecycle, keybindings, previews, screenshotTool,
 			shutdown: async (reason: ShutdownReason) => {
 				if (reason === ShutdownReason.QUIT) {
 					windows.forEach(window => window.blockNativeClose = true);
@@ -382,7 +380,7 @@ suite('NativeIssueFormService reporter windows', () => {
 		const reports = [];
 		const window = { dataUrl: issueReporterImageFixture, width: 48, height: 32 };
 		for (const layout of [undefined, 'simple', 'detailed']) {
-			const { service, configuration, inputs, telemetry, screenshotTool } = createService('editor');
+			const { service, configuration, inputs, screenshotTool } = createService('editor');
 			screenshotTool.windowImage = window;
 			await configuration.setUserConfiguration('issueReporter.wizard.layout', layout);
 			await service.openReporter(data());
@@ -390,14 +388,12 @@ suite('NativeIssueFormService reporter windows', () => {
 				layout: inputs().map(input => input.layout),
 				attached: inputs().map(input => input.savedAttachments?.map(attachment => attachment.kind === 'screenshot' && attachment === input.automaticScreenshot ? attachment.screenshot : attachment)),
 				tool: screenshotTool.requests,
-				triggers: telemetry.triggers,
 			});
 		}
-		const triggers = ['config.issueReporter.wizard.layout'];
 		assert.deepStrictEqual(reports, [
-			{ layout: ['detailed'], attached: [undefined], tool: [], triggers },
-			{ layout: ['simple'], attached: [[window]], tool: ['captureWindow'], triggers },
-			{ layout: ['detailed'], attached: [undefined], tool: [], triggers },
+			{ layout: ['detailed'], attached: [undefined], tool: [] },
+			{ layout: ['simple'], attached: [[window]], tool: ['captureWindow'] },
+			{ layout: ['detailed'], attached: [undefined], tool: [] },
 		]);
 	});
 

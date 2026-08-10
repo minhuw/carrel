@@ -16,7 +16,6 @@ import { INotification, INotificationActions, INotificationHandle, INotification
 import { IOpenerService, OpenInternalOptions } from '../../../../../platform/opener/common/opener.js';
 import { IProductService } from '../../../../../platform/product/common/productService.js';
 import { InMemoryStorageService, StorageScope, StorageTarget } from '../../../../../platform/storage/common/storage.js';
-import { TestExperimentTriggerTelemetryService } from '../../../../../platform/telemetry/test/common/experimentTriggerTestUtils.js';
 import { DisablementReason, IUpdateService, State, UpdateType } from '../../../../../platform/update/common/update.js';
 import { IBannerItem, IBannerService } from '../../../../services/banner/browser/bannerService.js';
 import { IWorkbenchEnvironmentService } from '../../../../services/environment/common/environmentService.js';
@@ -131,7 +130,6 @@ suite('OutdatedBuildReminderContribution', () => {
 		if (options.enabled !== undefined) {
 			await configuration.setUserConfiguration(SETTING, options.enabled);
 		}
-		const telemetry = new TestExperimentTriggerTelemetryService();
 
 		let banner: IBannerItem | undefined;
 		let notification: TestNotificationHandle | undefined;
@@ -171,7 +169,6 @@ suite('OutdatedBuildReminderContribution', () => {
 				override readonly downloadUrl = DOWNLOAD_URL;
 			}(),
 			storage,
-			telemetry,
 			updateService,
 			new class extends mock<IWorkbenchEnvironmentService>() {
 				override readonly isSessionsWindow = !!options.isSessionsWindow;
@@ -184,7 +181,6 @@ suite('OutdatedBuildReminderContribution', () => {
 		return {
 			contribution,
 			events,
-			triggers: telemetry.triggers,
 			get banner() { return banner; },
 			get notificationActions(): readonly IAction[] { return notification?.actions?.primary ?? []; },
 			get lastShown() { return storage.getNumber(LAST_SHOWN_STORAGE_KEY, StorageScope.APPLICATION_SHARED); },
@@ -299,22 +295,22 @@ suite('OutdatedBuildReminderContribution', () => {
 		});
 	});
 
-	test('logs the experiment trigger in every arm, and shows the reminder only while the setting is on', async () => {
+	test('shows the reminder only while the setting is on', async () => {
 		const outcome = async (options: IReminderOptions) => {
 			const reminder = await createReminder(options);
-			return { reminders: reminder.events.length, claimed: reminder.lastShown !== undefined, triggers: reminder.triggers };
+			return { reminders: reminder.events.length, claimed: reminder.lastShown !== undefined };
 		};
 
 		assert.deepStrictEqual({
 			tooNew: await outcome({ buildAgeDays: 59 }),
 			enabled: await outcome({ buildAgeDays: 61 }),
-			disabledByExperiment: await outcome({ buildAgeDays: 61, enabled: false }),
+			disabledByDefault: await outcome({ buildAgeDays: 61, enabled: false }),
 			disabledByUser: await outcome({ buildAgeDays: 61, enabled: false, userConfigured: true }),
 		}, {
-			tooNew: { reminders: 0, claimed: false, triggers: [] },
-			enabled: { reminders: 1, claimed: true, triggers: [`config.${SETTING}`] },
-			disabledByExperiment: { reminders: 0, claimed: false, triggers: [`config.${SETTING}`] },
-			disabledByUser: { reminders: 0, claimed: false, triggers: [] },
+			tooNew: { reminders: 0, claimed: false },
+			enabled: { reminders: 1, claimed: true },
+			disabledByDefault: { reminders: 0, claimed: false },
+			disabledByUser: { reminders: 0, claimed: false },
 		});
 	});
 

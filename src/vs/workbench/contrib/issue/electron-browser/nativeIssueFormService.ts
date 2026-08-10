@@ -37,8 +37,6 @@ import { IIssueFormService, IssueReporterData, IssueReporterLayout, issueReporte
 import { IssueReporter } from './issueReporterService.js';
 import { IssueReporterController } from './issueReporterController.js';
 import { localize } from '../../../../nls.js';
-import { logSettingExperimentTrigger } from '../../../../platform/telemetry/common/experimentTrigger.js';
-import { ITelemetryService } from '../../../../platform/telemetry/common/telemetry.js';
 import { generateUuid } from '../../../../base/common/uuid.js';
 import { CodeWindow } from '../../../../base/browser/window.js';
 import { IRectangle } from '../../../../platform/window/common/window.js';
@@ -115,7 +113,6 @@ export class NativeIssueFormService extends IssueFormService implements IIssueFo
 		@IWorkbenchGitHubService gitHubService: IWorkbenchGitHubService,
 		@ILifecycleService lifecycleService: ILifecycleService,
 		@IKeybindingService private readonly keybindingService: IKeybindingService,
-		@ITelemetryService private readonly telemetryService: ITelemetryService,
 		@IScreenshotToolService private readonly screenshotToolService: IScreenshotToolService,
 	) {
 		super(instantiationService, auxiliaryWindowService, menuService, contextKeyService, logService, dialogService, hostService, openerService, fileService, githubUploadService, editorService, clipboardService, gitHubService);
@@ -300,9 +297,8 @@ export class NativeIssueFormService extends IssueFormService implements IIssueFo
 		}
 	}
 
-	/** Reads the layout of a new report, after logging the trigger of the experiment that sets it. */
+	/** Reads the layout of a new report. */
 	private getReporterLayout(): IssueReporterLayout {
-		logSettingExperimentTrigger(this.telemetryService, issueReporterLayoutSettingId);
 		return this.configurationService.getValue<string>(issueReporterLayoutSettingId) === 'simple' ? 'simple' : 'detailed';
 	}
 

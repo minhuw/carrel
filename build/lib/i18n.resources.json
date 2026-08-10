@@ -251,10 +251,6 @@
 			"project": "vscode-workbench"
 		},
 		{
-			"name": "vs/workbench/contrib/update",
-			"project": "vscode-workbench"
-		},
-		{
 			"name": "vs/workbench/contrib/url",
 			"project": "vscode-workbench"
 		},
@@ -580,10 +576,6 @@
 		},
 		{
 			"name": "vs/workbench/contrib/list",
-			"project": "vscode-workbench"
-		},
-		{
-			"name": "vs/workbench/contrib/browserView",
 			"project": "vscode-workbench"
 		},
 		{

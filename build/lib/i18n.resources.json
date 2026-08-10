@@ -67,10 +67,6 @@
 			"project": "vscode-workbench"
 		},
 		{
-			"name": "vs/workbench/contrib/debug",
-			"project": "vscode-workbench"
-		},
-		{
 			"name": "vs/workbench/contrib/dialogs",
 			"project": "vscode-workbench"
 		},

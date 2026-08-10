@@ -22,7 +22,7 @@ import { IConfigurationService } from '../../../../platform/configuration/common
 import { ContextKeyExpr, IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
 import { SyncDescriptor } from '../../../../platform/instantiation/common/descriptors.js';
 import { IInstantiationService, ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
-import { KeybindingsRegistry, KeybindingWeight } from '../../../../platform/keybinding/common/keybindingsRegistry.js';
+import { KeybindingWeight } from '../../../../platform/keybinding/common/keybindingsRegistry.js';
 import { Registry } from '../../../../platform/registry/common/platform.js';
 import { EditorPaneDescriptor, IEditorPaneRegistry } from '../../../browser/editor.js';
 import { IWorkbenchContribution, registerWorkbenchContribution2, WorkbenchPhase } from '../../../common/contributions.js';
@@ -31,12 +31,9 @@ import { EditorInput } from '../../../common/editor/editorInput.js';
 import { IEditorResolverService, RegisteredEditorPriority } from '../../../services/editor/common/editorResolverService.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
 import { IExtensionService } from '../../../services/extensions/common/extensions.js';
-import { IViewsService } from '../../../services/views/common/viewsService.js';
 import { IWorkingCopyIdentifier } from '../../../services/workingCopy/common/workingCopy.js';
 import { IWorkingCopyEditorHandler, IWorkingCopyEditorService } from '../../../services/workingCopy/common/workingCopyEditorService.js';
 import { ResourceNotebookCellEdit } from '../../bulkEdit/browser/bulkCellEdits.js';
-import { getReplView } from '../../debug/browser/repl.js';
-import { REPL_VIEW_ID } from '../../debug/common/debug.js';
 import { IInteractiveHistoryService } from '../../interactive/browser/interactiveHistoryService.js';
 import { NOTEBOOK_EDITOR_WIDGET_ACTION_WEIGHT } from '../../notebook/browser/controller/coreActions.js';
 import { INotebookEditorOptions } from '../../notebook/browser/notebookBrowser.js';
@@ -479,13 +476,3 @@ async function executeReplInput(
 
 AccessibleViewRegistry.register(new ReplEditorAccessibleView());
 
-KeybindingsRegistry.registerCommandAndKeybindingRule({
-	id: 'list.find.replInputFocus',
-	weight: KeybindingWeight.WorkbenchContrib + 1,
-	when: ContextKeyExpr.equals('view', REPL_VIEW_ID),
-	primary: KeyMod.CtrlCmd | KeyMod.Alt | KeyCode.KeyF,
-	secondary: [KeyCode.F3],
-	handler: (accessor) => {
-		getReplView(accessor.get(IViewsService))?.openFind();
-	}
-});

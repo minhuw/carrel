@@ -21,12 +21,6 @@ export interface ICommand {
 	category?: string | ILocalizedString;
 }
 
-export interface IDebugger {
-	label?: string;
-	type: string;
-	runtime?: string;
-}
-
 export interface IGrammar {
 	language?: string;
 }
@@ -155,11 +149,6 @@ export interface INotebookRendererContribution {
 	readonly mimeTypes: string[];
 }
 
-export interface IDebugVisualizationContribution {
-	readonly id: string;
-	readonly when: string;
-}
-
 export interface ITranslation {
 	id: string;
 	path: string;
@@ -209,7 +198,6 @@ export interface IExtensionContributions {
 	commands?: ICommand[];
 	configuration?: any;
 	configurationDefaults?: any;
-	debuggers?: IDebugger[];
 	grammars?: IGrammar[];
 	jsonValidation?: IJSONValidation[];
 	jsonValidationRegistry?: IJSONValidationRegistry[];
@@ -231,7 +219,6 @@ export interface IExtensionContributions {
 	startEntries?: IStartEntry[];
 	readonly notebooks?: INotebookEntry[];
 	readonly notebookRenderer?: INotebookRendererContribution[];
-	readonly debugVisualizers?: IDebugVisualizationContribution[];
 	readonly chatParticipants?: ReadonlyArray<IChatParticipantContribution>;
 	readonly chatPromptFiles?: ReadonlyArray<IChatFileContribution>;
 	readonly chatInstructions?: ReadonlyArray<IChatFileContribution>;

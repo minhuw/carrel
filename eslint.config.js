@@ -707,6 +707,8 @@ export default defineConfig(
 			'src/vs/workbench/contrib/preferences/browser/settingsTree.ts',
 			'src/vs/workbench/contrib/preferences/browser/settingsTreeModels.ts',
 			'src/vs/workbench/contrib/remote/browser/tunnelView.ts',
+			'src/vs/workbench/contrib/search/browser/AISearch/aiSearchModel.ts',
+			'src/vs/workbench/contrib/search/browser/AISearch/aiSearchModelBase.ts',
 			'src/vs/workbench/contrib/search/browser/notebookSearch/notebookSearchModel.ts',
 			'src/vs/workbench/contrib/search/browser/notebookSearch/notebookSearchModelBase.ts',
 			'src/vs/workbench/contrib/search/browser/notebookSearch/searchNotebookHelpers.ts',
@@ -2453,6 +2455,8 @@ export default defineConfig(
 		files: [
 			'extensions/markdown-language-features/src/**/*.ts',
 			'extensions/markdown-language-features/preview-src/**/*.ts',
+			'extensions/mermaid-markdown-features/preview-src/chat/**/*.ts',
+			'extensions/mermaid-markdown-features/src/**/*.ts',
 			'extensions/media-preview/src/**/*.ts',
 			'extensions/simple-browser/**/*.ts',
 			'extensions/typescript-language-features/**/*.ts',
@@ -2473,6 +2477,8 @@ export default defineConfig(
 					'extensions/simple-browser/preview-src/tsconfig.json',
 
 					// Mermaid markdown features
+					'extensions/mermaid-markdown-features/tsconfig.json',
+					'extensions/mermaid-markdown-features/preview-src/chat/tsconfig.json',
 
 					// TypeScript
 					'extensions/typescript-language-features/tsconfig.json',

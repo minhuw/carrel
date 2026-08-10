@@ -24,8 +24,6 @@ const MACHO_X86_64_CPU_TYPE = new Set([
 // Files to skip during architecture validation
 const FILES_TO_SKIP = [
 	// MSAL runtime files are only present in ARM64 builds
-	'**/extensions/microsoft-authentication/dist/libmsalruntime.dylib',
-	'**/extensions/microsoft-authentication/dist/msal-node-runtime.node',
 	// ripgrep-universal: single-arch binaries in per-platform directories
 	'**/node_modules/@vscode/ripgrep-universal/bin/darwin-*/**',
 	'**/node_modules.asar.unpacked/@vscode/ripgrep-universal/bin/darwin-*/**',

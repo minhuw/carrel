@@ -16,7 +16,7 @@ import { observableReducerSettable } from '../../../../../base/common/observable
 import { isDefined } from '../../../../../base/common/types.js';
 import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
 import { IContextKeyService } from '../../../../../platform/contextkey/common/contextkey.js';
-import { DataChannelForwardingTelemetryService } from '../../../../../platform/dataChannel/browser/forwardingTelemetryService.js';
+import { ITelemetryService } from '../../../../../platform/telemetry/common/telemetry.js';
 import { IInstantiationService } from '../../../../../platform/instantiation/common/instantiation.js';
 import { ILogService } from '../../../../../platform/log/common/log.js';
 import { observableConfigValue } from '../../../../../platform/observable/common/platformObservableUtils.js';
@@ -518,8 +518,7 @@ export class InlineCompletionsSource extends Disposable {
 			editKind: undefined,
 		};
 
-		const dataChannel = this._instantiationService.createInstance(DataChannelForwardingTelemetryService);
-		sendInlineCompletionsEndOfLifeTelemetry(dataChannel, emptyEndOfLifeEvent);
+		sendInlineCompletionsEndOfLifeTelemetry(this._instantiationService.invokeFunction(accessor => accessor.get(ITelemetryService)), emptyEndOfLifeEvent);
 	}
 
 	public clearSuggestWidgetInlineCompletions(tx: ITransaction): void {

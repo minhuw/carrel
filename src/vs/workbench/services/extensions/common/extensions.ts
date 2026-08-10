@@ -9,7 +9,7 @@ import { raceTimeout } from '../../../../base/common/async.js';
 import Severity from '../../../../base/common/severity.js';
 import { URI } from '../../../../base/common/uri.js';
 import { IMessagePassingProtocol } from '../../../../base/parts/ipc/common/ipc.js';
-import { IAssignmentService } from '../../../../platform/assignment/common/assignment.js';
+import { IWorkbenchAssignmentService } from '../../assignment/common/assignmentService.js';
 import { getExtensionId, getGalleryExtensionId } from '../../../../platform/extensionManagement/common/extensionManagementUtil.js';
 import { ImplicitActivationEvents } from '../../../../platform/extensionManagement/common/implicitActivationEvents.js';
 import { ExtensionIdentifier, ExtensionIdentifierMap, ExtensionIdentifierSet, ExtensionType, IExtension, IExtensionContributions, IExtensionDescription, TargetPlatform } from '../../../../platform/extensions/common/extensions.js';
@@ -404,7 +404,7 @@ export const enabledApiProposalsFallbackNone = 'none';
  * Resolves the value of the {@link enabledApiProposalsFallbackExperimentName}-experiment, or
  * `undefined` when it does not apply (non-`stable` quality) or cannot be read in time.
  */
-export async function resolveEnabledApiProposalsFallbackExperiment(assignmentService: IAssignmentService, quality: string | undefined): Promise<string | undefined> {
+export async function resolveEnabledApiProposalsFallbackExperiment(assignmentService: IWorkbenchAssignmentService, quality: string | undefined): Promise<string | undefined> {
 	if (quality !== 'stable') {
 		return undefined;
 	}

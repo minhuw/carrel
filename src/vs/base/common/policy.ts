@@ -47,7 +47,6 @@ export type IManagedSettingsPolicyDefinitions = Readonly<Record<string, IManaged
 
 export enum PolicyCategory {
 	Extensions = 'Extensions',
-	Update = 'Update',
 }
 
 export const PolicyCategoryData: {
@@ -56,11 +55,6 @@ export const PolicyCategoryData: {
 	[PolicyCategory.Extensions]: {
 		name: {
 			key: 'extensionsConfigurationTitle', value: localize('extensionsConfigurationTitle', "Extensions"),
-		}
-	},
-	[PolicyCategory.Update]: {
-		name: {
-			key: 'updateConfigurationTitle', value: localize('updateConfigurationTitle', "Update"),
 		}
 	}
 };

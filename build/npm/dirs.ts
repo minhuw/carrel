@@ -39,8 +39,6 @@ export const workspaceMembers = [
 	'extensions/markdown-language-features/test-workspace/checkbox-count-extension',
 	'extensions/markdown-math',
 	'extensions/merge-conflict',
-	'extensions/mermaid-markdown-features',
-	'extensions/microsoft-authentication',
 	'extensions/npm',
 	'extensions/php-language-features',
 	'extensions/references-view',

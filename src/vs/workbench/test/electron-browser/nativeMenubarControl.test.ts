@@ -18,7 +18,6 @@ import { USLayoutResolvedKeybinding } from '../../../platform/keybinding/common/
 import { IMenubarData } from '../../../platform/menubar/common/menubar.js';
 import { IMenubarService } from '../../../platform/menubar/electron-browser/menubar.js';
 import { INativeHostService } from '../../../platform/native/common/native.js';
-import { IUpdateService, State } from '../../../platform/update/common/update.js';
 import { NativeMenubarControl } from '../../electron-browser/parts/titlebar/menubarControl.js';
 import { IPreferencesService } from '../../services/preferences/common/preferences.js';
 import { TestMenuService, workbenchInstantiationService } from '../browser/workbenchTestServices.js';
@@ -52,10 +51,6 @@ suite('NativeMenubarControl', () => {
 			const instantiationService = workbenchInstantiationService(undefined, store);
 			instantiationService.stub(INativeHostService, new TestNativeHostService());
 			instantiationService.stub(IMenuService, new EmptyMenubarMenuService());
-			instantiationService.stub(IUpdateService, new class extends mock<IUpdateService>() {
-				override readonly onStateChange = Event.None;
-				override readonly state = State.Uninitialized;
-			});
 			instantiationService.stub(IPreferencesService, new class extends mock<IPreferencesService>() { });
 			instantiationService.stub(ICommandService, new class extends mock<ICommandService>() { });
 			instantiationService.stub(IKeybindingService, 'lookupKeybinding', (id: string) => id === commandId ? binding : shortcut);

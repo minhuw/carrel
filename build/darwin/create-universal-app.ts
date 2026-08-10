@@ -29,8 +29,6 @@ export const singleArchFiles = `{${[
 
 const x64ArchFiles = `{${[
 	'*/kerberos.node',
-	'**/extensions/microsoft-authentication/dist/libmsalruntime.dylib',
-	'**/extensions/microsoft-authentication/dist/msal-node-runtime.node',
 	'**/node_modules/@vscode/ripgrep-universal/bin/darwin-*/*',
 	'**/node_modules.asar.unpacked/@vscode/ripgrep-universal/bin/darwin-*/*',
 	'**/node_modules/@vscode/os-proxy-resolver-darwin-*/**',

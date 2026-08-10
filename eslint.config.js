@@ -519,8 +519,6 @@ export default [
 			'src/vs/platform/telemetry/node/errorTelemetry.ts',
 			'src/vs/platform/theme/common/iconRegistry.ts',
 			'src/vs/platform/theme/common/tokenClassificationRegistry.ts',
-			'src/vs/platform/update/common/updateIpc.ts',
-			'src/vs/platform/update/electron-main/updateService.snap.ts',
 			'src/vs/platform/url/common/urlIpc.ts',
 			'src/vs/platform/userDataProfile/common/userDataProfileIpc.ts',
 			'src/vs/platform/userDataProfile/electron-main/userDataProfileStorageIpc.ts',
@@ -2500,7 +2498,6 @@ export default [
 		files: [
 			'extensions/markdown-language-features/src/**/*.ts',
 			'extensions/markdown-language-features/preview-src/**/*.ts',
-			'extensions/mermaid-markdown-features/src/**/*.ts',
 			'extensions/simple-browser/**/*.ts',
 			'extensions/typescript-language-features/**/*.ts',
 		],
@@ -2515,10 +2512,6 @@ export default [
 					// Simple browser
 					'extensions/simple-browser/tsconfig.json',
 					'extensions/simple-browser/preview-src/tsconfig.json',
-
-					// Mermaid markdown features
-					'extensions/mermaid-markdown-features/tsconfig.json',
-					'extensions/mermaid-markdown-features/preview-src/chat/tsconfig.json',
 
 					// TypeScript
 					'extensions/typescript-language-features/tsconfig.json',

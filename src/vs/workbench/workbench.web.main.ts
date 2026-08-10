@@ -45,7 +45,6 @@ import './services/extensionManagement/browser/webExtensionsScannerService.js';
 import './services/extensionManagement/common/extensionManagementServerService.js';
 import './services/extensionManagement/browser/extensionGalleryManifestService.js';
 import './services/url/browser/urlService.js';
-import './services/update/browser/updateService.js';
 import './services/workspaces/browser/workspacesService.js';
 import './services/workspaces/browser/workspaceEditingService.js';
 import './services/dialogs/browser/fileDialogService.js';
@@ -108,8 +107,8 @@ registerSingleton(IUserDataSyncResourceProviderService, UserDataSyncResourceProv
 registerSingleton(IUserDataAutoSyncService, UserDataAutoSyncService, InstantiationType.Eager /* Eager to start auto sync */);
 registerSingleton(ITitleService, BrowserTitleService, InstantiationType.Eager);
 registerSingleton(IExtensionTipsService, ExtensionTipsService, InstantiationType.Delayed);
-registerSingleton(ITelemetryService, NullTelemetryServiceShape, InstantiationType.Delayed);
 registerSingleton(ITimerService, TimerService, InstantiationType.Delayed);
+registerSingleton(ITelemetryService, NullTelemetryServiceShape, InstantiationType.Delayed);
 registerSingleton(ICustomEndpointTelemetryService, NullEndpointTelemetryService, InstantiationType.Delayed);
 registerSingleton(IDiagnosticsService, NullDiagnosticsService, InstantiationType.Delayed);
 registerSingleton(ILanguagePackService, WebLanguagePacksService, InstantiationType.Delayed);
@@ -165,8 +164,5 @@ import './contrib/remote/browser/remoteStartEntry.contribution.js';
 
 // Process Explorer
 import './contrib/processExplorer/browser/processExplorer.web.contribution.js';
-
-// Browser View
-import './contrib/browserView/browser/browserView.contribution.js';
 
 //#endregion

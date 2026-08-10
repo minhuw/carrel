@@ -36,15 +36,11 @@ import { searchReplaceAllIcon, searchHideReplaceIcon, searchShowContextIcon, sea
 import { ToggleSearchEditorContextLinesCommandId } from '../../searchEditor/browser/constants.js';
 import { showHistoryKeybindingHint } from '../../../../platform/history/browser/historyWidgetKeybindingHint.js';
 import { defaultInputBoxStyles, defaultToggleStyles } from '../../../../platform/theme/browser/defaultStyles.js';
-import { NotebookFindFilters } from '../../notebook/browser/contrib/find/findFilters.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
-import { IEditorService } from '../../../services/editor/common/editorService.js';
-import { NotebookEditorInput } from '../../notebook/common/notebookEditorInput.js';
-import { GroupModelChangeKind } from '../../../common/editor.js';
+
 import { SearchFindInput } from './searchFindInput.js';
 import { getDefaultHoverDelegate } from '../../../../base/browser/ui/hover/hoverDelegateFactory.js';
 import { IDisposable, MutableDisposable } from '../../../../base/common/lifecycle.js';
-import { NotebookFindScopeType } from '../../notebook/common/notebookCommon.js';
 
 /** Specified in searchview.css */
 const SingleLineInputHeight = 26;
@@ -62,14 +58,6 @@ export interface ISearchWidgetOptions {
 	showContextToggle?: boolean;
 	inputBoxStyles: IInputBoxStyles;
 	toggleStyles: IToggleStyles;
-	notebookOptions?: NotebookToggleState;
-}
-
-interface NotebookToggleState {
-	isInNotebookMarkdownInput: boolean;
-	isInNotebookMarkdownPreview: boolean;
-	isInNotebookCellInput: boolean;
-	isInNotebookCellOutput: boolean;
 }
 
 class ReplaceAllAction extends Action {
@@ -179,7 +167,6 @@ export class SearchWidget extends Widget {
 	private showContextToggle!: Toggle;
 	public contextLinesInput!: InputBox;
 
-	private _notebookFilters: NotebookFindFilters;
 	private readonly _toggleReplaceButtonListener: MutableDisposable<IDisposable>;
 
 	constructor(
@@ -193,42 +180,12 @@ export class SearchWidget extends Widget {
 		@IAccessibilityService private readonly accessibilityService: IAccessibilityService,
 		@IContextMenuService private readonly contextMenuService: IContextMenuService,
 		@IInstantiationService private readonly instantiationService: IInstantiationService,
-		@IEditorService private readonly editorService: IEditorService,
+
 	) {
 		super();
 		this.replaceActive = Constants.SearchContext.ReplaceActiveKey.bindTo(this.contextKeyService);
 		this.searchInputBoxFocused = Constants.SearchContext.SearchInputBoxFocusedKey.bindTo(this.contextKeyService);
 		this.replaceInputBoxFocused = Constants.SearchContext.ReplaceInputBoxFocusedKey.bindTo(this.contextKeyService);
-
-		const notebookOptions = options.notebookOptions ??
-		{
-			isInNotebookMarkdownInput: true,
-			isInNotebookMarkdownPreview: true,
-			isInNotebookCellInput: true,
-			isInNotebookCellOutput: true
-		};
-		this._notebookFilters = this._register(
-			new NotebookFindFilters(
-				notebookOptions.isInNotebookMarkdownInput,
-				notebookOptions.isInNotebookMarkdownPreview,
-				notebookOptions.isInNotebookCellInput,
-				notebookOptions.isInNotebookCellOutput,
-				{ findScopeType: NotebookFindScopeType.None }
-			));
-
-		this._register(
-			this._notebookFilters.onDidChange(() => {
-				if (this.searchInput) {
-					this.searchInput.updateFilterStyles();
-				}
-			}));
-		this._register(this.editorService.onDidEditorsChange((e) => {
-			if (this.searchInput &&
-				e.event.editor instanceof NotebookEditorInput &&
-				(e.event.kind === GroupModelChangeKind.EDITOR_OPEN || e.event.kind === GroupModelChangeKind.EDITOR_CLOSE)) {
-				this.searchInput.filterVisible = this._hasNotebookOpen();
-			}
-		}));
 
 		this._replaceHistoryDelayer = new Delayer<void>(500);
 		this._toggleReplaceButtonListener = this._register(new MutableDisposable<IDisposable>());
@@ -243,15 +200,6 @@ export class SearchWidget extends Widget {
 
 		this._register(this.accessibilityService.onDidChangeScreenReaderOptimized(() => this.updateAccessibilitySupport()));
 		this.updateAccessibilitySupport();
-	}
-
-	private _hasNotebookOpen(): boolean {
-		const editors = this.editorService.editors;
-		return editors.some(editor => editor instanceof NotebookEditorInput);
-	}
-
-	getNotebookFilters() {
-		return this._notebookFilters;
 	}
 
 	focus(select: boolean = true, focusReplace: boolean = false, suppressGlobalSearchBuffer = false): void {
@@ -467,8 +415,6 @@ export class SearchWidget extends Widget {
 				this.contextKeyService,
 				this.contextMenuService,
 				this.instantiationService,
-				this._notebookFilters,
-				this._hasNotebookOpen()
 			)
 		);
 

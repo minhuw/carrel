@@ -14,7 +14,6 @@ import { EditorInput } from '../../../common/editor/editorInput.js';
 import { CustomEditorInput } from './customEditorInput.js';
 import { CustomEditorDiffInput, CustomEditorSideBySideDiffInput, CustomEditorSideBySideDiffSide } from './customEditorDiffInput.js';
 import { ICustomEditorService } from '../common/customEditor.js';
-import { NotebookEditorInput } from '../../notebook/common/notebookEditorInput.js';
 import { IWebviewService, WebviewContentOptions, WebviewContentPurpose, WebviewExtensionDescription, WebviewOptions } from '../../webview/browser/webview.js';
 import { DeserializedWebview, restoreWebviewContentOptions, restoreWebviewOptions, reviveWebviewExtensionDescription, reviveWebviewIconPath, SerializedWebview, SerializedWebviewOptions, WebviewEditorInputSerializer } from '../../webviewPanel/browser/webviewEditorInputSerializer.js';
 import { IWebviewWorkbenchService } from '../../webviewPanel/browser/webviewWorkbenchService.js';
@@ -253,16 +252,6 @@ export class ComplexCustomWorkingCopyEditorHandler extends Disposable implements
 	isOpen(workingCopy: IWorkingCopyIdentifier, editor: EditorInput): boolean {
 		if (!this.handles(workingCopy)) {
 			return false;
-		}
-
-		if (workingCopy.resource.authority === 'jupyter-notebook-ipynb' && editor instanceof NotebookEditorInput) {
-			try {
-				const data = JSON.parse(workingCopy.resource.query);
-				const workingCopyResource = URI.from(data);
-				return isEqual(workingCopyResource, editor.resource);
-			} catch {
-				return false;
-			}
 		}
 
 		if (!(editor instanceof CustomEditorInput)) {

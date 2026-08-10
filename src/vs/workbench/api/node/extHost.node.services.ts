@@ -6,11 +6,9 @@
 import { InstantiationType, registerSingleton } from '../../../platform/instantiation/common/extensions.js';
 import { ExtHostTerminalService } from './extHostTerminalService.js';
 import { ExtHostTask } from './extHostTask.js';
-import { ExtHostDebugService } from './extHostDebugService.js';
 import { NativeExtHostSearch } from './extHostSearch.js';
 import { ExtHostExtensionService } from './extHostExtensionService.js';
 import { NodeExtHostTunnelService } from './extHostTunnelService.js';
-import { IExtHostDebugService } from '../common/extHostDebugService.js';
 import { IExtHostExtensionService } from '../common/extHostExtensionService.js';
 import { IExtHostSearch } from '../common/extHostSearch.js';
 import { IExtHostTask } from '../common/extHostTask.js';
@@ -29,8 +27,6 @@ import { SignService } from '../../../platform/sign/node/signService.js';
 import { ExtHostTelemetry, IExtHostTelemetry } from '../common/extHostTelemetry.js';
 import { IExtHostAuthentication } from '../common/extHostAuthentication.js';
 import { NodeExtHostAuthentication } from './extHostAuthentication.js';
-import { IExtHostBrowserTunnelProxy } from '../common/extHostBrowserTunnelProxy.js';
-import { NodeExtHostBrowserTunnelProxy } from './extHostBrowserTunnelProxy.js';
 
 // #########################################################################
 // ###                                                                   ###
@@ -46,10 +42,8 @@ registerSingleton(IExtensionStoragePaths, ExtensionStoragePaths, InstantiationTy
 registerSingleton(IExtHostTelemetry, new SyncDescriptor(ExtHostTelemetry, [false], true));
 
 registerSingleton(IExtHostAuthentication, NodeExtHostAuthentication, InstantiationType.Eager);
-registerSingleton(IExtHostDebugService, ExtHostDebugService, InstantiationType.Eager);
 registerSingleton(IExtHostSearch, NativeExtHostSearch, InstantiationType.Eager);
 registerSingleton(IExtHostTask, ExtHostTask, InstantiationType.Eager);
 registerSingleton(IExtHostTerminalService, ExtHostTerminalService, InstantiationType.Eager);
 registerSingleton(IExtHostTunnelService, NodeExtHostTunnelService, InstantiationType.Eager);
 registerSingleton(IExtHostVariableResolverProvider, NodeExtHostVariableResolverProviderService, InstantiationType.Eager);
-registerSingleton(IExtHostBrowserTunnelProxy, NodeExtHostBrowserTunnelProxy, InstantiationType.Eager);

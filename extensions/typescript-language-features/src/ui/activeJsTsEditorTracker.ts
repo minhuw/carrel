@@ -81,25 +81,6 @@ export class ActiveJsTsEditorTracker extends Disposable {
 			});
 		}
 
-		// Notebook editor. Find editor for notebook cell.
-		if (tab.input instanceof vscode.TabInputNotebook) {
-			const activeEditor = vscode.window.activeTextEditor;
-			if (!activeEditor) {
-				return [];
-			}
-
-			// Notebooks cell editors have undefined view columns.
-			if (activeEditor.viewColumn !== undefined) {
-				return [];
-			}
-
-			const notebook = vscode.window.visibleNotebookEditors.find(editor =>
-				editor.notebook.uri.toString() === (tab.input as vscode.TabInputNotebook).uri.toString()
-				&& editor.viewColumn === tab.group.viewColumn);
-
-			return notebook?.notebook.getCells().some(cell => cell.document.uri.toString() === activeEditor.document.uri.toString()) ? [activeEditor] : [];
-		}
-
 		return [];
 	}
 

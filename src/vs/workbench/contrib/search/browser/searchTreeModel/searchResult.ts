@@ -4,14 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Event, PauseableEmitter } from '../../../../../base/common/event.js';
-import { Disposable, MutableDisposable } from '../../../../../base/common/lifecycle.js';
-import { URI } from '../../../../../base/common/uri.js';
+import { Disposable } from '../../../../../base/common/lifecycle.js';
 import { ITextModel } from '../../../../../editor/common/model.js';
 import { IModelService } from '../../../../../editor/common/services/model.js';
 import { IInstantiationService } from '../../../../../platform/instantiation/common/instantiation.js';
 import { IProgress, IProgressStep } from '../../../../../platform/progress/common/progress.js';
-import { NotebookEditorWidget } from '../../../notebook/browser/notebookEditorWidget.js';
-import { INotebookEditorService } from '../../../notebook/browser/services/notebookEditorService.js';
 import { IFileMatch, ISearchComplete, ITextQuery } from '../../../../services/search/common/search.js';
 import { arrayContainsElementOrParent, IChangeEvent, ISearchTreeFileMatch, ISearchTreeFolderMatch, IPlainTextSearchHeading, ISearchModel, ISearchResult, isSearchTreeFileMatch, isSearchTreeFolderMatch, isSearchTreeFolderMatchNoRoot, isSearchTreeFolderMatchWithResource, isSearchTreeMatch, isTextSearchHeading, ITextSearchHeading, mergeSearchResultEvents, RenderableMatch, SEARCH_RESULT_PREFIX } from './searchTreeCommon.js';
 import { RangeHighlightDecorations } from './rangeDecorations.js';
@@ -23,8 +20,6 @@ export class SearchResultImpl extends Disposable implements ISearchResult {
 		merge: mergeSearchResultEvents
 	}));
 	readonly onChange: Event<IChangeEvent> = this._onChange.event;
-	private readonly _onWillChangeModelListener = this._register(new MutableDisposable());
-	private readonly _onDidChangeModelListener = this._register(new MutableDisposable());
 	private _plainTextSearchResult: PlainTextSearchHeadingImpl;
 
 	private readonly _id: string;
@@ -32,7 +27,6 @@ export class SearchResultImpl extends Disposable implements ISearchResult {
 		public readonly searchModel: ISearchModel,
 		@IInstantiationService private readonly instantiationService: IInstantiationService,
 		@IModelService private readonly modelService: IModelService,
-		@INotebookEditorService private readonly notebookEditorService: INotebookEditorService,
 	) {
 		super();
 		this._plainTextSearchResult = this._register(this.instantiationService.createInstance(PlainTextSearchHeadingImpl, this));
@@ -40,12 +34,6 @@ export class SearchResultImpl extends Disposable implements ISearchResult {
 
 		this.modelService.getModels().forEach(model => this.onModelAdded(model));
 		this._register(this.modelService.onModelAdded(model => this.onModelAdded(model)));
-
-		this._register(this.notebookEditorService.onDidAddNotebookEditor(widget => {
-			if (widget instanceof NotebookEditorWidget) {
-				this.onDidAddNotebookEditorWidget(<NotebookEditorWidget>widget);
-			}
-		}));
 
 		this._id = SEARCH_RESULT_PREFIX + Date.now().toString();
 	}
@@ -132,26 +120,6 @@ export class SearchResultImpl extends Disposable implements ISearchResult {
 		this._plainTextSearchResult.query = query;
 	}
 
-	private onDidAddNotebookEditorWidget(widget: NotebookEditorWidget): void {
-
-		this._onWillChangeModelListener.value = widget.onWillChangeModel(
-			(model) => {
-				if (model) {
-					this.onNotebookEditorWidgetRemoved(widget, model?.uri);
-				}
-			}
-		);
-
-		// listen to view model change as we are searching on both inputs and outputs
-		this._onDidChangeModelListener.value = widget.onDidAttachViewModel(
-			() => {
-				if (widget.hasModel()) {
-					this.onNotebookEditorWidgetAdded(widget, widget.textModel.uri);
-				}
-			}
-		);
-	}
-
 	folderMatches(): ISearchTreeFolderMatch[] {
 		return this._plainTextSearchResult.folderMatches();
 	}
@@ -159,16 +127,6 @@ export class SearchResultImpl extends Disposable implements ISearchResult {
 	private onModelAdded(model: ITextModel): void {
 		const folderMatch = this._plainTextSearchResult.findFolderSubstr(model.uri);
 		folderMatch?.bindModel(model);
-	}
-
-	private async onNotebookEditorWidgetAdded(editor: NotebookEditorWidget, resource: URI): Promise<void> {
-		const folderMatch = this._plainTextSearchResult.findFolderSubstr(resource);
-		await folderMatch?.bindNotebookEditorWidget(editor, resource);
-	}
-
-	private onNotebookEditorWidgetRemoved(editor: NotebookEditorWidget, resource: URI): void {
-		const folderMatch = this._plainTextSearchResult.findFolderSubstr(resource);
-		folderMatch?.unbindNotebookEditorWidget(editor, resource);
 	}
 
 	add(allRaw: IFileMatch[], searchInstanceID: string, silent: boolean = false): void {

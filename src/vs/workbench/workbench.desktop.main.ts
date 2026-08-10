@@ -38,7 +38,6 @@ import './services/textfile/electron-browser/nativeTextFileService.js';
 import './services/dialogs/electron-browser/fileDialogService.js';
 import './services/workspaces/electron-browser/workspacesService.js';
 import './services/menubar/electron-browser/menubarService.js';
-import './services/update/electron-browser/updateService.js';
 import './services/url/electron-browser/urlService.js';
 import './services/lifecycle/electron-browser/lifecycleService.js';
 import './services/title/electron-browser/titleService.js';
@@ -94,16 +93,16 @@ import { IUserDataInitializationService, UserDataInitializationService } from '.
 import { SyncDescriptor } from '../platform/instantiation/common/descriptors.js';
 import { IDownloadService } from '../platform/download/common/download.js';
 import { DownloadServiceChannelClient } from '../platform/download/common/downloadIpc.js';
+import { registerSharedProcessRemoteService } from '../platform/ipc/electron-browser/services.js';
 import { ICustomEndpointTelemetryService, ITelemetryService } from '../platform/telemetry/common/telemetry.js';
 import { NullEndpointTelemetryService, NullTelemetryServiceShape } from '../platform/telemetry/common/telemetryUtils.js';
-import { registerSharedProcessRemoteService } from '../platform/ipc/electron-browser/services.js';
 
 // Override the common download service after its module has initialized.
 registerSharedProcessRemoteService(IDownloadService, 'download', { channelClientCtor: DownloadServiceChannelClient });
 
+registerSingleton(IUserDataInitializationService, new SyncDescriptor(UserDataInitializationService, [[]], true));
 registerSingleton(ITelemetryService, NullTelemetryServiceShape, InstantiationType.Delayed);
 registerSingleton(ICustomEndpointTelemetryService, NullEndpointTelemetryService, InstantiationType.Delayed);
-registerSingleton(IUserDataInitializationService, new SyncDescriptor(UserDataInitializationService, [[]], true));
 
 
 //#endregion
@@ -162,9 +161,6 @@ import './contrib/externalTerminal/electron-browser/externalTerminal.contributio
 
 // Webview
 import './contrib/webview/electron-browser/webview.contribution.js';
-
-// Browser
-import './contrib/browserView/electron-browser/browserView.contribution.js';
 
 // Splash
 import './contrib/splash/electron-browser/splash.contribution.js';

@@ -72,19 +72,7 @@ export class MenuId {
 	private static readonly _instances = new Map<string, MenuId>();
 
 	static readonly CommandPalette = new MenuId('CommandPalette');
-	static readonly DebugBreakpointsContext = new MenuId('DebugBreakpointsContext');
-	static readonly DebugCallStackContext = new MenuId('DebugCallStackContext');
-	static readonly DebugConsoleContext = new MenuId('DebugConsoleContext');
-	static readonly DebugVariablesContext = new MenuId('DebugVariablesContext');
 	static readonly NotebookVariablesContext = new MenuId('NotebookVariablesContext');
-	static readonly DebugHoverContext = new MenuId('DebugHoverContext');
-	static readonly DebugWatchContext = new MenuId('DebugWatchContext');
-	static readonly DebugToolBar = new MenuId('DebugToolBar');
-	static readonly DebugToolBarStop = new MenuId('DebugToolBarStop');
-	static readonly DebugDisassemblyContext = new MenuId('DebugDisassemblyContext');
-	static readonly DebugCallStackToolbar = new MenuId('DebugCallStackToolbar');
-	static readonly DebugCreateConfiguration = new MenuId('DebugCreateConfiguration');
-	static readonly DebugScopesContext = new MenuId('DebugScopesContext');
 	static readonly EditorContext = new MenuId('EditorContext');
 	static readonly SimpleEditorContext = new MenuId('SimpleEditorContext');
 	static readonly EditorContent = new MenuId('EditorContent');
@@ -121,7 +109,6 @@ export class MenuId {
 	static readonly LayoutControlMenu = new MenuId('LayoutControlMenu');
 	static readonly MenubarMainMenu = new MenuId('MenubarMainMenu');
 	static readonly MenubarAppearanceMenu = new MenuId('MenubarAppearanceMenu');
-	static readonly MenubarDebugMenu = new MenuId('MenubarDebugMenu');
 	static readonly MenubarEditMenu = new MenuId('MenubarEditMenu');
 	static readonly MenubarCopy = new MenuId('MenubarCopy');
 	static readonly MenubarFileMenu = new MenuId('MenubarFileMenu');

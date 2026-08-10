@@ -55,7 +55,6 @@ import { WorkspaceTrustRequestOptions } from '../../../platform/workspace/common
 import { SaveReason } from '../../common/editor.js';
 import { IRevealOptions, ITreeItem, IViewBadge } from '../../common/views.js';
 import { CallHierarchyItem } from '../../contrib/callHierarchy/common/callHierarchy.js';
-import { DebugConfigurationProviderTriggerKind, IAdapterDescriptor, IConfig, IDebugSessionReplMode, IDebugTestRunReference, IDebugVisualization, IDebugVisualizationContext, IDebugVisualizationTreeItem, MainThreadDebugVisualization } from '../../contrib/debug/common/debug.js';
 import * as notebookCommon from '../../contrib/notebook/common/notebookCommon.js';
 import { CellExecutionUpdateType } from '../../contrib/notebook/common/notebookExecutionService.js';
 import { ICellExecutionComplete, ICellExecutionStateUpdate } from '../../contrib/notebook/common/notebookExecutionStateService.js';
@@ -1722,52 +1721,6 @@ export interface MainThreadDocumentDiffShape extends IDisposable {
 	$computeDocumentDiff(originalUri: UriComponents, modifiedUri: UriComponents, ignoreTrimWhitespace: boolean, maxComputationTimeMs: number, computeMoves: boolean): Promise<IDocumentDiffResultDto | null>;
 }
 
-export type DebugSessionUUID = string;
-
-export interface IDebugConfiguration {
-	type: string;
-	name: string;
-	request: string;
-	[key: string]: any;
-}
-
-export interface IStartDebuggingOptions {
-	parentSessionID?: DebugSessionUUID;
-	lifecycleManagedByParent?: boolean;
-	repl?: IDebugSessionReplMode;
-	noDebug?: boolean;
-	compact?: boolean;
-	suppressDebugToolbar?: boolean;
-	suppressDebugStatusbar?: boolean;
-	suppressDebugView?: boolean;
-	suppressSaveBeforeStart?: boolean;
-	testRun?: IDebugTestRunReference;
-}
-
-export interface MainThreadDebugServiceShape extends IDisposable {
-	$registerDebugTypes(debugTypes: string[]): void;
-	$sessionCached(sessionID: string): void;
-	$acceptDAMessage(handle: number, message: DebugProtocol.ProtocolMessage): void;
-	$acceptDAError(handle: number, name: string, message: string, stack: string | undefined): void;
-	$acceptDAExit(handle: number, code: number | undefined, signal: string | undefined): void;
-	$registerDebugConfigurationProvider(type: string, triggerKind: DebugConfigurationProviderTriggerKind, hasProvideMethod: boolean, hasResolveMethod: boolean, hasResolve2Method: boolean, handle: number): Promise<void>;
-	$registerDebugAdapterDescriptorFactory(type: string, handle: number): Promise<void>;
-	$unregisterDebugConfigurationProvider(handle: number): void;
-	$unregisterDebugAdapterDescriptorFactory(handle: number): void;
-	$startDebugging(folder: UriComponents | undefined, nameOrConfig: string | IDebugConfiguration, options: IStartDebuggingOptions): Promise<boolean>;
-	$stopDebugging(sessionId: DebugSessionUUID | undefined): Promise<void>;
-	$setDebugSessionName(id: DebugSessionUUID, name: string): void;
-	$customDebugAdapterRequest(id: DebugSessionUUID, command: string, args: any): Promise<any>;
-	$getDebugProtocolBreakpoint(id: DebugSessionUUID, breakpoinId: string): Promise<DebugProtocol.Breakpoint | undefined>;
-	$appendDebugConsole(value: string): void;
-	$registerBreakpoints(breakpoints: Array<ISourceMultiBreakpointDto | IFunctionBreakpointDto | IDataBreakpointDto>): Promise<void>;
-	$unregisterBreakpoints(breakpointIds: string[], functionBreakpointIds: string[], dataBreakpointIds: string[]): Promise<void>;
-	$registerDebugVisualizer(extensionId: string, id: string): void;
-	$unregisterDebugVisualizer(extensionId: string, id: string): void;
-	$registerDebugVisualizerTree(treeId: string, canEdit: boolean): void;
-	$unregisterDebugVisualizerTree(treeId: string): void;
-}
-
 export interface IOpenUriOptions {
 	readonly allowTunneling?: boolean;
 	readonly allowContributedOpeners?: boolean | string;
@@ -2608,111 +2561,6 @@ export interface ExtHostTaskShape {
 	$findExecutable(command: string, cwd?: string, paths?: string[]): Promise<string | undefined>;
 }
 
-export interface IBreakpointDto {
-	type: string;
-	id?: string;
-	enabled: boolean;
-	condition?: string;
-	hitCondition?: string;
-	logMessage?: string;
-	mode?: string;
-}
-
-export interface IFunctionBreakpointDto extends IBreakpointDto {
-	type: 'function';
-	functionName: string;
-	mode?: string;
-}
-
-export interface IDataBreakpointDto extends IBreakpointDto {
-	type: 'data';
-	dataId: string;
-	canPersist: boolean;
-	label: string;
-	accessTypes?: DebugProtocol.DataBreakpointAccessType[];
-	accessType: DebugProtocol.DataBreakpointAccessType;
-	mode?: string;
-}
-
-export interface ISourceBreakpointDto extends IBreakpointDto {
-	type: 'source';
-	uri: UriComponents;
-	line: number;
-	character: number;
-}
-
-export interface IBreakpointsDeltaDto {
-	added?: Array<ISourceBreakpointDto | IFunctionBreakpointDto | IDataBreakpointDto>;
-	removed?: string[];
-	changed?: Array<ISourceBreakpointDto | IFunctionBreakpointDto | IDataBreakpointDto>;
-}
-
-export interface ISourceMultiBreakpointDto {
-	type: 'sourceMulti';
-	uri: UriComponents;
-	lines: {
-		id: string;
-		enabled: boolean;
-		condition?: string;
-		hitCondition?: string;
-		logMessage?: string;
-		line: number;
-		character: number;
-		mode?: string;
-	}[];
-}
-
-export interface IDebugSessionFullDto {
-	id: DebugSessionUUID;
-	type: string;
-	name: string;
-	parent: DebugSessionUUID | undefined;
-	folderUri: UriComponents | undefined;
-	configuration: IConfig;
-}
-
-export type IDebugSessionDto = IDebugSessionFullDto | DebugSessionUUID;
-
-export interface IThreadFocusDto {
-	kind: 'thread';
-	sessionId: string;
-	threadId: number;
-}
-
-export interface IStackFrameFocusDto {
-	kind: 'stackFrame';
-	sessionId: string;
-	threadId: number;
-	frameId: number;
-}
-
-
-export interface ExtHostDebugServiceShape {
-	$substituteVariables(folder: UriComponents | undefined, config: IConfig): Promise<IConfig>;
-	$runInTerminal(args: DebugProtocol.RunInTerminalRequestArguments, sessionId: string): Promise<number | undefined>;
-	$startDASession(handle: number, session: IDebugSessionDto): Promise<void>;
-	$stopDASession(handle: number): Promise<void>;
-	$sendDAMessage(handle: number, message: DebugProtocol.ProtocolMessage): void;
-	$resolveDebugConfiguration(handle: number, folder: UriComponents | undefined, debugConfiguration: IConfig, token: CancellationToken): Promise<IConfig | null | undefined>;
-	$resolveDebugConfigurationWithSubstitutedVariables(handle: number, folder: UriComponents | undefined, debugConfiguration: IConfig, token: CancellationToken): Promise<IConfig | null | undefined>;
-	$provideDebugConfigurations(handle: number, folder: UriComponents | undefined, token: CancellationToken): Promise<IConfig[]>;
-	$provideDebugAdapter(handle: number, session: IDebugSessionDto): Promise<Dto<IAdapterDescriptor>>;
-	$acceptDebugSessionStarted(session: IDebugSessionDto): void;
-	$acceptDebugSessionTerminated(session: IDebugSessionDto): void;
-	$acceptDebugSessionActiveChanged(session: IDebugSessionDto | undefined): void;
-	$acceptDebugSessionCustomEvent(session: IDebugSessionDto, event: any): void;
-	$acceptBreakpointsDelta(delta: IBreakpointsDeltaDto): void;
-	$acceptDebugSessionNameChanged(session: IDebugSessionDto, name: string): void;
-	$acceptStackFrameFocus(focus: IThreadFocusDto | IStackFrameFocusDto | undefined): void;
-	$provideDebugVisualizers(extensionId: string, id: string, context: IDebugVisualizationContext, token: CancellationToken): Promise<IDebugVisualization.Serialized[]>;
-	$resolveDebugVisualizer(id: number, token: CancellationToken): Promise<MainThreadDebugVisualization>;
-	$executeDebugVisualizerCommand(id: number): Promise<void>;
-	$disposeDebugVisualizers(ids: number[]): void;
-	$getVisualizerTreeItem(treeId: string, element: IDebugVisualizationContext): Promise<IDebugVisualizationTreeItem.Serialized | undefined>;
-	$getVisualizerTreeItemChildren(treeId: string, element: number): Promise<IDebugVisualizationTreeItem.Serialized[]>;
-	$editVisualizerTreeItem(element: number, value: string): Promise<IDebugVisualizationTreeItem.Serialized | undefined>;
-	$disposeVisualizedTree(element: number): void;
-}
 
 
 export interface DecorationRequest {
@@ -3210,7 +3058,6 @@ export const MainContext = {
 	MainThreadComments: createProxyIdentifier<MainThreadCommentsShape>('MainThreadComments'),
 	MainThreadConfiguration: createProxyIdentifier<MainThreadConfigurationShape>('MainThreadConfiguration'),
 	MainThreadConsole: createProxyIdentifier<MainThreadConsoleShape>('MainThreadConsole'),
-	MainThreadDebugService: createProxyIdentifier<MainThreadDebugServiceShape>('MainThreadDebugService'),
 	MainThreadDecorations: createProxyIdentifier<MainThreadDecorationsShape>('MainThreadDecorations'),
 	MainThreadDiagnostics: createProxyIdentifier<MainThreadDiagnosticsShape>('MainThreadDiagnostics'),
 	MainThreadDialogs: createProxyIdentifier<MainThreadDiaglogsShape>('MainThreadDiaglogs'),
@@ -3278,7 +3125,6 @@ export const ExtHostContext = {
 	ExtHostCommands: createProxyIdentifier<ExtHostCommandsShape>('ExtHostCommands'),
 	ExtHostConfiguration: createProxyIdentifier<ExtHostConfigurationShape>('ExtHostConfiguration'),
 	ExtHostDiagnostics: createProxyIdentifier<ExtHostDiagnosticsShape>('ExtHostDiagnostics'),
-	ExtHostDebugService: createProxyIdentifier<ExtHostDebugServiceShape>('ExtHostDebugService'),
 	ExtHostDecorations: createProxyIdentifier<ExtHostDecorationsShape>('ExtHostDecorations'),
 	ExtHostDocumentsAndEditors: createProxyIdentifier<ExtHostDocumentsAndEditorsShape>('ExtHostDocumentsAndEditors'),
 	ExtHostDocuments: createProxyIdentifier<ExtHostDocumentsShape>('ExtHostDocuments'),

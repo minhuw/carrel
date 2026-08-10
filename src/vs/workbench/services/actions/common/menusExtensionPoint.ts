@@ -101,32 +101,6 @@ const apiMenus: IAPIMenu[] = [
 		proposed: 'contribShareMenu'
 	},
 	{
-		key: 'debug/callstack/context',
-		id: MenuId.DebugCallStackContext,
-		description: localize('menus.debugCallstackContext', "The debug callstack view context menu")
-	},
-	{
-		key: 'debug/variables/context',
-		id: MenuId.DebugVariablesContext,
-		description: localize('menus.debugVariablesContext', "The debug variables view context menu")
-	},
-	{
-		key: 'debug/watch/context',
-		id: MenuId.DebugWatchContext,
-		description: localize('menus.debugWatchContext', "The debug watch view context menu")
-	},
-	{
-		key: 'debug/toolBar',
-		id: MenuId.DebugToolBar,
-		description: localize('menus.debugToolBar', "The debug toolbar menu")
-	},
-	{
-		key: 'debug/createConfiguration',
-		id: MenuId.DebugCreateConfiguration,
-		proposed: 'contribDebugCreateConfiguration',
-		description: localize('menus.debugCreateConfiguation', "The debug create configuration menu")
-	},
-	{
 		key: 'notebook/variables/context',
 		id: MenuId.NotebookVariablesContext,
 		description: localize('menus.notebookVariablesContext', "The notebook variables view context menu")

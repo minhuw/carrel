@@ -59,7 +59,6 @@ export const dirs = [
 	'test/scenario',
 	'test/mcp',
 	'.vscode/extensions/vscode-selfhost-import-aid',
-	'.vscode/extensions/vscode-selfhost-test-provider',
 	'.vscode/extensions/vscode-extras',
 	'.vscode/extensions/vscode-pr-pinger',
 ];

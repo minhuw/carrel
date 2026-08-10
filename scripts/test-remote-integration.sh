@@ -85,7 +85,7 @@ else
 	kill_app() { killall $INTEGRATION_TEST_APP_NAME || true; }
 fi
 
-API_TESTS_BASE_ARGS="--disable-telemetry --disable-experiments --skip-welcome --skip-release-notes --crash-reporter-directory=$VSCODECRASHDIR --no-cached-data --disable-updates --use-inmemory-secretstorage --disable-workspace-trust"
+API_TESTS_BASE_ARGS="--disable-telemetry --disable-experiments --skip-welcome --crash-reporter-directory=$VSCODECRASHDIR --no-cached-data --use-inmemory-secretstorage --disable-workspace-trust"
 API_TESTS_EXTRA_ARGS="$API_TESTS_BASE_ARGS --logsPath=$VSCODELOGSDIR --user-data-dir=$VSCODEUSERDATADIR"
 
 # Gives a suite that runs in parallel its own user data, logs and server folders (see integration-test-suites.sh).

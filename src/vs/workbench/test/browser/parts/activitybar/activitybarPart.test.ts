@@ -29,7 +29,6 @@ import { ActionsOrientation } from '../../../../../base/browser/ui/actionbar/act
 import { Dimension } from '../../../../../base/browser/dom.js';
 import { GlobalCompositeBar } from '../../../../browser/parts/globalCompositeBar.js';
 import { IMenu, IMenuService } from '../../../../../platform/actions/common/actions.js';
-import { IUpdateService, StateType } from '../../../../../platform/update/common/update.js';
 import { CustomMenubarControl } from '../../../../browser/parts/titlebar/menubarControl.js';
 import { HoverPosition } from '../../../../../base/browser/ui/hover/hoverWidget.js';
 import { TestInstantiationService } from '../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
@@ -43,10 +42,6 @@ function stubMenubarServices(instantiationService: TestInstantiationService): vo
 		override createMenu(): IMenu {
 			return { onDidChange: Event.None, dispose: () => undefined, getActions: () => [['', []]] };
 		}
-	}());
-	instantiationService.stub(IUpdateService, new class extends mock<IUpdateService>() {
-		override readonly onStateChange = Event.None;
-		override get state() { return { type: StateType.Uninitialized as const }; }
 	}());
 }
 

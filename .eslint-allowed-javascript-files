@@ -36,8 +36,6 @@ extensions/html/build/update-grammar.mjs
 extensions/json/build/update-grammars.js
 extensions/latex/build/update-grammars.js
 extensions/less/build/update-grammar.js
-extensions/microsoft-authentication/packageMocks/dpapi/dpapi.js
-extensions/microsoft-authentication/packageMocks/keytar/index.js
 extensions/objective-c/build/update-grammars.js
 extensions/php/build/update-grammar.mjs
 extensions/razor/build/update-grammar.mjs

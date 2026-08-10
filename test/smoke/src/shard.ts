@@ -22,7 +22,6 @@ export interface Shard {
 const suiteDurations = new Map<string, number>([
 	['Terminal', process.platform === 'linux' ? 10 : 135],
 	['Data Loss (insiders -> insiders)', 100],
-	['Integrated Browser', 40],
 	['Extension Host Restart', 30],
 	['Task', 25],
 ]);

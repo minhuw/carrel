@@ -262,7 +262,7 @@ if [[ -n "$GREP_PATTERN" ]]; then
 	GREP_ARGS=(--grep "$GREP_PATTERN")
 fi
 
-API_TESTS_BASE_ARGS="--disable-telemetry --disable-experiments --skip-welcome --skip-release-notes --crash-reporter-directory=$VSCODECRASHDIR --no-cached-data --disable-updates --use-inmemory-secretstorage --disable-extensions --disable-workspace-trust"
+API_TESTS_BASE_ARGS="--disable-telemetry --disable-experiments --skip-welcome --crash-reporter-directory=$VSCODECRASHDIR --no-cached-data --use-inmemory-secretstorage --disable-extensions --disable-workspace-trust"
 API_TESTS_EXTRA_ARGS="$API_TESTS_BASE_ARGS --logsPath=$VSCODELOGSDIR --user-data-dir=$VSCODEUSERDATADIR"
 
 if [ -z "$INTEGRATION_TEST_APP_NAME" ]; then

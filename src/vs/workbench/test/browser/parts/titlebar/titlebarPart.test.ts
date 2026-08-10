@@ -19,7 +19,6 @@ import { ActionViewItem } from '../../../../../base/browser/ui/actionbar/actionV
 import { IContextMenuService } from '../../../../../platform/contextview/browser/contextView.js';
 import { IThemeService } from '../../../../../platform/theme/common/themeService.js';
 import { TestColorTheme, TestThemeService } from '../../../../../platform/theme/test/common/testThemeService.js';
-import { IUpdateService, StateType } from '../../../../../platform/update/common/update.js';
 import { isMacintosh, isWeb } from '../../../../../base/common/platform.js';
 import { getMenuBarVisibility, hasNativeMenu } from '../../../../../platform/window/common/window.js';
 import { CustomMenubarControl } from '../../../../browser/parts/titlebar/menubarControl.js';
@@ -41,10 +40,6 @@ function stubMenubarServices(instantiationService: TestInstantiationService): vo
 		override createMenu(): IMenu {
 			return { onDidChange: Event.None, dispose: () => undefined, getActions: () => [['', []]] };
 		}
-	}());
-	instantiationService.stub(IUpdateService, new class extends mock<IUpdateService>() {
-		override readonly onStateChange = Event.None;
-		override get state() { return { type: StateType.Uninitialized as const }; }
 	}());
 }
 
@@ -98,10 +93,6 @@ suite('TitlebarPart colors', () => {
 		instantiationService.stub(IContextMenuService, new TestContextMenuService());
 		instantiationService.stub(IWorkbenchLayoutService, new class extends TestLayoutService {
 			override getContainer(): HTMLElement { return root; }
-		}());
-		instantiationService.stub(IUpdateService, new class extends mock<IUpdateService>() {
-			override readonly onStateChange = Event.None;
-			override get state() { return { type: StateType.Uninitialized as const }; }
 		}());
 		instantiationService.stub(IActivityService, new TestActivityService());
 		instantiationService.stubInstance(WindowTitle, { dispose() { } });

@@ -54,7 +54,6 @@ const eslintConfigFile = /(^|\/)eslint\.config\.[cm]?[jt]s$/;
  */
 export const typeAwareLintFolders = [
 	'extensions/markdown-language-features/',
-	'extensions/mermaid-markdown-features/',
 	'extensions/simple-browser/',
 	'extensions/typescript-language-features/',
 ];

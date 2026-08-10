@@ -125,6 +125,22 @@
 	justify-content: center;
 }
 
+	padding: 4px 0; /* rows bleed to the card edges (reference design) */
+	/* flat panel that overlaps the sidebar: same surface, no rounding, only a
+	   bottom edge and a soft shadow to separate from the content beneath */
+	background: var(--vscode-sideBar-background);
+	border: none;
+	border-bottom: 1px solid var(--vscode-widget-border, var(--vscode-sideBar-border, transparent));
+	border-radius: 0;
+	box-shadow: 0 4px 10px var(--vscode-widget-shadow);
+.monaco-workbench .sidebar.part.pane-composite-part > .composite.title.has-composite-bar > .title-actions {
+	flex: inherit;
+}
+
+.monaco-workbench .sidebar.pane-composite-part > .title.has-composite-bar > .title-actions .monaco-action-bar .action-item {
+	max-width: 150px;
+}
+
 /*
  * Carrel: when the composite bar lives in the header area (activity bar on
  * top), the per-view title row (view name + view actions) is redundant —
@@ -133,58 +149,6 @@
  */
 .monaco-workbench .part.sidebar:has(> .header-or-footer.header.has-composite-bar) > .composite.title {
 	display: none;
-}
-
-/*
- * Carrel: reference-style view switcher buttons — compact 26x26 hit areas
- * with a small gap, dimmed inactive icons, and a rounded background pill for
- * the active view instead of the stock top-border indicator.
- */
-.monaco-workbench .sidebar.pane-composite-part > .header-or-footer.header > .composite-bar-container > .composite-bar > .monaco-action-bar .actions-container {
-	gap: 2px;
-}
-
-.monaco-workbench .sidebar.pane-composite-part > .header-or-footer.header > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.icon {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	width: 26px;
-	height: 26px;
-	padding: 0;
-	margin: 4px 0;
-	border-radius: 4px;
-}
-
-.monaco-workbench .sidebar.pane-composite-part > .header-or-footer.header > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.icon .action-label {
-	opacity: 0.65;
-}
-
-.monaco-workbench .sidebar.pane-composite-part > .header-or-footer.header > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.icon:hover .action-label,
-.monaco-workbench .sidebar.pane-composite-part > .header-or-footer.header > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.icon.checked .action-label {
-	opacity: 1;
-}
-
-.monaco-workbench .sidebar.pane-composite-part > .header-or-footer.header > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.icon.checked {
-	background-color: var(--vscode-activityBarTop-activeBackground, rgba(255, 255, 255, 0.09));
-}
-
-/* The stock active indicator is a top border line; the pill replaces it. */
-.monaco-workbench .sidebar.pane-composite-part > .header-or-footer.header > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item .active-item-indicator,
-.monaco-workbench .sidebar.pane-composite-part > .header-or-footer.header > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.checked .active-item-indicator:before {
-	display: none;
-}
-
-/* The stock badge offset (17px) overflows the compact 26px button and gets clipped. */
-.monaco-workbench .sidebar.pane-composite-part > .header-or-footer.header > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.icon .badge.compact .badge-content {
-	top: 11px;
-}
-
-.monaco-workbench .sidebar.part.pane-composite-part > .composite.title.has-composite-bar > .title-actions {
-	flex: inherit;
-}
-
-.monaco-workbench .sidebar.pane-composite-part > .title.has-composite-bar > .title-actions .monaco-action-bar .action-item {
-	max-width: 150px;
 }
 
 /*

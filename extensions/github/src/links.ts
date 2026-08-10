@@ -34,12 +34,6 @@ interface IFilePosition {
 	range: vscode.Range | undefined;
 }
 
-interface INotebookPosition {
-	type: LinkType.Notebook;
-	uri: vscode.Uri;
-	cellIndex: number;
-	range: vscode.Range | undefined;
-}
 
 interface EditorLineNumberContext {
 	uri: vscode.Uri;
@@ -57,31 +51,16 @@ function extractContext(context: LinkContext): { fileUri: vscode.Uri | undefined
 	}
 }
 
-function getFileAndPosition(context: LinkContext): IFilePosition | INotebookPosition | undefined {
+function getFileAndPosition(context: LinkContext): IFilePosition | undefined {
 	let range: vscode.Range | undefined;
 
 	const { fileUri, lineNumber } = extractContext(context);
 	const uri = fileUri ?? vscode.window.activeTextEditor?.document.uri;
 
 	if (uri) {
-		if (uri.scheme === 'vscode-notebook-cell' && vscode.window.activeNotebookEditor?.notebook.uri.fsPath === uri.fsPath) {
-			// if the active editor is a notebook editor and the focus is inside any a cell text editor
-			// generate deep link for text selection for the notebook cell.
-			const cell = vscode.window.activeNotebookEditor.notebook.getCells().find(cell => cell.document.uri.fragment === uri?.fragment);
-			const cellIndex = cell?.index ?? vscode.window.activeNotebookEditor.selection.start;
-
-			const range = getRangeOrSelection(lineNumber);
-			return { type: LinkType.Notebook, uri, cellIndex, range };
-		} else {
-			// the active editor is a text editor
-			range = getRangeOrSelection(lineNumber);
-			return { type: LinkType.File, uri, range };
-		}
-	}
-
-	if (vscode.window.activeNotebookEditor) {
-		// if the active editor is a notebook editor but the focus is not inside any cell text editor, generate deep link for the cell selection in the notebook document.
-		return { type: LinkType.Notebook, uri: vscode.window.activeNotebookEditor.notebook.uri, cellIndex: vscode.window.activeNotebookEditor.selection.start, range: undefined };
+		// Carrel: notebooks removed — text editor permalinks only.
+		range = getRangeOrSelection(lineNumber);
+		return { type: LinkType.File, uri, range };
 	}
 
 	return undefined;
@@ -98,22 +77,6 @@ export function rangeString(range: vscode.Range | undefined) {
 		return '';
 	}
 	let hash = `#L${range.start.line + 1}`;
-	if (range.start.line !== range.end.line) {
-		hash += `-L${range.end.line + 1}`;
-	}
-	return hash;
-}
-
-export function notebookCellRangeString(index: number | undefined, range: vscode.Range | undefined) {
-	if (index === undefined) {
-		return '';
-	}
-
-	if (!range) {
-		return `#C${index + 1}`;
-	}
-
-	let hash = `#C${index + 1}:L${range.start.line + 1}`;
 	if (range.start.line !== range.end.line) {
 		hash += `-L${range.end.line + 1}`;
 	}
@@ -170,9 +133,7 @@ export async function getLink(gitAPI: GitAPI, useSelection: boolean, shouldEnsur
 	}
 
 	const encodedFilePath = encodeURIComponentExceptSlashes(fileUri.path.substring(gitRepo.rootUri.path.length));
-	const fileSegments = fileAndPosition.type === LinkType.File
-		? (useSelection ? `${encodedFilePath}${useRange ? rangeString(fileAndPosition.range) : ''}` : '')
-		: (useSelection ? `${encodedFilePath}${useRange ? notebookCellRangeString(fileAndPosition.cellIndex, fileAndPosition.range) : ''}` : '');
+	const fileSegments = useSelection ? `${encodedFilePath}${useRange ? rangeString(fileAndPosition.range) : ''}` : '';
 
 	return `${uriWithoutFileSegments}${fileSegments}`;
 }

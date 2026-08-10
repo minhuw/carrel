@@ -2,7 +2,6 @@ test/**
 test-workspace/**
 scripts/**
 src/**
-notebook/**
 tsconfig*.json
 **/*.tsbuildinfo
 esbuild*

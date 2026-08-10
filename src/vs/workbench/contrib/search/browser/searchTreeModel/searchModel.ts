@@ -14,7 +14,6 @@ import { IConfigurationService } from '../../../../../platform/configuration/com
 import { IInstantiationService } from '../../../../../platform/instantiation/common/instantiation.js';
 import { ILogService } from '../../../../../platform/log/common/log.js';
 import { ITelemetryService } from '../../../../../platform/telemetry/common/telemetry.js';
-import { INotebookSearchService } from '../../common/notebookSearch.js';
 import { ReplacePattern } from '../../../../services/search/common/replace.js';
 import { IFileMatch, IPatternInfo, ISearchComplete, ISearchConfigurationProperties, ISearchProgressItem, ISearchService, ITextQuery, ITextSearchStats, SearchCompletionExitCode } from '../../../../services/search/common/search.js';
 import { IChangeEvent, mergeSearchResultEvents, SearchModelLocation, ISearchModel, ISearchResult, SEARCH_MODEL_PREFIX } from './searchTreeCommon.js';
@@ -52,7 +51,6 @@ export class SearchModelImpl extends Disposable implements ISearchModel {
 		@IConfigurationService private readonly configurationService: IConfigurationService,
 		@IInstantiationService private readonly instantiationService: IInstantiationService,
 		@ILogService private readonly logService: ILogService,
-		@INotebookSearchService private readonly notebookSearchService: INotebookSearchService,
 	) {
 		super();
 		this._searchResult = this.instantiationService.createInstance(SearchResultImpl, this);
@@ -118,12 +116,9 @@ export class SearchModelImpl extends Disposable implements ISearchModel {
 		};
 		const tokenSource = this.currentCancelTokenSource = new CancellationTokenSource(callerToken);
 
-		const notebookResult = this.notebookSearchService.notebookSearch(query, tokenSource.token, searchInstanceID, asyncGenerateOnProgress);
 		const textResult = this.searchService.textSearchSplitSyncAsync(
 			searchQuery,
 			tokenSource.token, asyncGenerateOnProgress,
-			notebookResult.openFilesToScan,
-			notebookResult.allScannedFiles,
 		);
 
 		const syncResults = textResult.syncResults.results;
@@ -134,15 +129,8 @@ export class SearchModelImpl extends Disposable implements ISearchModel {
 
 			// resolve async parts of search
 			const allClosedEditorResults = await textResult.asyncResults;
-			const resolvedNotebookResults = await notebookResult.completeData;
 			const searchLength = Date.now() - searchStart;
-			const resolvedResult: ISearchComplete = {
-				results: [...allClosedEditorResults.results, ...resolvedNotebookResults.results],
-				messages: [...allClosedEditorResults.messages, ...resolvedNotebookResults.messages],
-				limitHit: allClosedEditorResults.limitHit || resolvedNotebookResults.limitHit,
-				exit: allClosedEditorResults.exit,
-				stats: allClosedEditorResults.stats,
-			};
+			const resolvedResult: ISearchComplete = allClosedEditorResults;
 			this.logService.trace(`whole search time | ${searchLength}ms`);
 			return resolvedResult;
 		};

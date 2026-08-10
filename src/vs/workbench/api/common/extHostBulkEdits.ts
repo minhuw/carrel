@@ -24,7 +24,6 @@ export class ExtHostBulkEdits {
 
 		this._versionInformationProvider = {
 			getTextDocumentVersion: uri => extHostDocumentsAndEditors.getDocument(uri)?.version,
-			getNotebookDocumentVersion: () => undefined
 		};
 	}
 

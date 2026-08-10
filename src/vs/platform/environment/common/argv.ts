@@ -33,7 +33,6 @@ export interface NativeParsedArgs {
 	_urls?: string[];
 	help?: boolean;
 	version?: boolean;
-	telemetry?: boolean;
 	status?: boolean;
 	wait?: boolean;
 	waitMarkerFilePath?: string;
@@ -92,15 +91,12 @@ export interface NativeParsedArgs {
 	'locate-extension'?: string[]; // undefined or array of 1 or more
 	'enable-proposed-api'?: string[]; // undefined or array of 1 or more
 	'open-url'?: boolean;
-	'skip-release-notes'?: boolean;
 	'skip-welcome'?: boolean;
 	'disable-telemetry'?: boolean;
-	'telemetry-level'?: string;
 	'export-default-configuration'?: string;
 	'export-policy-data'?: string;
 	'export-default-keybindings'?: string;
 	'install-source'?: string;
-	'disable-updates'?: boolean;
 	'transient'?: boolean;
 	'use-inmemory-secretstorage'?: boolean;
 	'password-store'?: string;

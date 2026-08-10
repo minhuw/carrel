@@ -107,7 +107,7 @@ export class ExtensionManifestPropertiesService extends Disposable implements IE
 
 		if (isBuiltin) {
 			const contributes = manifest.contributes;
-			return !contributes?.debuggers && !contributes?.views && !contributes?.viewsContainers && !contributes?.walkthroughs;
+			return !contributes?.views && !contributes?.viewsContainers && !contributes?.walkthroughs;
 		}
 
 		// Extensions without declared support must not have executable code.

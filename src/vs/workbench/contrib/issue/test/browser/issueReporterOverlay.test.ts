@@ -124,7 +124,7 @@ suite('IssueReporterOverlay', () => {
 		let menu: IContextMenuDelegate | undefined;
 		const overlay = store.add(instantiation.createInstance(IssueReporterOverlay,
 			data, input, false, container, new TestContextViewService(),
-			{ showContextMenu: delegate => { menu = delegate; } }, true, options.resolveExtensionIssueData, undefined, false, undefined, undefined,
+			{ showContextMenu: delegate => { menu = delegate; } }, true, options.resolveExtensionIssueData, undefined, undefined, undefined,
 			undefined,
 			options.captureContainer,
 		));

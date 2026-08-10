@@ -53,7 +53,7 @@ import { IView } from '../../../../base/browser/ui/grid/grid.js';
 import { createInstantHoverDelegate } from '../../../../base/browser/ui/hover/hoverDelegateFactory.js';
 import { IBaseActionViewItemOptions } from '../../../../base/browser/ui/actionbar/actionViewItems.js';
 import { IHoverDelegate } from '../../../../base/browser/ui/hover/hoverDelegate.js';
-import { CommandsRegistry } from '../../../../platform/commands/common/commands.js';
+import { CommandsRegistry, ICommandService } from '../../../../platform/commands/common/commands.js';
 import { safeIntl } from '../../../../base/common/date.js';
 import { IsCompactTitleBarContext, TitleBarVisibleContext } from '../../../common/contextkeys.js';
 import { ServiceCollection } from '../../../../platform/instantiation/common/serviceCollection.js';
@@ -319,7 +319,8 @@ export class BrowserTitlebarPart extends Part implements ITitlebarPart {
 		@IEditorService editorService: IEditorService,
 		@IMenuService private readonly menuService: IMenuService,
 		@IKeybindingService private readonly keybindingService: IKeybindingService,
-		@IActionViewItemService private readonly actionViewItemService: IActionViewItemService
+		@IActionViewItemService private readonly actionViewItemService: IActionViewItemService,
+		@ICommandService private readonly commandService: ICommandService
 	) {
 		super(id, { hasTitle: false }, themeService, storageService, layoutService);
 
@@ -469,6 +470,21 @@ export class BrowserTitlebarPart extends Part implements ITitlebarPart {
 		this.windowTitle.registerVariables(variables);
 	}
 
+	private createCarrelTitlebarAction(parent: HTMLElement, codiconClass: string, title: string, commandId: string): void {
+		const action = append(parent, $(`a.action-label.codicon.${codiconClass}`));
+		action.tabIndex = 0;
+		action.title = title;
+		action.setAttribute('role', 'button');
+		action.setAttribute('aria-label', title);
+		const run = () => this.commandService.executeCommand(commandId);
+		this._register(addDisposableListener(action, EventType.CLICK, run));
+		this._register(addDisposableListener(action, EventType.KEY_DOWN, e => {
+			if (e.key === 'Enter' || e.key === ' ') {
+				run();
+			}
+		}));
+	}
+
 	protected override createContentArea(parent: HTMLElement): HTMLElement {
 		this.element = parent;
 		this.rootContainer = append(parent, $('.titlebar-container'));
@@ -498,6 +514,16 @@ export class BrowserTitlebarPart extends Part implements ITitlebarPart {
 		// Title
 		this.title = append(this.centerContent, $('div.window-title'));
 		this.createTitle();
+
+		// Carrel: left-aligned titlebar actions (sidebar toggle, back/forward
+		// navigation) on macOS desktop with the custom title bar, mirroring the
+		// reference design's titlebar row.
+		if (isMacintosh && !isWeb && !this.isAuxiliary && hasCustomTitlebar(this.configurationService, this.titleBarStyle)) {
+			const carrelActions = append(this.leftContent, $('div.carrel-titlebar-actions'));
+			this.createCarrelTitlebarAction(carrelActions, 'codicon-layout-sidebar-left', localize('carrelToggleSidebar', "Toggle Sidebar"), 'workbench.action.toggleSidebarVisibility');
+			this.createCarrelTitlebarAction(carrelActions, 'codicon-arrow-left', localize('carrelNavigateBack', "Back"), 'workbench.action.navigateBack');
+			this.createCarrelTitlebarAction(carrelActions, 'codicon-arrow-right', localize('carrelNavigateForward', "Forward"), 'workbench.action.navigateForward');
+		}
 
 		// Center-Adjacent Toolbar (e.g., update indicator)
 		if (hasCustomTitlebar(this.configurationService, this.titleBarStyle)) {
@@ -1008,8 +1034,9 @@ export class MainBrowserTitlebarPart extends BrowserTitlebarPart {
 		@IMenuService menuService: IMenuService,
 		@IKeybindingService keybindingService: IKeybindingService,
 		@IActionViewItemService actionViewItemService: IActionViewItemService,
+		@ICommandService commandService: ICommandService,
 	) {
-		super(Parts.TITLEBAR_PART, mainWindow, editorGroupService.mainPart, contextMenuService, configurationService, environmentService, instantiationService, themeService, storageService, layoutService, contextKeyService, hostService, editorService, menuService, keybindingService, actionViewItemService);
+		super(Parts.TITLEBAR_PART, mainWindow, editorGroupService.mainPart, contextMenuService, configurationService, environmentService, instantiationService, themeService, storageService, layoutService, contextKeyService, hostService, editorService, menuService, keybindingService, actionViewItemService, commandService);
 	}
 }
 
@@ -1044,9 +1071,10 @@ export class AuxiliaryBrowserTitlebarPart extends BrowserTitlebarPart implements
 		@IMenuService menuService: IMenuService,
 		@IKeybindingService keybindingService: IKeybindingService,
 		@IActionViewItemService actionViewItemService: IActionViewItemService,
+		@ICommandService commandService: ICommandService,
 	) {
 		const id = AuxiliaryBrowserTitlebarPart.COUNTER++;
-		super(`workbench.parts.auxiliaryTitle.${id}`, getWindow(container), editorGroupsContainer, contextMenuService, configurationService, environmentService, instantiationService, themeService, storageService, layoutService, contextKeyService, hostService, editorService, menuService, keybindingService, actionViewItemService);
+		super(`workbench.parts.auxiliaryTitle.${id}`, getWindow(container), editorGroupsContainer, contextMenuService, configurationService, environmentService, instantiationService, themeService, storageService, layoutService, contextKeyService, hostService, editorService, menuService, keybindingService, actionViewItemService, commandService);
 	}
 
 	override get preventZoom(): boolean {

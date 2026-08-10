@@ -3,8 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { timeout } from '../../../base/common/async.js';
-import { CancellationTokenSource } from '../../../base/common/cancellation.js';
+import { disposableTimeout } from '../../../base/common/async.js';
 import { Emitter } from '../../../base/common/event.js';
 import { Disposable, dispose, IDisposable, toDisposable } from '../../../base/common/lifecycle.js';
 import { ILogService } from '../../log/common/log.js';
@@ -47,10 +46,15 @@ export class RequestStore<T, RequestArgs> extends Disposable {
 		return new Promise<T>((resolve, reject) => {
 			const requestId = ++this._lastRequestId;
 			this._pendingRequests.set(requestId, resolve);
+			let timeoutDisposable: IDisposable;
+			timeoutDisposable = disposableTimeout(() => {
+				timeoutDisposable.dispose();
+				this._pendingRequests.delete(requestId);
+				this._pendingRequestDisposables.delete(requestId);
+				reject(`Request ${requestId} timed out (${this._timeout}ms)`);
+			}, this._timeout);
+			this._pendingRequestDisposables.set(requestId, [timeoutDisposable]);
 			this._onCreateRequest.fire({ requestId, ...args });
-			const tokenSource = new CancellationTokenSource();
-			timeout(this._timeout, tokenSource.token).then(() => reject(`Request ${requestId} timed out (${this._timeout}ms)`));
-			this._pendingRequestDisposables.set(requestId, [toDisposable(() => tokenSource.cancel())]);
 		});
 	}
 

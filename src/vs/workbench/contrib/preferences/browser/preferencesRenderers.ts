@@ -785,7 +785,7 @@ class UnsupportedSettingsRenderer extends Disposable implements languages.CodeAc
 }
 
 class WorkspaceConfigurationRenderer extends Disposable {
-	private static readonly supportedKeys = ['folders', 'tasks', 'launch', 'extensions', 'settings', 'remoteAuthority', 'transient'];
+	private static readonly supportedKeys = ['folders', 'tasks', 'extensions', 'settings', 'remoteAuthority', 'transient'];
 
 	private readonly decorations: editorCommon.IEditorDecorationsCollection;
 	private renderingDelayer = this._register(new Delayer<void>(200));

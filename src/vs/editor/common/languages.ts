@@ -2261,6 +2261,22 @@ export interface CommentThreadRevealOptions {
 }
 
 /**
+ * A range of cells, by zero-based cell indexes.
+ * @internal
+ */
+export interface ICellRange {
+	/**
+	 * zero based index
+	 */
+	start: number;
+
+	/**
+	 * zero based index
+	 */
+	end: number;
+}
+
+/**
  * @internal
  */
 export interface CommentThread<T = IRange> {

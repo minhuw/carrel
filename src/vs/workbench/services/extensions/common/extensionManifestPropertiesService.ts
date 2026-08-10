@@ -109,7 +109,7 @@ export class ExtensionManifestPropertiesService extends Disposable implements IE
 
 		if (isBuiltin) {
 			const contributes = manifest.contributes;
-			return !contributes?.debuggers && !contributes?.views && !contributes?.viewsContainers && !contributes?.walkthroughs;
+			return !contributes?.views && !contributes?.viewsContainers && !contributes?.walkthroughs;
 		}
 
 		// In the sessions window only extensions that have no code are currently allowed to run

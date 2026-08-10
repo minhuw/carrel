@@ -101,37 +101,6 @@ const apiMenus: IAPIMenu[] = [
 		proposed: 'contribShareMenu'
 	},
 	{
-		key: 'debug/callstack/context',
-		id: MenuId.DebugCallStackContext,
-		description: localize('menus.debugCallstackContext', "The debug callstack view context menu")
-	},
-	{
-		key: 'debug/variables/context',
-		id: MenuId.DebugVariablesContext,
-		description: localize('menus.debugVariablesContext', "The debug variables view context menu")
-	},
-	{
-		key: 'debug/watch/context',
-		id: MenuId.DebugWatchContext,
-		description: localize('menus.debugWatchContext', "The debug watch view context menu")
-	},
-	{
-		key: 'debug/toolBar',
-		id: MenuId.DebugToolBar,
-		description: localize('menus.debugToolBar', "The debug toolbar menu")
-	},
-	{
-		key: 'debug/createConfiguration',
-		id: MenuId.DebugCreateConfiguration,
-		proposed: 'contribDebugCreateConfiguration',
-		description: localize('menus.debugCreateConfiguation', "The debug create configuration menu")
-	},
-	{
-		key: 'notebook/variables/context',
-		id: MenuId.NotebookVariablesContext,
-		description: localize('menus.notebookVariablesContext', "The notebook variables view context menu")
-	},
-	{
 		key: 'menuBar/home',
 		id: MenuId.MenubarHomeMenu,
 		description: localize('menus.home', "The home indicator context menu (web only)"),
@@ -310,37 +279,6 @@ const apiMenus: IAPIMenu[] = [
 		id: MenuId.CommentsViewThreadActions,
 		description: localize('commentsView.threadActions', "The contributed comment thread context menu in the comments view"),
 		proposed: 'contribCommentsViewThreadMenus'
-	},
-	{
-		key: 'notebook/toolbar',
-		id: MenuId.NotebookToolbar,
-		description: localize('notebook.toolbar', "The contributed notebook toolbar menu")
-	},
-	{
-		key: 'notebook/kernelSource',
-		id: MenuId.NotebookKernelSource,
-		description: localize('notebook.kernelSource', "The contributed notebook kernel sources menu"),
-		proposed: 'notebookKernelSource'
-	},
-	{
-		key: 'notebook/cell/title',
-		id: MenuId.NotebookCellTitle,
-		description: localize('notebook.cell.title', "The contributed notebook cell title menu")
-	},
-	{
-		key: 'notebook/cell/execute',
-		id: MenuId.NotebookCellExecute,
-		description: localize('notebook.cell.execute', "The contributed notebook cell execution menu")
-	},
-	{
-		key: 'interactive/toolbar',
-		id: MenuId.InteractiveToolbar,
-		description: localize('interactive.toolbar', "The contributed interactive toolbar menu"),
-	},
-	{
-		key: 'interactive/cell/title',
-		id: MenuId.InteractiveCellTitle,
-		description: localize('interactive.cell.title', "The contributed interactive cell title menu"),
 	},
 	{
 		key: 'issue/reporter',

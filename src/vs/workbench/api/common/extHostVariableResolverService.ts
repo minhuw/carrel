@@ -12,7 +12,7 @@ import { createDecorator } from '../../../platform/instantiation/common/instanti
 import { IExtHostDocumentsAndEditors } from './extHostDocumentsAndEditors.js';
 import { IExtHostEditorTabs } from './extHostEditorTabs.js';
 import { IExtHostExtensionService } from './extHostExtensionService.js';
-import { CustomEditorTabInput, NotebookDiffEditorTabInput, NotebookEditorTabInput, TextDiffTabInput, TextTabInput } from './extHostTypes.js';
+import { CustomEditorTabInput, TextDiffTabInput, TextTabInput } from './extHostTypes.js';
 import { IExtHostWorkspace } from './extHostWorkspace.js';
 import { IConfigurationResolverService } from '../../services/configurationResolver/common/configurationResolver.js';
 import { AbstractVariableResolverService } from '../../services/configurationResolver/common/variableResolver.js';
@@ -50,9 +50,9 @@ class ExtHostVariableResolverService extends AbstractVariableResolverService {
 				const activeTab = editorTabs.tabGroups.all.find(group => group.isActive)?.activeTab;
 				if (activeTab !== undefined) {
 					// Resolve a resource from the tab
-					if (activeTab.input instanceof TextDiffTabInput || activeTab.input instanceof NotebookDiffEditorTabInput) {
+					if (activeTab.input instanceof TextDiffTabInput) {
 						return activeTab.input.modified;
-					} else if (activeTab.input instanceof TextTabInput || activeTab.input instanceof NotebookEditorTabInput || activeTab.input instanceof CustomEditorTabInput) {
+					} else if (activeTab.input instanceof TextTabInput || activeTab.input instanceof CustomEditorTabInput) {
 						return activeTab.input.uri;
 					}
 				}

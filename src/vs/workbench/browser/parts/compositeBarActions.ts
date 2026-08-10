@@ -54,6 +54,11 @@ export interface ICompositeBar {
 	getPinnedCompositeIds(): string[];
 
 	/**
+	 * Carrel: get the id of the currently active composite, if any.
+	 */
+	getActiveCompositeId(): string | undefined;
+
+	/**
 	 * Returns if badges are enabled for that specified composite.
 	 * @param compositeId The id of the composite to check
 	 */

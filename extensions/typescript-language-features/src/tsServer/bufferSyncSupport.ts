@@ -403,12 +403,6 @@ class TabResourceTracker extends Disposable {
 	}
 
 	public has(resource: vscode.Uri): boolean {
-		if (resource.scheme === fileSchemes.vscodeNotebookCell) {
-			const notebook = vscode.workspace.notebookDocuments.find(doc =>
-				doc.getCells().some(cell => cell.document.uri.toString() === resource.toString()));
-
-			return !!notebook && this.has(notebook.uri);
-		}
 
 		const entry = this._tabResources.get(resource);
 		return !!entry && entry.tabs.size > 0;
@@ -450,8 +444,6 @@ class TabResourceTracker extends Disposable {
 			return [tab.input.uri];
 		} else if (tab.input instanceof vscode.TabInputTextDiff) {
 			return [tab.input.original, tab.input.modified];
-		} else if (tab.input instanceof vscode.TabInputNotebook) {
-			return [tab.input.uri];
 		} else {
 			return [];
 		}

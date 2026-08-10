@@ -50,12 +50,7 @@ export const unicodeFilter = Object.freeze<string[]>([
 	'!**/*.provisionprofile',
 
 	'!build/win32/**',
-	'!extensions/markdown-language-features/notebook-out/*.js',
 	'!extensions/markdown-language-features/markdown-editor-out/*.js',
-	'!extensions/markdown-math/notebook-out/**',
-	'!extensions/mermaid-markdown-features/chat-webview-out/**',
-	'!extensions/ipynb/notebook-out/**',
-	'!extensions/notebook-renderers/renderer-out/**',
 	'!extensions/php-language-features/src/features/phpGlobalFunctions.ts',
 	'!extensions/terminal-suggest/src/completions/upstream/**',
 	'!extensions/typescript-language-features/test-workspace/**',
@@ -109,8 +104,6 @@ export const indentationFilter = Object.freeze<string[]>([
 	'!extensions/typescript-language-features/test-workspace/**',
 	'!extensions/typescript-language-features/resources/walkthroughs/**',
 	'!extensions/typescript-language-features/package-manager/node-maintainer/**',
-	'!extensions/markdown-math/notebook-out/**',
-	'!extensions/ipynb/notebook-out/**',
 	'!extensions/vscode-api-tests/testWorkspace/**',
 	'!extensions/vscode-api-tests/testWorkspace2/**',
 	'!build/monaco/**',
@@ -150,15 +143,8 @@ export const indentationFilter = Object.freeze<string[]>([
 	'!**/*.tiff',
 
 	// except for built files
-	'!extensions/mermaid-markdown-features/chat-webview-out/*.js',
-	'!extensions/mermaid-markdown-features/markdown-preview-out/*.js',
-	'!extensions/mermaid-markdown-features/notebook-out/*.js',
 	'!extensions/markdown-language-features/media/*.js',
 	'!extensions/markdown-language-features/markdown-editor-out/*.js',
-	'!extensions/markdown-language-features/notebook-out/*.js',
-	'!extensions/markdown-math/notebook-out/*.js',
-	'!extensions/ipynb/notebook-out/**',
-	'!extensions/notebook-renderers/renderer-out/*.js',
 	'!extensions/simple-browser/media/*.js',
 ]);
 
@@ -200,17 +186,12 @@ export const copyrightFilter = Object.freeze<string[]>([
 	'!resources/completions/**',
 	'!extensions/configuration-editing/build/inline-allOf.ts',
 	'!extensions/markdown-language-features/media/highlight.css',
-	'!extensions/markdown-math/notebook-out/**',
-	'!extensions/ipynb/notebook-out/**',
 	'!extensions/simple-browser/media/codicon.css',
 	'!extensions/terminal-suggest/src/completions/upstream/**',
 	'!extensions/typescript-language-features/node-maintainer/**',
 	'!extensions/html-language-features/server/src/modes/typescript/*',
 	'!extensions/*/server/bin/*',
 	'!src/vs/workbench/contrib/terminal/common/scripts/psreadline/**',
-	'!extensions/mermaid-markdown-features/chat-webview-out/**',
-	'!extensions/mermaid-markdown-features/markdown-preview-out/**',
-	'!extensions/mermaid-markdown-features/notebook-out/**',
 
 	// vendored third-party libraries
 	'!src/vs/base/common/lit-html/**',

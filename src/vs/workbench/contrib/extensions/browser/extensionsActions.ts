@@ -68,7 +68,6 @@ import { showWindowLogActionId } from '../../../services/log/common/logConstants
 import { ITelemetryService } from '../../../../platform/telemetry/common/telemetry.js';
 import { Extensions, IExtensionFeaturesManagementService, IExtensionFeaturesRegistry } from '../../../services/extensionManagement/common/extensionFeatures.js';
 import { Registry } from '../../../../platform/registry/common/platform.js';
-import { IUpdateService } from '../../../../platform/update/common/update.js';
 import { ActionWithDropdownActionViewItem, IActionWithDropdownActionViewItemOptions } from '../../../../base/browser/ui/dropdown/dropdownActionViewItem.js';
 import { IAuthenticationUsageService } from '../../../services/authentication/browser/authenticationUsageService.js';
 import { IExtensionGalleryManifestService } from '../../../../platform/extensionManagement/common/extensionGalleryManifest.js';
@@ -1801,9 +1800,7 @@ export class ExtensionRuntimeStateAction extends ExtensionAction {
 	constructor(
 		@IHostService private readonly hostService: IHostService,
 		@IExtensionsWorkbenchService private readonly extensionsWorkbenchService: IExtensionsWorkbenchService,
-		@IUpdateService private readonly updateService: IUpdateService,
 		@IExtensionService private readonly extensionService: IExtensionService,
-		@IProductService private readonly productService: IProductService,
 		@ITelemetryService private readonly telemetryService: ITelemetryService,
 	) {
 		super('extensions.runtimeState', '', ExtensionRuntimeStateAction.DisabledClass, false);
@@ -1839,8 +1836,7 @@ export class ExtensionRuntimeStateAction extends ExtensionAction {
 		this.tooltip = runtimeState.reason;
 		this.label = runtimeState.action === ExtensionRuntimeActionType.ReloadWindow ? localize('reload window', 'Reload Window')
 			: runtimeState.action === ExtensionRuntimeActionType.RestartExtensions ? localize('restart extensions', 'Restart Extensions')
-				: runtimeState.action === ExtensionRuntimeActionType.QuitAndInstall ? localize('restart product', 'Restart to Update')
-					: runtimeState.action === ExtensionRuntimeActionType.ApplyUpdate || runtimeState.action === ExtensionRuntimeActionType.DownloadUpdate ? localize('update product', 'Update {0}', this.productService.nameShort) : '';
+				: '';
 	}
 
 	override async run(): Promise<any> {
@@ -1867,18 +1863,6 @@ export class ExtensionRuntimeStateAction extends ExtensionAction {
 
 		else if (runtimeState?.action === ExtensionRuntimeActionType.RestartExtensions) {
 			return this.extensionsWorkbenchService.updateRunningExtensions();
-		}
-
-		else if (runtimeState?.action === ExtensionRuntimeActionType.DownloadUpdate) {
-			return this.updateService.downloadUpdate(true);
-		}
-
-		else if (runtimeState?.action === ExtensionRuntimeActionType.ApplyUpdate) {
-			return this.updateService.applyUpdate();
-		}
-
-		else if (runtimeState?.action === ExtensionRuntimeActionType.QuitAndInstall) {
-			return this.updateService.quitAndInstall();
 		}
 
 	}

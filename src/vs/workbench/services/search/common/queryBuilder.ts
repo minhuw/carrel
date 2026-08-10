@@ -23,7 +23,6 @@ import { IWorkspaceContextService, IWorkspaceFolderData, toWorkspaceFolder, Work
 import { IEditorGroupsService } from '../../editor/common/editorGroupsService.js';
 import { IPathService } from '../../path/common/pathService.js';
 import { ExcludeGlobPattern, getExcludes, ICommonQueryProps, IFileQuery, IFolderQuery, IPatternInfo, ISearchConfiguration, ITextQuery, ITextSearchPreviewOptions, pathIncludedInQuery, QueryType } from './search.js';
-import { GlobPattern } from './searchExtTypes.js';
 
 /**
  * One folder to search and a glob expression that should be applied.
@@ -96,12 +95,6 @@ export interface ITextQueryBuilderOptions<U extends UriComponents = URI> extends
 	fileEncoding?: string;
 	surroundingContext?: number;
 	isSmartCase?: boolean;
-	notebookSearchConfig?: {
-		includeMarkupInput: boolean;
-		includeMarkupPreview: boolean;
-		includeCodeInput: boolean;
-		includeOutput: boolean;
-	};
 }
 
 export class QueryBuilder {
@@ -153,34 +146,6 @@ export class QueryBuilder {
 
 		if (this.isMultiline(inputPattern)) {
 			newPattern.isMultiline = true;
-		}
-
-		if (options.notebookSearchConfig?.includeMarkupInput) {
-			if (!newPattern.notebookInfo) {
-				newPattern.notebookInfo = {};
-			}
-			newPattern.notebookInfo.isInNotebookMarkdownInput = options.notebookSearchConfig.includeMarkupInput;
-		}
-
-		if (options.notebookSearchConfig?.includeMarkupPreview) {
-			if (!newPattern.notebookInfo) {
-				newPattern.notebookInfo = {};
-			}
-			newPattern.notebookInfo.isInNotebookMarkdownPreview = options.notebookSearchConfig.includeMarkupPreview;
-		}
-
-		if (options.notebookSearchConfig?.includeCodeInput) {
-			if (!newPattern.notebookInfo) {
-				newPattern.notebookInfo = {};
-			}
-			newPattern.notebookInfo.isInNotebookCellInput = options.notebookSearchConfig.includeCodeInput;
-		}
-
-		if (options.notebookSearchConfig?.includeOutput) {
-			if (!newPattern.notebookInfo) {
-				newPattern.notebookInfo = {};
-			}
-			newPattern.notebookInfo.isInNotebookCellOutput = options.notebookSearchConfig.includeOutput;
 		}
 
 		return newPattern;

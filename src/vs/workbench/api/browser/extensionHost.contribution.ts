@@ -24,7 +24,6 @@ import './mainThreadClipboard.js';
 import './mainThreadCommands.js';
 import './mainThreadConfiguration.js';
 import './mainThreadConsole.js';
-import './mainThreadDebugService.js';
 import './mainThreadDecorations.js';
 import './mainThreadDiagnostics.js';
 import './mainThreadDialogs.js';

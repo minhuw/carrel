@@ -36,7 +36,6 @@ import { IMarkerData, IRelatedInformation, MarkerSeverity, MarkerTag } from '../
 import { ProgressLocation as MainProgressLocation } from '../../../platform/progress/common/progress.js';
 import { DEFAULT_EDITOR_ASSOCIATION, SaveReason } from '../../common/editor.js';
 import { IViewBadge } from '../../common/views.js';
-import { DebugTreeItemCollapsibleState, IDebugVisualizationTreeItem } from '../../contrib/debug/common/debug.js';
 import * as notebooks from '../../contrib/notebook/common/notebookCommon.js';
 import { ICellRange } from '../../contrib/notebook/common/notebookRange.js';
 import { InputValidationType } from '../../contrib/scm/common/scm.js';
@@ -2364,19 +2363,6 @@ export namespace InlineCompletionHintStyle {
 			default:
 				return types.InlineCompletionDisplayLocationKind.Code;
 		}
-	}
-}
-
-export namespace DebugTreeItem {
-	export function from(item: vscode.DebugTreeItem, id: number): IDebugVisualizationTreeItem {
-		return {
-			id,
-			label: item.label,
-			description: item.description,
-			canEdit: item.canEdit,
-			collapsibleState: (item.collapsibleState || DebugTreeItemCollapsibleState.None) as DebugTreeItemCollapsibleState,
-			contextValue: item.contextValue,
-		};
 	}
 }
 

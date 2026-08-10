@@ -1,6 +1,5 @@
 [
 	"authentication",
-	"breakpoints",
 	"colors",
 	"commands",
 	"configuration",
@@ -8,8 +7,6 @@
 	"continueEditSession",
 	"css",
 	"customEditors",
-	"debugVisualizers",
-	"debuggers",
 	"grammars",
 	"iconThemes",
 	"icons",

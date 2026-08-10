@@ -18,7 +18,6 @@ import { IMessagePassingProtocol } from '../../../../base/parts/ipc/common/ipc.j
 import { BufferedEmitter } from '../../../../base/parts/ipc/common/ipc.net.js';
 import { acquirePort } from '../../../../base/parts/ipc/electron-browser/ipc.mp.js';
 import * as nls from '../../../../nls.js';
-import { IExtensionHostDebugService } from '../../../../platform/debug/common/extensionHostDebug.js';
 import { extensionHostGraceTimeMs, IExtensionHostProcessOptions, IExtensionHostStarter } from '../../../../platform/extensions/common/extensionHostStarter.js';
 import { ILabelService } from '../../../../platform/label/common/label.js';
 import { ILogService, ILoggerService } from '../../../../platform/log/common/log.js';
@@ -133,7 +132,6 @@ export class NativeLocalProcessExtensionHost extends Disposable implements IExte
 		@ILogService private readonly _logService: ILogService,
 		@ILoggerService private readonly _loggerService: ILoggerService,
 		@ILabelService private readonly _labelService: ILabelService,
-		@IExtensionHostDebugService private readonly _extensionHostDebugService: IExtensionHostDebugService,
 		@IHostService private readonly _hostService: IHostService,
 		@IProductService private readonly _productService: IProductService,
 		@IShellEnvironmentService private readonly _shellEnvironmentService: IShellEnvironmentService,
@@ -156,16 +154,6 @@ export class NativeLocalProcessExtensionHost extends Disposable implements IExte
 		this._messageProtocol = null;
 
 		this._register(this._lifecycleService.onWillShutdown(e => this._onWillShutdown(e)));
-		this._register(this._extensionHostDebugService.onClose(event => {
-			if (this._isExtensionDevHost && this._environmentService.debugExtensionHost.debugId === event.sessionId) {
-				this._nativeHostService.closeWindow();
-			}
-		}));
-		this._register(this._extensionHostDebugService.onReload(event => {
-			if (this._isExtensionDevHost && this._environmentService.debugExtensionHost.debugId === event.sessionId) {
-				this._hostService.reload();
-			}
-		}));
 	}
 
 	public override dispose(): void {
@@ -342,11 +330,7 @@ export class NativeLocalProcessExtensionHost extends Disposable implements IExte
 
 		this._register(this._extensionHostProcess.onExit(({ code, signal }) => this._onExtHostProcessExit(code, signal)));
 
-		// Notify debugger that we are ready to attach to the process if we run a development extension
 		if (portNumber) {
-			if (this._isExtensionDevHost && this._isExtensionDevDebug && this._environmentService.debugExtensionHost.debugId) {
-				this._extensionHostDebugService.attachSession(this._environmentService.debugExtensionHost.debugId, portNumber);
-			}
 			this._inspectListener = { port: portNumber, host: inspectHost };
 			this._onDidSetInspectPort.fire();
 		}
@@ -648,12 +632,5 @@ export class NativeLocalProcessExtensionHost extends Disposable implements IExte
 
 	private _onWillShutdown(event: WillShutdownEvent): void {
 		this._mainProcessHandlesExtHostShutdown = true;
-
-		// If the extension development host was started without debugger attached we need
-		// to communicate this back to the main side to terminate the debug session
-		if (this._isExtensionDevHost && !this._isExtensionDevTestFromCli && !this._isExtensionDevDebug && this._environmentService.debugExtensionHost.debugId) {
-			this._extensionHostDebugService.terminateSession(this._environmentService.debugExtensionHost.debugId);
-			event.join(timeout(100 /* wait a bit for IPC to get delivered */), { id: 'join.extensionDevelopment', label: nls.localize('join.extensionDevelopment', "Terminating extension debug session") });
-		}
 	}
 }

@@ -182,9 +182,6 @@ registerSingleton(IWebWorkerService, WebWorkerService, InstantiationType.Delayed
 
 //#region --- workbench contributions
 
-// Telemetry
-import './contrib/telemetry/browser/telemetry.contribution.js';
-
 // Preferences
 import './contrib/preferences/browser/preferences.contribution.js';
 import './contrib/preferences/browser/keybindingsEditorContribution.js';

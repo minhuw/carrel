@@ -527,7 +527,8 @@
 	display: flex;
 	align-items: center;
 	gap: 2px;
-	margin-left: 6px;
+	/* clear the macOS traffic-lights zone (~70px) so the buttons never overlap */
+	margin-left: 72px;
 	-webkit-app-region: no-drag;
 }
 

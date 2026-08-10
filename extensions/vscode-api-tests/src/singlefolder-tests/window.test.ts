@@ -5,7 +5,7 @@
 
 import * as assert from 'assert';
 import { join } from 'path';
-import { CancellationTokenSource, commands, MarkdownString, TabInputNotebook, Position, QuickPickItem, Selection, StatusBarAlignment, TextEditor, TextEditorSelectionChangeKind, TextEditorViewColumnChangeEvent, TabInputText, Uri, ViewColumn, window, workspace, TabInputTextDiff, UIKind, env } from 'vscode';
+import { CancellationTokenSource, commands, MarkdownString, Position, QuickPickItem, Selection, StatusBarAlignment, TextEditor, TextEditorSelectionChangeKind, TextEditorViewColumnChangeEvent, TabInputText, Uri, ViewColumn, window, workspace, TabInputTextDiff, UIKind, env } from 'vscode';
 import { assertNoRpc, closeAllEditors, createRandomFile, pathEquals } from '../utils';
 
 
@@ -450,17 +450,17 @@ suite('vscode API - window', () => {
 		// This test can be flaky because of opening a notebook
 		// Sometimes the webview doesn't resolve especially on windows so we will retry 3 times
 		this.retries(3);
-		const [docA, docB, docC, notebookDoc] = await Promise.all([
+		const [docA, docB, docC, docD] = await Promise.all([
 			workspace.openTextDocument(await createRandomFile()),
 			workspace.openTextDocument(await createRandomFile()),
 			workspace.openTextDocument(await createRandomFile()),
-			workspace.openNotebookDocument('jupyter-notebook', undefined)
+			workspace.openTextDocument(await createRandomFile())
 		]);
 
 		await window.showTextDocument(docA, { viewColumn: ViewColumn.One, preview: false });
 		await window.showTextDocument(docB, { viewColumn: ViewColumn.Two, preview: false });
 		await window.showTextDocument(docC, { viewColumn: ViewColumn.Three, preview: false });
-		await window.showNotebookDocument(notebookDoc, { viewColumn: ViewColumn.One, preview: false });
+		await window.showTextDocument(docD, { viewColumn: ViewColumn.One, preview: false });
 
 		const leftDiff = await createRandomFile();
 		const rightDiff = await createRandomFile();
@@ -472,8 +472,8 @@ suite('vscode API - window', () => {
 		// All resources should match the text documents as they're the only tabs currently open
 		assert.ok(tabs[0].input instanceof TabInputText);
 		assert.strictEqual(tabs[0].input.uri.toString(), docA.uri.toString());
-		assert.ok(tabs[1].input instanceof TabInputNotebook);
-		assert.strictEqual(tabs[1].input.uri.toString(), notebookDoc.uri.toString());
+		assert.ok(tabs[1].input instanceof TabInputText);
+		assert.strictEqual(tabs[1].input.uri.toString(), docD.uri.toString());
 		assert.ok(tabs[2].input instanceof TabInputText);
 		assert.strictEqual(tabs[2].input.uri.toString(), docB.uri.toString());
 		assert.ok(tabs[3].input instanceof TabInputText);

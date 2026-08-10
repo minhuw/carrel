@@ -6,7 +6,7 @@
 import assert from 'assert';
 import { timeout } from '../../../../../../base/common/async.js';
 import { Emitter } from '../../../../../../base/common/event.js';
-import { Disposable } from '../../../../../../base/common/lifecycle.js';
+import { Disposable, DisposableStore } from '../../../../../../base/common/lifecycle.js';
 import { URI } from '../../../../../../base/common/uri.js';
 import { runWithFakedTimers } from '../../../../../../base/test/common/timeTravelScheduler.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../../base/test/common/utils.js';
@@ -18,8 +18,10 @@ import { IBrowserViewModel, IBrowserViewWorkbenchService } from '../../../common
 import { BrowserAutoReloadService, BrowserAutoReloadWatcher } from '../../../electron-browser/features/browserAutoReloadFeatures.js';
 
 suite('Browser Auto Reload Features', () => {
-	const disposables = ensureNoDisposablesAreLeakedInTestSuite();
+	const disposables = new DisposableStore();
 
+	teardown(() => disposables.clear());
+	ensureNoDisposablesAreLeakedInTestSuite();
 
 	test('watches only non-empty file URLs', () => {
 		const fileService = new TestFileService();

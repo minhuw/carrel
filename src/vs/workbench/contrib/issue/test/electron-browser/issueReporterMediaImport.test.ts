@@ -34,7 +34,6 @@ import { INotificationService, NoOpNotification } from '../../../../../platform/
 import product from '../../../../../platform/product/common/product.js';
 import { IUserInteractionService } from '../../../../../platform/userInteraction/browser/userInteractionService.js';
 import { UserInteractionService } from '../../../../../platform/userInteraction/browser/userInteractionServiceImpl.js';
-import { IUpdateService, StateType } from '../../../../../platform/update/common/update.js';
 import { IUserDataProfile, IUserDataProfilesService } from '../../../../../platform/userDataProfile/common/userDataProfile.js';
 import { IEditorService } from '../../../../services/editor/common/editorService.js';
 import { IFilesConfigurationService } from '../../../../services/filesConfiguration/common/filesConfigurationService.js';
@@ -268,7 +267,6 @@ suite('Issue reporter media import lifecycle', () => {
 			},
 		});
 		instantiation.stub(IIssueFormService, { submitIssue: submit });
-		instantiation.stub(IUpdateService, { state: { type: StateType.Uninitialized }, onStateChange: Event.None });
 		instantiation.stub(IEditorService, { openEditor });
 		const container = mainWindow.document.createElement('div');
 		container.style.width = '800px';

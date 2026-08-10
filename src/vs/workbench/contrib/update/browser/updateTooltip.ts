@@ -233,7 +233,7 @@ export class UpdateTooltip extends Disposable {
 				break;
 			case DisablementReason.Policy:
 				this.renderMessage(
-					localize('updateTooltip.disabledByPolicy', "Updates are disabled by your organization."),
+					localize('updateTooltip.disabledByPolicy', "Updates are disabled by organization policy."),
 					Codicon.info);
 				break;
 			case DisablementReason.MissingConfiguration:

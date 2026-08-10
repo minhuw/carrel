@@ -8,7 +8,6 @@ import type { RendererContext } from 'vscode-notebook-renderer';
 import { extendMarkdownItWithMermaid } from '../../src/markdownMermaid/markdownIt';
 import { buildMermaidConfig, loadExtensionConfig, registerMermaidAddons, renderMermaidBlocksInElement } from '../shared';
 import { DiagramManager } from '../shared/diagramManager';
-import { placeSubgraphTitlesIn } from '../shared/subgraphTitles';
 import { VsCodeMermaidThemeTracker } from '../shared/vsCodeTheme';
 
 interface MarkdownItRenderer {
@@ -49,7 +48,6 @@ export async function activate(ctx: RendererContext<void>) {
 					liveEl.dataset.vscodeContext = mermaidContainer.dataset.vscodeContext ?? '';
 					liveEl.innerHTML = content;
 					if (!isError) {
-						placeSubgraphTitlesIn(liveEl);
 						diagramManager.setup(liveEl.id, liveEl);
 					}
 				} else {

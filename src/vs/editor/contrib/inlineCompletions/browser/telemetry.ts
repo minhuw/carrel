@@ -3,9 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { DataChannelForwardingTelemetryService } from '../../../../platform/dataChannel/browser/forwardingTelemetryService.js';
+import { ITelemetryService } from '../../../../platform/telemetry/common/telemetry.js';
 
-export function sendInlineCompletionsEndOfLifeTelemetry(dataChannel: DataChannelForwardingTelemetryService, endOfLifeSummary: InlineCompletionEndOfLifeEvent) {
+export function sendInlineCompletionsEndOfLifeTelemetry(dataChannel: ITelemetryService, endOfLifeSummary: InlineCompletionEndOfLifeEvent) {
 	dataChannel.publicLog2<InlineCompletionEndOfLifeEvent, InlineCompletionsEndOfLifeClassification>('inlineCompletion.endOfLife', endOfLifeSummary);
 }
 

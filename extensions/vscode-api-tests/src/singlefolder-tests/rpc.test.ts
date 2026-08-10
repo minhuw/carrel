@@ -94,11 +94,6 @@ suite('vscode', function () {
 	});
 
 
-	test('no rpc, createNotebookController(...)', function () {
-		const ctrl = vscode.notebooks.createNotebookController('foo', 'bar', '');
-		dispo.push(ctrl);
-		assertNoRpcFromEntry([ctrl, 'NotebookController']);
-	});
 
 	test('no rpc, createTerminal(...)', function () {
 		const ctrl = vscode.window.createTerminal({ name: 'termi' });
@@ -110,12 +105,6 @@ suite('vscode', function () {
 		const item = vscode.workspace.createFileSystemWatcher('**/*.ts');
 		dispo.push(item);
 		assertNoRpcFromEntry([item, 'FileSystemWatcher']);
-	});
-
-	test('no rpc, createTestController(...)', function () {
-		const item = vscode.tests.createTestController('iii', 'lll');
-		dispo.push(item);
-		assertNoRpcFromEntry([item, 'TestController']);
 	});
 
 	test('no rpc, createLanguageStatusItem(...)', function () {

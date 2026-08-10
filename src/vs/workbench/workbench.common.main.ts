@@ -112,7 +112,6 @@ import './services/authentication/browser/dynamicAuthenticationProviderStorageSe
 import './services/authentication/browser/authenticationQueryService.js';
 import '../platform/hover/browser/hoverService.js';
 import '../platform/userInteraction/browser/userInteractionServiceImpl.js';
-import './services/assignment/common/assignmentService.js';
 import './services/outline/browser/outlineService.js';
 import './services/languageDetection/browser/languageDetectionWorkerServiceImpl.js';
 import '../editor/common/services/languageFeaturesService.js';
@@ -175,9 +174,6 @@ registerSingleton(IWebWorkerService, WebWorkerService, InstantiationType.Delayed
 
 
 //#region --- workbench contributions
-
-// Telemetry
-import './contrib/telemetry/browser/telemetry.contribution.js';
 
 // Preferences
 import './contrib/preferences/browser/preferences.contribution.js';

@@ -17,10 +17,8 @@ import { EditorInput } from '../../common/editor/editorInput.js';
 import { SideBySideEditorInput } from '../../common/editor/sideBySideEditorInput.js';
 import { AbstractTextResourceEditorInput } from '../../common/editor/textResourceEditorInput.js';
 import { CustomEditorInput } from '../../contrib/customEditor/browser/customEditorInput.js';
-import { InteractiveEditorInput } from '../../contrib/interactive/browser/interactiveEditorInput.js';
 import { MergeEditorInput } from '../../contrib/mergeEditor/browser/mergeEditorInput.js';
 import { MultiDiffEditorInput } from '../../contrib/multiDiffEditor/browser/multiDiffEditorInput.js';
-import { NotebookEditorInput } from '../../contrib/notebook/common/notebookEditorInput.js';
 import { TerminalEditorInput } from '../../contrib/terminal/browser/terminalEditorInput.js';
 import { WebviewInput } from '../../contrib/webviewPanel/browser/webviewEditorInput.js';
 import { columnToEditorGroup, EditorGroupColumn, editorGroupToColumn } from '../../services/editor/common/editorGroupColumn.js';
@@ -142,14 +140,6 @@ export class MainThreadEditorTabs implements MainThreadEditorTabsShape {
 			return { kind: TabInputKind.UnknownInput };
 		}
 
-		if (editor instanceof NotebookEditorInput) {
-			return {
-				kind: TabInputKind.NotebookInput,
-				notebookType: editor.viewType,
-				uri: editor.resource
-			};
-		}
-
 		if (editor instanceof CustomEditorInput) {
 			return {
 				kind: TabInputKind.CustomEditorInput,
@@ -179,22 +169,6 @@ export class MainThreadEditorTabs implements MainThreadEditorTabsShape {
 					original: editor.original.resource
 				};
 			}
-			if (editor.modified instanceof NotebookEditorInput && editor.original instanceof NotebookEditorInput) {
-				return {
-					kind: TabInputKind.NotebookDiffInput,
-					notebookType: editor.original.viewType,
-					modified: editor.modified.resource,
-					original: editor.original.resource
-				};
-			}
-		}
-
-		if (editor instanceof InteractiveEditorInput) {
-			return {
-				kind: TabInputKind.InteractiveEditorInput,
-				uri: editor.resource,
-				inputBoxUri: editor.inputResource
-			};
 		}
 
 		if (editor instanceof MultiDiffEditorInput) {

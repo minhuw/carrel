@@ -115,7 +115,6 @@ const serverEntryPoints = buildfile.codeServer;
 const webEntryPoints = [
 	buildfile.workerEditor,
 	buildfile.workerExtensionHost,
-	buildfile.workerNotebook,
 	buildfile.workerLanguageDetection,
 	buildfile.workerLocalFileSearch,
 	buildfile.workerOutputLinks,

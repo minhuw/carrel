@@ -119,10 +119,6 @@
 			"project": "vscode-workbench"
 		},
 		{
-			"name": "vs/workbench/contrib/interactive",
-			"project": "vscode-workbench"
-		},
-		{
 			"name": "vs/workbench/contrib/languageStatus",
 			"project": "vscode-workbench"
 		},
@@ -160,10 +156,6 @@
 		},
 		{
 			"name": "vs/workbench/contrib/preferences",
-			"project": "vscode-workbench"
-		},
-		{
-			"name": "vs/workbench/contrib/notebook",
 			"project": "vscode-workbench"
 		},
 		{
@@ -560,10 +552,6 @@
 		},
 		{
 			"name": "vs/workbench/contrib/authentication",
-			"project": "vscode-workbench"
-		},
-		{
-			"name": "vs/workbench/contrib/replNotebook",
 			"project": "vscode-workbench"
 		},
 		{

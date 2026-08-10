@@ -264,7 +264,6 @@ export default defineConfig(
 			'src/vs/workbench/api/common/extHostChatAgents2.ts',
 			'src/vs/workbench/api/common/extHostChatSessions.ts',
 			'src/vs/workbench/api/common/extHostDebugService.ts',
-			'src/vs/workbench/api/common/extHostNotebookKernels.ts',
 			'src/vs/workbench/api/common/extHostQuickOpen.ts',
 			'src/vs/workbench/api/common/extHostRequireInterceptor.ts',
 			'src/vs/workbench/api/common/extHostTypeConverters.ts',
@@ -304,7 +303,6 @@ export default defineConfig(
 			'src/vs/workbench/contrib/editSessions/browser/editSessionsStorageService.ts',
 			'src/vs/workbench/contrib/editTelemetry/browser/helpers/documentWithAnnotatedEdits.ts',
 			'src/vs/workbench/contrib/extensions/common/extensionQuery.ts',
-			'src/vs/workbench/contrib/interactive/browser/interactiveEditorInput.ts',
 			'src/vs/workbench/contrib/issue/browser/issueFormService.ts',
 			'src/vs/workbench/contrib/issue/browser/issueQuickAccess.ts',
 			'src/vs/workbench/contrib/markers/browser/markersView.ts',
@@ -316,11 +314,6 @@ export default defineConfig(
 			'src/vs/workbench/contrib/mcp/common/mcpServerRequestHandler.ts',
 			'src/vs/workbench/contrib/mcp/test/common/mcpRegistryTypes.ts',
 			'src/vs/workbench/contrib/mcp/test/common/mcpServerRequestHandler.test.ts',
-			'src/vs/workbench/contrib/notebook/browser/controller/cellOutputActions.ts',
-			'src/vs/workbench/contrib/notebook/browser/controller/chat/notebook.chat.contribution.ts',
-			'src/vs/workbench/contrib/notebook/browser/controller/coreActions.ts',
-			'src/vs/workbench/contrib/notebook/browser/view/renderers/backLayerWebView.ts',
-			'src/vs/workbench/contrib/notebook/browser/viewParts/notebookKernelView.ts',
 			'src/vs/workbench/contrib/output/browser/outputView.ts',
 			'src/vs/workbench/contrib/preferences/browser/settingsTree.ts',
 			'src/vs/workbench/contrib/remoteTunnel/electron-browser/remoteTunnel.contribution.ts',
@@ -589,8 +582,6 @@ export default defineConfig(
 			'src/vs/workbench/api/common/extHostMcp.ts',
 			'src/vs/workbench/api/common/extHostMemento.ts',
 			'src/vs/workbench/api/common/extHostMessageService.ts',
-			'src/vs/workbench/api/common/extHostNotebookDocument.ts',
-			'src/vs/workbench/api/common/extHostNotebookDocumentSaveParticipant.ts',
 			'src/vs/workbench/api/common/extHostRequireInterceptor.ts',
 			'src/vs/workbench/api/common/extHostRpcService.ts',
 			'src/vs/workbench/api/common/extHostSCM.ts',
@@ -682,35 +673,6 @@ export default defineConfig(
 			'src/vs/workbench/contrib/mergeEditor/browser/utils.ts',
 			'src/vs/workbench/contrib/mergeEditor/browser/view/editorGutter.ts',
 			'src/vs/workbench/contrib/mergeEditor/browser/view/mergeEditor.ts',
-			'src/vs/workbench/contrib/notebook/browser/contrib/clipboard/notebookClipboard.ts',
-			'src/vs/workbench/contrib/notebook/browser/contrib/find/notebookFind.ts',
-			'src/vs/workbench/contrib/notebook/browser/contrib/layout/layoutActions.ts',
-			'src/vs/workbench/contrib/notebook/browser/contrib/profile/notebookProfile.ts',
-			'src/vs/workbench/contrib/notebook/browser/contrib/troubleshoot/layout.ts',
-			'src/vs/workbench/contrib/notebook/browser/controller/chat/cellChatActions.ts',
-			'src/vs/workbench/contrib/notebook/browser/controller/coreActions.ts',
-			'src/vs/workbench/contrib/notebook/browser/controller/editActions.ts',
-			'src/vs/workbench/contrib/notebook/browser/controller/notebookIndentationActions.ts',
-			'src/vs/workbench/contrib/notebook/browser/controller/sectionActions.ts',
-			'src/vs/workbench/contrib/notebook/browser/diff/diffComponents.ts',
-			'src/vs/workbench/contrib/notebook/browser/diff/inlineDiff/notebookDeletedCellDecorator.ts',
-			'src/vs/workbench/contrib/notebook/browser/notebookBrowser.ts',
-			'src/vs/workbench/contrib/notebook/browser/outputEditor/notebookOutputEditor.ts',
-			'src/vs/workbench/contrib/notebook/browser/services/notebookEditorServiceImpl.ts',
-			'src/vs/workbench/contrib/notebook/browser/view/notebookCellList.ts',
-			'src/vs/workbench/contrib/notebook/browser/view/renderers/backLayerWebView.ts',
-			'src/vs/workbench/contrib/notebook/browser/view/renderers/webviewMessages.ts',
-			'src/vs/workbench/contrib/notebook/browser/view/renderers/webviewPreloads.ts',
-			'src/vs/workbench/contrib/notebook/browser/viewModel/markupCellViewModel.ts',
-			'src/vs/workbench/contrib/notebook/browser/viewParts/notebookEditorStickyScroll.ts',
-			'src/vs/workbench/contrib/notebook/browser/viewParts/notebookHorizontalTracker.ts',
-			'src/vs/workbench/contrib/notebook/browser/viewParts/notebookKernelQuickPickStrategy.ts',
-			'src/vs/workbench/contrib/notebook/common/model/notebookCellTextModel.ts',
-			'src/vs/workbench/contrib/notebook/common/model/notebookMetadataTextModel.ts',
-			'src/vs/workbench/contrib/notebook/common/model/notebookTextModel.ts',
-			'src/vs/workbench/contrib/notebook/common/notebookCommon.ts',
-			'src/vs/workbench/contrib/notebook/common/notebookEditorModelResolverServiceImpl.ts',
-			'src/vs/workbench/contrib/notebook/test/browser/testNotebookEditor.ts',
 			'src/vs/workbench/contrib/performance/electron-browser/startupProfiler.ts',
 			'src/vs/workbench/contrib/preferences/browser/preferences.contribution.ts',
 			'src/vs/workbench/contrib/preferences/browser/preferencesRenderers.ts',
@@ -720,9 +682,6 @@ export default defineConfig(
 			'src/vs/workbench/contrib/remote/browser/tunnelView.ts',
 			'src/vs/workbench/contrib/search/browser/AISearch/aiSearchModel.ts',
 			'src/vs/workbench/contrib/search/browser/AISearch/aiSearchModelBase.ts',
-			'src/vs/workbench/contrib/search/browser/notebookSearch/notebookSearchModel.ts',
-			'src/vs/workbench/contrib/search/browser/notebookSearch/notebookSearchModelBase.ts',
-			'src/vs/workbench/contrib/search/browser/notebookSearch/searchNotebookHelpers.ts',
 			'src/vs/workbench/contrib/search/browser/replace.ts',
 			'src/vs/workbench/contrib/search/browser/replaceService.ts',
 			'src/vs/workbench/contrib/search/browser/searchActionsCopy.ts',
@@ -943,8 +902,7 @@ export default defineConfig(
 						'CustomEditorProvider',
 						'CustomReadonlyEditorProvider',
 						'TerminalLinkProvider',
-						'AuthenticationProvider',
-						'NotebookContentProvider'
+						'AuthenticationProvider'
 					]
 				}
 			],
@@ -1836,7 +1794,6 @@ export default defineConfig(
 						'vs/sessions/~',
 						'vs/workbench/contrib/terminal/terminalContribChatExports*',
 						'vs/workbench/contrib/terminal/terminalContribExports*',
-						'vscode-notebook-renderer', // Type only import
 						'@vscode/tree-sitter-wasm', // type import
 						{
 							'when': 'hasBrowser',
@@ -1866,7 +1823,6 @@ export default defineConfig(
 						// Only allow terminalContrib to import from itself, this works because
 						// terminalContrib is one extra folder deep
 						'vs/workbench/contrib/terminalContrib/*/~',
-						'vscode-notebook-renderer', // Type only import
 						'@vscode/tree-sitter-wasm', // type import
 						{
 							'when': 'hasBrowser',
@@ -2367,36 +2323,6 @@ export default defineConfig(
 			]
 		}
 	},
-	{
-		files: [
-			'src/vs/workbench/contrib/notebook/browser/view/renderers/*.ts'
-		],
-		languageOptions: {
-			parser: tseslint.parser,
-		},
-		plugins: {
-			'local': pluginLocal,
-		},
-		rules: {
-			'local/code-no-runtime-import': [
-				'error',
-				{
-					'src/vs/workbench/contrib/notebook/browser/view/renderers/webviewPreloads.ts': [
-						'**/*'
-					]
-				}
-			],
-			'local/code-limited-top-functions': [
-				'error',
-				{
-					'src/vs/workbench/contrib/notebook/browser/view/renderers/webviewPreloads.ts': [
-						'webviewPreloads',
-						'preloadsScriptStr'
-					]
-				}
-			]
-		}
-	},
 	// Terminal
 	{
 		files: [
@@ -2472,7 +2398,6 @@ export default defineConfig(
 	{
 		files: [
 			'extensions/markdown-language-features/src/**/*.ts',
-			'extensions/markdown-language-features/notebook/**/*.ts',
 			'extensions/markdown-language-features/preview-src/**/*.ts',
 			'extensions/media-preview/src/**/*.ts',
 			'extensions/simple-browser/**/*.ts',
@@ -2484,7 +2409,6 @@ export default defineConfig(
 				project: [
 					// Markdown
 					'extensions/markdown-language-features/tsconfig.json',
-					'extensions/markdown-language-features/notebook/tsconfig.json',
 					'extensions/markdown-language-features/preview-src/tsconfig.json',
 
 					// Media preview

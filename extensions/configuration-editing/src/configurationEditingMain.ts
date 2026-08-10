@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { getLocation, JSONPath, parse, visit, Location } from 'jsonc-parser';
+import { getLocation, JSONPath, parse, Location } from 'jsonc-parser';
 import * as vscode from 'vscode';
 import { SettingsDocument } from './settingsDocumentHelper';
 import { provideInstalledExtensionProposals } from './extensionsProposals';
@@ -16,13 +16,10 @@ export function activate(context: vscode.ExtensionContext): void {
 	//extensions suggestions
 	context.subscriptions.push(...registerExtensionsCompletions());
 
-	// launch.json variable suggestions
-	context.subscriptions.push(registerVariableCompletions('**/launch.json'));
-
 	// task.json variable suggestions
 	context.subscriptions.push(registerVariableCompletions('**/tasks.json'));
 
-	// Workspace file launch/tasks variable completions
+	// Workspace file task variable completions
 	context.subscriptions.push(registerVariableCompletions('**/*.code-workspace'));
 
 	// keybindings.json/package.json context key suggestions
@@ -42,7 +39,7 @@ function registerVariableCompletions(pattern: string): vscode.Disposable {
 		provideCompletionItems(document, position, _token) {
 			const location = getLocation(document.getText(), document.offsetAt(position));
 			if (isCompletingInsidePropertyStringValue(document, location, position)) {
-				if (document.fileName.endsWith('.code-workspace') && !isLocationInsideTopLevelProperty(location, ['launch', 'tasks'])) {
+				if (document.fileName.endsWith('.code-workspace') && !isLocationInsideTopLevelProperty(location, ['tasks'])) {
 					return [];
 				}
 
@@ -145,40 +142,6 @@ function getReplaceRange(document: vscode.TextDocument, location: Location, posi
 	return new vscode.Range(position, position);
 }
 
-vscode.languages.registerDocumentSymbolProvider({ pattern: '**/launch.json', language: 'jsonc' }, {
-	provideDocumentSymbols(document: vscode.TextDocument, _token: vscode.CancellationToken): vscode.ProviderResult<vscode.SymbolInformation[]> {
-		const result: vscode.SymbolInformation[] = [];
-		let name: string = '';
-		let lastProperty = '';
-		let startOffset = 0;
-		let depthInObjects = 0;
-
-		visit(document.getText(), {
-			onObjectProperty: (property, _offset, _length) => {
-				lastProperty = property;
-			},
-			onLiteralValue: (value: any, _offset: number, _length: number) => {
-				if (lastProperty === 'name') {
-					name = value;
-				}
-			},
-			onObjectBegin: (offset: number, _length: number) => {
-				depthInObjects++;
-				if (depthInObjects === 2) {
-					startOffset = offset;
-				}
-			},
-			onObjectEnd: (offset: number, _length: number) => {
-				if (name && depthInObjects === 2) {
-					result.push(new vscode.SymbolInformation(name, vscode.SymbolKind.Object, new vscode.Range(document.positionAt(startOffset), document.positionAt(offset))));
-				}
-				depthInObjects--;
-			},
-		});
-
-		return result;
-	}
-}, { label: 'Launch Targets' });
 
 function registerContextKeyCompletions(): vscode.Disposable {
 	type ContextKeyInfo = { key: string; type?: string; description?: string };

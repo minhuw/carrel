@@ -29,7 +29,6 @@ import { ExtHostLocalizationService, IExtHostLocalizationService } from './extHo
 import { ExtHostManagedSockets, IExtHostManagedSockets } from './extHostManagedSockets.js';
 import { ExtHostBrowserTunnelProxy, IExtHostBrowserTunnelProxy } from './extHostBrowserTunnelProxy.js';
 import { IExtHostTerminalShellIntegration, ExtHostTerminalShellIntegration } from './extHostTerminalShellIntegration.js';
-import { ExtHostTesting, IExtHostTesting } from './extHostTesting.js';
 import { ExtHostUrls, IExtHostUrlsService } from './extHostUrls.js';
 import { ExtHostProgress, IExtHostProgress } from './extHostProgress.js';
 import { ExtHostDataChannels, IExtHostDataChannels } from './extHostDataChannels.js';
@@ -43,7 +42,6 @@ registerSingleton(IExtHostCommands, ExtHostCommands, InstantiationType.Eager);
 registerSingleton(IExtHostProgress, ExtHostProgress, InstantiationType.Eager);
 registerSingleton(IExtHostConfiguration, ExtHostConfiguration, InstantiationType.Eager);
 registerSingleton(IExtHostConsumerFileSystem, ExtHostConsumerFileSystem, InstantiationType.Eager);
-registerSingleton(IExtHostTesting, ExtHostTesting, InstantiationType.Eager);
 registerSingleton(IExtHostDecorations, ExtHostDecorations, InstantiationType.Eager);
 registerSingleton(IExtHostDocumentsAndEditors, ExtHostDocumentsAndEditors, InstantiationType.Eager);
 registerSingleton(IExtHostManagedSockets, ExtHostManagedSockets, InstantiationType.Eager);

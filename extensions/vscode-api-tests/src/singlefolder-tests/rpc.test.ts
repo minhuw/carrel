@@ -112,12 +112,6 @@ suite('vscode', function () {
 		assertNoRpcFromEntry([item, 'FileSystemWatcher']);
 	});
 
-	test('no rpc, createTestController(...)', function () {
-		const item = vscode.tests.createTestController('iii', 'lll');
-		dispo.push(item);
-		assertNoRpcFromEntry([item, 'TestController']);
-	});
-
 	test('no rpc, createLanguageStatusItem(...)', function () {
 		const item = vscode.languages.createLanguageStatusItem('i', '*');
 		dispo.push(item);

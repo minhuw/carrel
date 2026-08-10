@@ -327,7 +327,9 @@ Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration)
 			[VerifyExtensionSignatureConfigKey]: {
 				type: 'boolean',
 				description: localize('extensions.verifySignature', "When enabled, extensions are verified to be signed before getting installed."),
-				default: true,
+				// Carrel: extensions come from Open VSX, which does not serve Microsoft
+				// marketplace signatures; default to not requiring them (as VSCodium does).
+				default: false,
 				scope: ConfigurationScope.APPLICATION,
 				included: isNative
 			},

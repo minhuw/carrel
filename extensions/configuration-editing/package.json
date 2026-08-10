@@ -53,7 +53,6 @@
         ],
         "filenames": [
           "settings.json",
-          "launch.json",
           "tasks.json",
           "keybindings.json",
           "extensions.json",
@@ -114,10 +113,6 @@
       {
         "fileMatch": "/.vscode/settings.json",
         "url": "vscode://schemas/settings/folder"
-      },
-      {
-        "fileMatch": "/.vscode/launch.json",
-        "url": "vscode://schemas/launch"
       },
       {
         "fileMatch": "/.vscode/tasks.json",

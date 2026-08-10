@@ -312,7 +312,6 @@ export function fromGithub({ name, version, repo, sha256, metadata }: IExtension
  */
 const nativeExtensions = [
 	'git',
-	'microsoft-authentication',
 ];
 
 const excludedExtensions = [
@@ -323,14 +322,6 @@ const excludedExtensions = [
 	'ms-vscode.node-debug',
 	'ms-vscode.node-debug2',
 ];
-
-const marketplaceWebExtensionsExclude = new Set([
-	'ms-vscode.node-debug',
-	'ms-vscode.node-debug2',
-	'ms-vscode.js-debug-companion',
-	'ms-vscode.js-debug',
-	'ms-vscode.vscode-js-profile-table'
-]);
 
 const productJson = JSON.parse(fs.readFileSync(path.join(import.meta.dirname, '../../product.json'), 'utf8'));
 const builtInExtensions: IExtensionDefinition[] = productJson.builtInExtensions || [];
@@ -461,7 +452,7 @@ function doPackageLocalExtensionsStream(forWeb: boolean, native: boolean): Strea
 
 export function packageMarketplaceExtensionsStream(forWeb: boolean): Stream {
 	const marketplaceExtensionsDescriptions = [
-		...builtInExtensions.filter(({ name }) => (forWeb ? !marketplaceWebExtensionsExclude.has(name) : true)),
+		...builtInExtensions,
 		...(forWeb ? webBuiltInExtensions : [])
 	];
 	const marketplaceExtensionsStream = minifyExtensionResources(
@@ -595,13 +586,9 @@ export async function esbuildExtensions(taskName: string, isWatch: boolean, scri
 
 // Additional projects to run esbuild on. These typically build code for webviews
 const esbuildMediaScripts: { script: string; tsconfig: string }[] = [
-	{ script: 'ipynb/esbuild.notebook.mts', tsconfig: 'ipynb/notebook-src/tsconfig.json' },
-	{ script: 'markdown-language-features/esbuild.notebook.mts', tsconfig: 'markdown-language-features/notebook/tsconfig.json' },
 	{ script: 'markdown-language-features/esbuild.webview.mts', tsconfig: 'markdown-language-features/preview-src/tsconfig.json' },
 	{ script: 'markdown-language-features/esbuild.markdownEditor.mts', tsconfig: 'markdown-language-features/markdown-editor-src/tsconfig.json' },
-	{ script: 'markdown-math/esbuild.notebook.mts', tsconfig: 'markdown-math/notebook/tsconfig.json' },
-	{ script: 'mermaid-markdown-features/esbuild.webview.mts', tsconfig: 'mermaid-markdown-features/preview-src/tsconfig.json' },
-	{ script: 'notebook-renderers/esbuild.notebook.mts', tsconfig: 'notebook-renderers/tsconfig.json' },
+	{ script: 'markdown-math/build.previewStyles.mts', tsconfig: 'markdown-math/tsconfig.browser.json' },
 	{ script: 'simple-browser/esbuild.webview.mts', tsconfig: 'simple-browser/preview-src/tsconfig.json' },
 ];
 

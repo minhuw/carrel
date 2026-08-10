@@ -18,11 +18,10 @@ src/
   markdownExtensions.ts  Reads `markdown.*` contributions from other extensions
 
 preview-src/             Frontend code that runs inside the preview webview
-notebook/                Notebook Markdown renderer source
 media/                   Default Markdown preview styles and scripts
 ```
 
-Build outputs are written to `out/` (desktop), `dist/` (web), and `notebook-out/` (notebook renderer).
+Build outputs are written to `out/` (desktop), `dist/` (web), `media/` (preview webview), and `markdown-editor-out/` (Markdown editor).
 
 ### Developing the Markdown editor
 

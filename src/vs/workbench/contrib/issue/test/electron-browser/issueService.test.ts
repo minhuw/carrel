@@ -21,7 +21,6 @@ import { ITelemetryService } from '../../../../../platform/telemetry/common/tele
 import { NullTelemetryService } from '../../../../../platform/telemetry/common/telemetryUtils.js';
 import { IColorTheme, IThemeService } from '../../../../../platform/theme/common/themeService.js';
 import { IWorkspaceTrustManagementService } from '../../../../../platform/workspace/common/workspaceTrust.js';
-import { IWorkbenchAssignmentService } from '../../../../services/assignment/common/assignmentService.js';
 import { AuthenticationSession, IAuthenticationService } from '../../../../services/authentication/common/authentication.js';
 import { IWorkbenchEnvironmentService } from '../../../../services/environment/common/environmentService.js';
 import { IWorkbenchExtensionEnablementService } from '../../../../services/extensionManagement/common/extensionManagement.js';
@@ -49,7 +48,6 @@ suite('NativeIssueService additional repositories', () => {
 		instantiationService.stub(IExtensionManagementService, { getInstalled: async () => extensions });
 		instantiationService.stub(IWorkbenchExtensionEnablementService, { isEnabled: () => true });
 		instantiationService.stub(IWorkspaceTrustManagementService, { isWorkspaceTrusted: () => true });
-		instantiationService.stub(IWorkbenchAssignmentService, { getCurrentExperiments: async () => [] });
 		instantiationService.stub(IAuthenticationService, { getSessions: async provider => { authenticationProviders.push(provider); return authenticationSessions; } });
 		instantiationService.stub(IIntegrityService, { isPure: async () => ({ isPure: true, proof: [] }) });
 		instantiationService.stub(IWorkbenchEnvironmentService, { isSessionsWindow: false });

@@ -11,14 +11,12 @@ import { fromNow } from '../../../../base/common/date.js';
 import { Event } from '../../../../base/common/event.js';
 import { Disposable, DisposableStore, IDisposable, MutableDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
-import { IConfigurationService, isConfigured } from '../../../../platform/configuration/common/configuration.js';
+import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { INotificationService, Severity } from '../../../../platform/notification/common/notification.js';
 import { NotificationTelemetryId } from '../../../../platform/notification/common/notificationTelemetry.js';
 import { IOpenerService } from '../../../../platform/opener/common/opener.js';
 import { IProductService } from '../../../../platform/product/common/productService.js';
 import { IStorageService, StorageScope } from '../../../../platform/storage/common/storage.js';
-import { logSettingExperimentTrigger } from '../../../../platform/telemetry/common/experimentTrigger.js';
-import { ITelemetryService } from '../../../../platform/telemetry/common/telemetry.js';
 import { IUpdateService, State, StateType } from '../../../../platform/update/common/update.js';
 import { IWorkbenchContribution } from '../../../common/contributions.js';
 import { IBannerService } from '../../../services/banner/browser/bannerService.js';
@@ -63,7 +61,6 @@ export class OutdatedBuildReminderContribution extends Disposable implements IWo
 		@IOpenerService private readonly openerService: IOpenerService,
 		@IProductService private readonly productService: IProductService,
 		@IStorageService private readonly storageService: IStorageService,
-		@ITelemetryService private readonly telemetryService: ITelemetryService,
 		@IUpdateService private readonly updateService: IUpdateService,
 		@IWorkbenchEnvironmentService private readonly environmentService: IWorkbenchEnvironmentService,
 	) {
@@ -100,11 +97,6 @@ export class OutdatedBuildReminderContribution extends Disposable implements IWo
 			return;
 		}
 
-		// Every experiment arm reaches this point, so log the trigger before reading the setting or the
-		// last-shown time, which only the enabled arm writes. A value the user chose is not affected by experiments.
-		if (!isConfigured(this.configurationService.inspect(OUTDATED_BUILD_REMINDER_SETTING))) {
-			logSettingExperimentTrigger(this.telemetryService, OUTDATED_BUILD_REMINDER_SETTING);
-		}
 		if (!this.isEnabled()) {
 			return;
 		}

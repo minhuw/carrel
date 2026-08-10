@@ -25,7 +25,6 @@ import { IEditorProgressService } from '../../../../../platform/progress/common/
 import { IWorkspaceContextService, IWorkspace } from '../../../../../platform/workspace/common/workspace.js';
 import { ResourceLabel } from '../../../../browser/labels.js';
 import { IDecorationsService } from '../../../../services/decorations/common/decorations.js';
-import { INotebookDocumentService } from '../../../../services/notebook/common/notebookDocumentService.js';
 import { ITextFileService } from '../../../../services/textfile/common/textfiles.js';
 import { ComponentFixtureContext, createEditorServices, createTextModel, defineComponentFixture, defineThemedFixtureGroup, registerWorkbenchServices } from '../fixtureUtils.js';
 import { TestInstantiationService } from '../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
@@ -220,7 +219,6 @@ function createCommonServices(disposableStore: DisposableStore, theme: Component
 			reg.defineInstance(IDecorationsService, new class extends mock<IDecorationsService>() { override onDidChangeDecorations = Event.None; }());
 			reg.defineInstance(ITextFileService, new class extends mock<ITextFileService>() { override readonly untitled = new class extends mock<ITextFileService['untitled']>() { override readonly onDidChangeLabel = Event.None; }(); }());
 			reg.defineInstance(IWorkspaceContextService, new class extends mock<IWorkspaceContextService>() { override onDidChangeWorkspaceFolders = Event.None; override getWorkspace(): IWorkspace { return { id: '', folders: [], configuration: undefined }; } }());
-			reg.definePartialInstance(INotebookDocumentService, { getNotebook: () => undefined });
 			registerWorkbenchServices(reg);
 		},
 	});

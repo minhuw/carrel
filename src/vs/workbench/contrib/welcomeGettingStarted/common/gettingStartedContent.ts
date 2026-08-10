@@ -5,12 +5,10 @@
 
 import themePickerContent from './media/theme_picker.js';
 import themePickerSmallContent from './media/theme_picker_small.js';
-import notebookProfileContent from './media/notebookProfile.js';
 import { localize } from '../../../../nls.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
 import { registerIcon } from '../../../../platform/theme/common/iconRegistry.js';
-import { NotebookSetting } from '../../notebook/common/notebookCommon.js';
 import { CONTEXT_ACCESSIBILITY_MODE_ENABLED } from '../../../../platform/accessibility/common/accessibility.js';
 import { URI } from '../../../../base/common/uri.js';
 
@@ -52,7 +50,6 @@ export async function moduleToContent(resource: URI): Promise<string> {
 
 gettingStartedContentRegistry.registerProvider('vs/workbench/contrib/welcomeGettingStarted/common/media/theme_picker', themePickerContent);
 gettingStartedContentRegistry.registerProvider('vs/workbench/contrib/welcomeGettingStarted/common/media/theme_picker_small', themePickerSmallContent);
-gettingStartedContentRegistry.registerProvider('vs/workbench/contrib/welcomeGettingStarted/common/media/notebookProfile', notebookProfileContent);
 // Register empty media for accessibility walkthrough
 gettingStartedContentRegistry.registerProvider('vs/workbench/contrib/welcomeGettingStarted/common/media/empty', () => '');
 
@@ -542,28 +539,4 @@ export const walkthroughs: GettingStartedWalkthroughContent = [
 			]
 		}
 	},
-	{
-		id: 'notebooks',
-		title: localize('gettingStarted.notebook.title', "Customize Notebooks"),
-		description: '',
-		icon: setupIcon,
-		isFeatured: false,
-		when: `config.${NotebookSetting.openGettingStarted} && userHasOpenedNotebook`,
-		walkthroughPageTitle: localize('gettingStarted.notebook.walkthroughPageTitle', 'Notebooks'),
-		content: {
-			type: 'steps',
-			steps: [
-				{
-					completionEvents: ['onCommand:notebook.setProfile'],
-					id: 'notebookProfile',
-					title: localize('gettingStarted.notebookProfile.title', "Select the layout for your notebooks"),
-					description: localize('gettingStarted.notebookProfile.description', "Get notebooks to feel just the way you prefer"),
-					when: 'userHasOpenedNotebook',
-					media: {
-						type: 'markdown', path: 'notebookProfile'
-					}
-				},
-			]
-		}
-	}
 ];

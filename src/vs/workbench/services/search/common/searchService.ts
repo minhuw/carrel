@@ -8,7 +8,7 @@ import { DeferredPromise, raceCancellationError } from '../../../../base/common/
 import { CancellationToken } from '../../../../base/common/cancellation.js';
 import { CancellationError } from '../../../../base/common/errors.js';
 import { Disposable, IDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
-import { ResourceMap, ResourceSet } from '../../../../base/common/map.js';
+import { ResourceMap } from '../../../../base/common/map.js';
 import { Schemas } from '../../../../base/common/network.js';
 import { randomChance } from '../../../../base/common/numbers.js';
 import { StopWatch } from '../../../../base/common/stopwatch.js';
@@ -117,8 +117,6 @@ export class SearchService extends Disposable implements ISearchService {
 		query: ITextQuery,
 		token?: CancellationToken | undefined,
 		onProgress?: ((result: ISearchProgressItem) => void) | undefined,
-		notebookFilesToIgnore?: ResourceSet,
-		asyncNotebookFilesToIgnore?: Promise<ResourceSet>
 	): {
 		syncResults: ISearchComplete;
 		asyncResults: Promise<ISearchComplete>;
@@ -127,7 +125,7 @@ export class SearchService extends Disposable implements ISearchService {
 		const openEditorResults = this.getOpenEditorResults(query);
 
 		if (onProgress) {
-			arrays.coalesce([...openEditorResults.results.values()]).filter(e => !(notebookFilesToIgnore && notebookFilesToIgnore.has(e.resource))).forEach(onProgress);
+			arrays.coalesce([...openEditorResults.results.values()]).forEach(onProgress);
 		}
 
 		const syncResults: ISearchComplete = {
@@ -137,11 +135,10 @@ export class SearchService extends Disposable implements ISearchService {
 		};
 
 		const getAsyncResults = async () => {
-			const resolvedAsyncNotebookFilesToIgnore = await asyncNotebookFilesToIgnore ?? new ResourceSet();
 			const onProviderProgress = (progress: ISearchProgressItem) => {
 				if (isFileMatch(progress)) {
 					// Match
-					if (!openEditorResults.results.has(progress.resource) && !resolvedAsyncNotebookFilesToIgnore.has(progress.resource) && onProgress) { // don't override open editor results
+					if (!openEditorResults.results.has(progress.resource) && onProgress) { // don't override open editor results
 						onProgress(progress);
 					}
 				} else if (onProgress) {

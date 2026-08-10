@@ -11,7 +11,6 @@ import { ITextModel } from '../../../../../editor/common/model.js';
 import { IFileStatWithPartialMetadata, IFileService } from '../../../../../platform/files/common/files.js';
 import { IProgress, IProgressStep } from '../../../../../platform/progress/common/progress.js';
 import { ReplacePattern } from '../../../../services/search/common/replace.js';
-import { NotebookEditorWidget } from '../../../notebook/browser/notebookEditorWidget.js';
 import { RangeHighlightDecorations } from './rangeDecorations.js';
 import { Event } from '../../../../../base/common/event.js';
 
@@ -203,9 +202,6 @@ export interface ISearchTreeFolderMatch {
 	replaceAll(): Promise<any>;
 	recursiveFileCount(): number;
 	doRemoveFile(fileMatches: ISearchTreeFileMatch[], dispose?: boolean, trigger?: boolean, keepReadonly?: boolean): void;
-	unbindNotebookEditorWidget(editor: NotebookEditorWidget, resource: URI): void;
-	bindNotebookEditorWidget(editor: NotebookEditorWidget, resource: URI): Promise<void>;
-	unbindNotebookEditorWidget(editor: NotebookEditorWidget, resource: URI): void;
 	hasOnlyReadOnlyMatches(): boolean;
 	fileMatchesIterator(): IterableIterator<ISearchTreeFileMatch>;
 	folderMatchesIterator(): IterableIterator<ISearchTreeFolderMatchWithResource>;

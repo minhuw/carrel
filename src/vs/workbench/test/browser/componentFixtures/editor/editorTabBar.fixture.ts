@@ -36,7 +36,6 @@ import { BreadcrumbsService, IBreadcrumbsService } from '../../../../browser/par
 import { EditorTitleControl } from '../../../../browser/parts/editor/editorTitleControl.js';
 import { IDecorationData, IDecorationsProvider, IDecorationsService } from '../../../../services/decorations/common/decorations.js';
 import { DecorationsService } from '../../../../services/decorations/browser/decorationsService.js';
-import { INotebookDocumentService, NotebookDocumentWorkbenchService } from '../../../../services/notebook/common/notebookDocumentService.js';
 import { IOutlineService } from '../../../../services/outline/browser/outline.js';
 import { LayoutSettings } from '../../../../services/layout/browser/layoutService.js';
 import { TestContextService } from '../../../common/workbenchTestServices.js';
@@ -388,7 +387,6 @@ export function renderEditorTabBarFixture(ctx: ComponentFixtureContext, options:
 
 	// Services the base workbench harness does not stub but the tab bar needs.
 	instantiationService.stub(ITreeViewsDnDService, new TreeViewsDnDService());
-	instantiationService.stub(INotebookDocumentService, new NotebookDocumentWorkbenchService());
 
 	const contextKeyService = disposableStore.add(instantiationService.createInstance(ContextKeyService));
 	instantiationService.stub(IContextKeyService, contextKeyService);

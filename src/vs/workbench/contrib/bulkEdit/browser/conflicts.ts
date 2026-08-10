@@ -11,7 +11,6 @@ import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { ITextModel } from '../../../../editor/common/model.js';
 import { ResourceEdit, ResourceFileEdit, ResourceTextEdit } from '../../../../editor/browser/services/bulkEditService.js';
-import { ResourceNotebookCellEdit } from './bulkCellEdits.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
 
 export class ConflictDetector {
@@ -49,9 +48,6 @@ export class ConflictDetector {
 				} else if (edit.oldResource) {
 					_workspaceEditResources.set(edit.oldResource, true);
 				}
-			} else if (edit instanceof ResourceNotebookCellEdit) {
-				_workspaceEditResources.set(edit.resource, true);
-
 			} else {
 				logService.warn('UNKNOWN edit type', edit);
 			}

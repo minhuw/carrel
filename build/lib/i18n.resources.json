@@ -231,10 +231,6 @@
 			"project": "vscode-workbench"
 		},
 		{
-			"name": "vs/workbench/contrib/testing",
-			"project": "vscode-workbench"
-		},
-		{
 			"name": "vs/workbench/contrib/terminal",
 			"project": "vscode-workbench"
 		},

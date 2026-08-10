@@ -80,7 +80,6 @@ import './mainThreadLabelService.js';
 import './mainThreadTunnelService.js';
 import './mainThreadAuthentication.js';
 import './mainThreadTimeline.js';
-import './mainThreadTesting.js';
 import './mainThreadSecretState.js';
 import './mainThreadShare.js';
 import './mainThreadProfileContentHandlers.js';

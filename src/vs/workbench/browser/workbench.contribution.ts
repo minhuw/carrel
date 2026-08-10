@@ -757,7 +757,9 @@ const registry = Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Con
 			},
 			'workbench.compactChrome': {
 				'type': 'boolean',
-				'default': true,
+				// Carrel: opt-in. The default chrome keeps the custom title bar,
+				// matching the reference design's titlebar row.
+				'default': false,
 				'markdownDescription': localize({ key: 'compactChrome', comment: ['{0}, {1} is a placeholder for a setting identifier.'] }, "Controls whether the compact chrome layout is used. When enabled, the custom title bar is removed and the macOS window controls (traffic lights) overlay the top of the workbench, giving the window a compact, unified look. Only applies on macOS desktop when {0} is {1}; ignored on other platforms.", '`#window.titleBarStyle#`', '`custom`'),
 			},
 			'workbench.layoutControl.type': {

@@ -518,3 +518,31 @@
 	border-radius: 16px;
 	text-align: center;
 }
+
+/*
+ * Carrel: left-aligned titlebar actions (sidebar toggle, back/forward),
+ * mirroring the reference design's titlebar row.
+ */
+.monaco-workbench .part.titlebar .carrel-titlebar-actions {
+	display: flex;
+	align-items: center;
+	gap: 2px;
+	margin-left: 6px;
+	-webkit-app-region: no-drag;
+}
+
+.monaco-workbench .part.titlebar .carrel-titlebar-actions .action-label {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 26px;
+	height: 26px;
+	border-radius: 4px;
+	cursor: pointer;
+	opacity: 0.75;
+}
+
+.monaco-workbench .part.titlebar .carrel-titlebar-actions .action-label:hover {
+	opacity: 1;
+	background-color: var(--vscode-toolbar-hoverBackground);
+}

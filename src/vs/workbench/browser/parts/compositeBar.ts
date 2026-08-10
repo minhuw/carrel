@@ -436,6 +436,10 @@ export class CompositeBar extends Widget implements ICompositeBar {
 		}
 	}
 
+	getActiveCompositeId(): string | undefined {
+		return this.model.activeItem?.id;
+	}
+
 	areBadgesEnabled(compositeId: string): boolean {
 		return this.viewDescriptorService.getViewContainerBadgeEnablementState(compositeId);
 	}

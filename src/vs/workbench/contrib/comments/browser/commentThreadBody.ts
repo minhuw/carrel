@@ -16,7 +16,7 @@ import { IInstantiationService } from '../../../../platform/instantiation/common
 import { URI } from '../../../../base/common/uri.js';
 import { ICommentThreadWidget } from '../common/commentThreadWidget.js';
 import { IMarkdownRendererExtraOptions } from '../../../../platform/markdown/browser/markdownRenderer.js';
-import { ICellRange } from '../../notebook/common/notebookRange.js';
+import { ICellRange } from '../../../../editor/common/languages.js';
 import { IRange } from '../../../../editor/common/core/range.js';
 import { LayoutableEditor } from './simpleCommentEditor.js';
 

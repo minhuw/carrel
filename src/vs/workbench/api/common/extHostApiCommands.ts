@@ -18,7 +18,6 @@ import { ApiCommand, ApiCommandArgument, ApiCommandResult, ExtHostCommands } fro
 import { CustomCodeAction } from './extHostLanguageFeatures.js';
 import * as typeConverters from './extHostTypeConverters.js';
 import * as types from './extHostTypes.js';
-import { TransientCellMetadata, TransientDocumentMetadata } from '../../contrib/notebook/common/notebookCommon.js';
 import * as search from '../../contrib/search/common/search.js';
 import type * as vscode from 'vscode';
 
@@ -380,37 +379,6 @@ const newCommands: ApiCommand[] = [
 		})
 	),
 
-	// --- notebooks
-	new ApiCommand(
-		'vscode.resolveNotebookContentProviders', '_resolveNotebookContentProvider', 'Resolve Notebook Content Providers',
-		[
-			// new ApiCommandArgument<string, string>('viewType', '', v => typeof v === 'string', v => v),
-			// new ApiCommandArgument<string, string>('displayName', '', v => typeof v === 'string', v => v),
-			// new ApiCommandArgument<object, object>('options', '', v => typeof v === 'object', v => v),
-		],
-		new ApiCommandResult<{
-			viewType: string;
-			displayName: string;
-			options: { transientOutputs: boolean; transientCellMetadata: TransientCellMetadata; transientDocumentMetadata: TransientDocumentMetadata };
-			filenamePattern: (vscode.GlobPattern | { include: vscode.GlobPattern; exclude: vscode.GlobPattern })[];
-		}[], {
-			viewType: string;
-			displayName: string;
-			filenamePattern: (vscode.GlobPattern | { include: vscode.GlobPattern; exclude: vscode.GlobPattern })[];
-			options: vscode.NotebookDocumentContentOptions;
-		}[] | undefined>('A promise that resolves to an array of NotebookContentProvider static info objects.', tryMapWith(item => {
-			return {
-				viewType: item.viewType,
-				displayName: item.displayName,
-				options: {
-					transientOutputs: item.options.transientOutputs,
-					transientCellMetadata: item.options.transientCellMetadata,
-					transientDocumentMetadata: item.options.transientDocumentMetadata
-				},
-				filenamePattern: item.filenamePattern.map(pattern => typeConverters.NotebookExclusiveDocumentPattern.to(pattern))
-			};
-		}))
-	),
 	// --- debug support
 	new ApiCommand(
 		'vscode.executeInlineValueProvider', '_executeInlineValueProvider', 'Execute inline value provider',
@@ -501,22 +469,6 @@ const newCommands: ApiCommand[] = [
 		'vscode.provideSubtypes', '_executeProvideSubtypes', 'Compute subtypes for an item',
 		[ApiCommandArgument.TypeHierarchyItem],
 		new ApiCommandResult<ITypeHierarchyItemDto[], types.TypeHierarchyItem[]>('A promise that resolves to an array of TypeHierarchyItem-instances', v => v.map(typeConverters.TypeHierarchyItem.to))
-	),
-	// --- testing
-	new ApiCommand(
-		'vscode.revealTestInExplorer', '_revealTestInExplorer', 'Reveals a test instance in the explorer',
-		[ApiCommandArgument.TestItem],
-		ApiCommandResult.Void
-	),
-	new ApiCommand(
-		'vscode.startContinuousTestRun', 'testing.startContinuousRunFromExtension', 'Starts running the given tests with continuous run mode.',
-		[ApiCommandArgument.TestProfile, ApiCommandArgument.Arr(ApiCommandArgument.TestItem)],
-		ApiCommandResult.Void
-	),
-	new ApiCommand(
-		'vscode.stopContinuousTestRun', 'testing.stopContinuousRunFromExtension', 'Stops running the given tests with continuous run mode.',
-		[ApiCommandArgument.Arr(ApiCommandArgument.TestItem)],
-		ApiCommandResult.Void
 	),
 	// --- continue edit session
 	new ApiCommand(

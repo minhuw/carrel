@@ -18,8 +18,7 @@ import { extensionNotificationTelemetry, NotificationActionTelemetryId, withNoti
 export class MainThreadProgress implements MainThreadProgressShape {
 
 	private static readonly URGENT_PROGRESS_SOURCES = [
-		'vscode.github-authentication',
-		'vscode.microsoft-authentication'
+		'vscode.github-authentication'
 	];
 
 	private readonly _progressService: IProgressService;

@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { localize } from '../../nls.js';
 import { URI } from '../../base/common/uri.js';
 import { dirname, isEqual, basenameOrAuthority } from '../../base/common/resources.js';
 import { IconLabel, IIconLabelValueOptions, IIconLabelCreationOptions } from '../../base/browser/ui/iconLabel/iconLabel.js';
@@ -25,7 +24,6 @@ import { IInstantiationService } from '../../platform/instantiation/common/insta
 import { normalizeDriveLetter } from '../../base/common/labels.js';
 import { IRange } from '../../editor/common/core/range.js';
 import { ThemeIcon } from '../../base/common/themables.js';
-import { INotebookDocumentService, extractCellOutputDetails } from '../services/notebook/common/notebookDocumentService.js';
 
 export interface IResourceLabelProps {
 	resource?: URI | { primary?: URI; secondary?: URI };
@@ -321,7 +319,6 @@ class ResourceLabelWidget extends IconLabel {
 		@ILabelService private readonly labelService: ILabelService,
 		@ITextFileService private readonly textFileService: ITextFileService,
 		@IWorkspaceContextService private readonly contextService: IWorkspaceContextService,
-		@INotebookDocumentService private readonly notebookDocumentService: INotebookDocumentService
 	) {
 		super(container, options);
 	}
@@ -480,54 +477,6 @@ class ResourceLabelWidget extends IconLabel {
 					options.title = `${untitledModel.name} • ${untitledTitle}`;
 				} else {
 					options.title = untitledTitle;
-				}
-			}
-		}
-
-		if (!options.forceLabel && !isSideBySideEditor && resource?.scheme === Schemas.vscodeNotebookCell) {
-			// Notebook cells are embeded in a notebook document
-			// As such we always ask the actual notebook document
-			// for its position in the document.
-			const notebookDocument = this.notebookDocumentService.getNotebook(resource);
-			const cellIndex = notebookDocument?.getCellIndex(resource);
-			if (notebookDocument && cellIndex !== undefined && typeof label.name === 'string') {
-				options.title = localize('notebookCellLabel', "{0} • Cell {1}", label.name, `${cellIndex + 1}`);
-			}
-
-			if (typeof label.name === 'string' && notebookDocument && cellIndex !== undefined && typeof label.name === 'string') {
-				label.name = localize('notebookCellLabel', "{0} • Cell {1}", label.name, `${cellIndex + 1}`);
-			}
-		}
-
-		if (!options.forceLabel && !isSideBySideEditor && resource?.scheme === Schemas.vscodeNotebookCellOutput) {
-			const notebookDocument = this.notebookDocumentService.getNotebook(resource);
-			const outputUriData = extractCellOutputDetails(resource);
-			if (outputUriData?.cellFragment) {
-				if (!outputUriData.notebook) {
-					return;
-				}
-				const cellUri = outputUriData.notebook.with({
-					scheme: Schemas.vscodeNotebookCell,
-					fragment: outputUriData.cellFragment
-				});
-				const cellIndex = notebookDocument?.getCellIndex(cellUri);
-				const outputIndex = outputUriData.outputIndex;
-
-				if (cellIndex !== undefined && outputIndex !== undefined && typeof label.name === 'string') {
-					label.name = localize(
-						'notebookCellOutputLabel',
-						"{0} • Cell {1} • Output {2}",
-						label.name,
-						`${cellIndex + 1}`,
-						`${outputIndex + 1}`
-					);
-				} else if (cellIndex !== undefined && typeof label.name === 'string') {
-					label.name = localize(
-						'notebookCellOutputLabelSimple',
-						"{0} • Cell {1} • Output",
-						label.name,
-						`${cellIndex + 1}`
-					);
 				}
 			}
 		}

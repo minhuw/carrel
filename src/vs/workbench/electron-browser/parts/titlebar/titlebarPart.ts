@@ -11,7 +11,7 @@ import { IConfigurationService, IConfigurationChangeEvent } from '../../../../pl
 import { IStorageService } from '../../../../platform/storage/common/storage.js';
 import { INativeWorkbenchEnvironmentService } from '../../../services/environment/electron-browser/environmentService.js';
 import { IHostService } from '../../../services/host/browser/host.js';
-import { isMacintosh, isWindows, isLinux, isTahoeOrNewer } from '../../../../base/common/platform.js';
+import { isMacintosh, isWindows, isLinux } from '../../../../base/common/platform.js';
 import { IMenuService, MenuId } from '../../../../platform/actions/common/actions.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IActionViewItemService } from '../../../../platform/actions/browser/actionViewItemService.js';
@@ -44,13 +44,10 @@ export class NativeTitlebarPart extends BrowserTitlebarPart {
 	}
 	override get maximumHeight(): number { return this.minimumHeight; }
 
-	private tahoeOrNewer: boolean;
 	private get macTitlebarSize() {
-		if (this.tahoeOrNewer) {
-			return 32;
-		}
-
-		return 28;
+		// Carrel: the reference design's titlebar row is 35px tall (stock:
+		// 32 on Tahoe, 28 on older macOS).
+		return 35;
 	}
 
 	//#endregion
@@ -84,7 +81,6 @@ export class NativeTitlebarPart extends BrowserTitlebarPart {
 	) {
 		super(id, targetWindow, editorGroupsContainer, contextMenuService, configurationService, environmentService, instantiationService, themeService, storageService, layoutService, contextKeyService, hostService, editorService, menuService, keybindingService, actionViewItemService, commandService);
 
-		this.tahoeOrNewer = isTahoeOrNewer(environmentService.os.release);
 
 		this.handleWindowsAlwaysOnTop(targetWindow.vscodeWindowId);
 	}

@@ -1,8 +1,8 @@
 src/**
-notebook/**
 tsconfig*.json
 **/*.tsbuildinfo
 esbuild*
+build.previewStyles.mts
 cgmanifest.json
 package-lock.json
 .gitignore

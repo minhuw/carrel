@@ -22,7 +22,6 @@ import { ILanguageService } from '../../../../editor/common/languages/language.j
 import { IExtensionRecommendationNotificationService, RecommendationsNotificationResult, RecommendationSource } from '../../../../platform/extensionRecommendations/common/extensionRecommendations.js';
 import { distinct } from '../../../../base/common/arrays.js';
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
-import { CellUri } from '../../notebook/common/notebookCommon.js';
 import { disposableTimeout } from '../../../../base/common/async.js';
 import { IWorkspaceContextService } from '../../../../platform/workspace/common/workspace.js';
 import { areSameExtensions } from '../../../../platform/extensionManagement/common/extensionManagementUtil.js';
@@ -122,10 +121,7 @@ export class FileBasedRecommendations extends ExtensionRecommendations {
 	}
 
 	private onModelAdded(model: ITextModel): void {
-		const uri = model.uri.scheme === Schemas.vscodeNotebookCell ? CellUri.parse(model.uri)?.notebook : model.uri;
-		if (!uri) {
-			return;
-		}
+		const uri = model.uri;
 
 		const supportedSchemes = distinct([Schemas.untitled, Schemas.file, Schemas.vscodeRemote, ...this.workspaceContextService.getWorkspace().folders.map(folder => folder.uri.scheme)]);
 		if (!uri || !supportedSchemes.includes(uri.scheme)) {

@@ -148,4 +148,61 @@ steps:
   - ${{ if gt(length(parameters.VSCODE_TEST_IDS), 0) }}:
     - template: product-build-darwin-test.yml@self
       parameters:
-        VSCODE_TEST_IDS: ${{ parameters.VSCODE_TEST_IDS }}
+       VSCODE_TEST_IDS: ${{ parameters.VSCODE_TEST_IDS }}
+        VSCODE_RUN_ELECTRON_TESTS: ${{ parameters.VSCODE_RUN_ELECTRON_TESTS }}
+        VSCODE_RUN_BROWSER_TESTS: ${{ parameters.VSCODE_RUN_BROWSER_TESTS }}
+        VSCODE_RUN_REMOTE_TESTS: ${{ parameters.VSCODE_RUN_REMOTE_TESTS }}
+
+  - ${{ if ne(parameters.VSCODE_CIBUILD, true) }}:
+    - script: npx deemon --attach node build/azure-pipelines/darwin/codesign.ts
+      condition: succeededOrFailed()
+      displayName: "Post-job: ✍️ Codesign & Notarize"
+
+    - script: unzip $(Pipeline.Workspace)/vscode_client_darwin_$(VSCODE_ARCH)_archive/VSCode-darwin-$(VSCODE_ARCH).zip -d $(Build.ArtifactStagingDirectory)/VSCode-darwin-$(VSCODE_ARCH)
+      displayName: Extract signed app
+
+    - script: |
+        set -e
+        APP_ROOT="$(Build.ArtifactStagingDirectory)/VSCode-darwin-$(VSCODE_ARCH)"
+        APP_NAME="`ls $APP_ROOT | head -n 1`"
+        APP_PATH="$APP_ROOT/$APP_NAME"
+        codesign -dv --deep --verbose=4 "$APP_PATH"
+        BINARY_NAME=$(node -p "require(\"$APP_PATH/Contents/Resources/app/product.json\").nameShort")
+        TIMERS_FILE="$(Build.ArtifactStagingDirectory)/startup-timers.txt"
+        "$APP_PATH/Contents/MacOS/$BINARY_NAME" \
+          --prof-append-timers "$TIMERS_FILE" \
+          --user-data-dir "$(Agent.TempDirectory)/vscode-verify" \
+          --extensions-dir "$(Agent.TempDirectory)/vscode-verify-ext" \
+          --disable-extensions --disable-telemetry --skip-welcome \
+          --disable-experiments \
+          --disable-workspace-trust
+        if [ ! -f "$TIMERS_FILE" ]; then
+          echo "ERROR: VS Code failed to start — startup timers were not written."
+          echo "This may indicate a binary was killed by AMFI due to restricted entitlements."
+          exit 1
+        fi
+        echo "Startup timers:"
+        cat "$TIMERS_FILE"
+      timeoutInMinutes: 5
+      displayName: Verify signature
+
+    - script: |
+        set -e
+
+        mkdir -p $(Build.ArtifactStagingDirectory)/out/vscode_client_darwin_$(VSCODE_ARCH)_archive
+        if [ "$VSCODE_ARCH" == "x64" ]; then
+          # Use legacy name for x64 builds
+          mv $(CLIENT_PATH) $(Build.ArtifactStagingDirectory)/out/vscode_client_darwin_$(VSCODE_ARCH)_archive/VSCode-darwin.zip
+        else
+          mv $(CLIENT_PATH) $(Build.ArtifactStagingDirectory)/out/vscode_client_darwin_$(VSCODE_ARCH)_archive/VSCode-darwin-$(VSCODE_ARCH).zip
+        fi
+
+        mkdir -p $(Build.ArtifactStagingDirectory)/out/vscode_client_darwin_$(VSCODE_ARCH)_dmg
+        mv $(DMG_PATH) $(Build.ArtifactStagingDirectory)/out/vscode_client_darwin_$(VSCODE_ARCH)_dmg/VSCode-darwin-$(VSCODE_ARCH).dmg
+
+        mkdir -p $(Build.ArtifactStagingDirectory)/out/vscode_server_darwin_$(VSCODE_ARCH)_archive
+        mv $(SERVER_PATH) $(Build.ArtifactStagingDirectory)/out/vscode_server_darwin_$(VSCODE_ARCH)_archive/vscode-server-darwin-$(VSCODE_ARCH).zip
+
+        mkdir -p $(Build.ArtifactStagingDirectory)/out/vscode_web_darwin_$(VSCODE_ARCH)_archive
+        mv $(WEB_PATH) $(Build.ArtifactStagingDirectory)/out/vscode_web_darwin_$(VSCODE_ARCH)_archive/vscode-server-darwin-$(VSCODE_ARCH)-web.zip
+      displayName: Move artifacts to out directory

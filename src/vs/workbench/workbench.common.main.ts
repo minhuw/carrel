@@ -78,7 +78,6 @@ import './services/textresourceProperties/common/textResourcePropertiesService.j
 import './services/textfile/common/textEditorService.js';
 import './services/language/common/languageService.js';
 import './services/model/common/modelService.js';
-import './services/notebook/common/notebookDocumentService.js';
 import './services/commands/common/commandService.js';
 import './services/themes/browser/workbenchThemeService.js';
 import './services/label/common/labelService.js';
@@ -155,12 +154,8 @@ import { UserDataSyncLogService } from '../platform/userDataSync/common/userData
 import { AllowedExtensionsService } from '../platform/extensionManagement/common/allowedExtensionsService.js';
 import { IWebWorkerService } from '../platform/webWorker/browser/webWorkerService.js';
 import { WebWorkerService } from '../platform/webWorker/browser/webWorkerServiceImpl.js';
-import { AgentNetworkFilterService, IAgentNetworkFilterService } from '../platform/networkFilter/common/networkFilterService.js';
 
 registerSingleton(IUserDataSyncLogService, UserDataSyncLogService, InstantiationType.Delayed);
-// Carrel: renderer-side registration for the network filter used by the
-// integrated browser (upstream registered this with the removed chat stack).
-registerSingleton(IAgentNetworkFilterService, AgentNetworkFilterService, InstantiationType.Delayed);
 registerSingleton(IAllowedExtensionsService, AllowedExtensionsService, InstantiationType.Delayed);
 registerSingleton(IIgnoredExtensionsManagementService, IgnoredExtensionsManagementService, InstantiationType.Delayed);
 registerSingleton(IGlobalExtensionEnablementService, GlobalExtensionEnablementService, InstantiationType.Delayed);
@@ -180,9 +175,6 @@ registerSingleton(IWebWorkerService, WebWorkerService, InstantiationType.Delayed
 
 //#region --- workbench contributions
 
-// Telemetry
-import './contrib/telemetry/browser/telemetry.contribution.js';
-
 // Preferences
 import './contrib/preferences/browser/preferences.contribution.js';
 import './contrib/preferences/browser/keybindingsEditorContribution.js';
@@ -191,23 +183,13 @@ import './contrib/preferences/browser/preferencesSearch.js';
 // Performance
 import './contrib/performance/browser/performance.contribution.js';
 
-// Notebook
-import './contrib/notebook/browser/notebook.contribution.js';
-
 // Speech
 import './contrib/speech/browser/speech.contribution.js';
 
 // Image carousel (upstream registered this with the removed chat stack).
 import './contrib/imageCarousel/browser/imageCarousel.contribution.js';
 
-// Interactive
-import './contrib/interactive/browser/interactive.contribution.js';
-
-// repl
-import './contrib/replNotebook/browser/repl.contribution.js';
-
 // Testing
-import './contrib/testing/browser/testing.contribution.js';
 
 // Logs
 import './contrib/logs/common/logs.contribution.js';
@@ -244,14 +226,6 @@ import './contrib/git/browser/git.contributions.js';
 import './contrib/scm/browser/scm.contribution.js';
 import './contrib/scm/browser/quickDiff.contribution.js';
 import './contrib/scm/browser/scm.service.contribution.js';
-
-// Debug
-import './contrib/debug/browser/debug.contribution.js';
-import './contrib/debug/browser/debugEditorContribution.js';
-import './contrib/debug/browser/breakpointEditorContribution.js';
-import './contrib/debug/browser/callStackEditorContribution.js';
-import './contrib/debug/browser/repl.js';
-import './contrib/debug/browser/debugViewlet.js';
 
 // Markers
 import './contrib/markers/browser/markers.contribution.js';
@@ -339,9 +313,6 @@ import './contrib/inlayHints/browser/inlayHintsAccessibilty.js';
 
 // Themes
 import './contrib/themes/browser/themes.contribution.js';
-
-// Update
-import './contrib/update/browser/update.contribution.js';
 
 // Surveys
 import './contrib/surveys/browser/nps.contribution.js';

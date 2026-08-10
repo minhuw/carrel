@@ -21,7 +21,6 @@ import { IWorkspaceTrustManagementService } from '../../../../platform/workspace
 import { SIDE_BAR_BACKGROUND } from '../../../common/theme.js';
 import { IIssueFormService, IssueReporterData, IssueReporterExtensionData, IssueReporterStyles, IssueSource, IWorkbenchIssueService } from '../common/issue.js';
 import { isPublicVSCodeIssueUrl, issueReporterAdditionalRepositoriesSettingId, parseIssueReporterRepositories } from '../common/issueReporterTarget.js';
-import { IWorkbenchAssignmentService } from '../../../services/assignment/common/assignmentService.js';
 import { IAuthenticationService } from '../../../services/authentication/common/authentication.js';
 import { IWorkbenchExtensionEnablementService } from '../../../services/extensionManagement/common/extensionManagement.js';
 import { IWorkbenchEnvironmentService } from '../../../services/environment/common/environmentService.js';
@@ -36,7 +35,6 @@ export class NativeIssueService implements IWorkbenchIssueService {
 		@IExtensionManagementService private readonly extensionManagementService: IExtensionManagementService,
 		@IWorkbenchExtensionEnablementService private readonly extensionEnablementService: IWorkbenchExtensionEnablementService,
 		@IWorkspaceTrustManagementService private readonly workspaceTrustManagementService: IWorkspaceTrustManagementService,
-		@IWorkbenchAssignmentService private readonly experimentService: IWorkbenchAssignmentService,
 		@IAuthenticationService private readonly authenticationService: IAuthenticationService,
 		@IIntegrityService private readonly integrityService: IIntegrityService,
 		@IWorkbenchEnvironmentService private readonly environmentService: IWorkbenchEnvironmentService,
@@ -135,8 +133,6 @@ export class NativeIssueService implements IWorkbenchIssueService {
 			});
 		}
 
-		const experiments = await this.experimentService.getCurrentExperiments();
-
 		let githubAccessToken = '';
 		try {
 			const githubSessions = await this.authenticationService.getSessions('github');
@@ -158,7 +154,6 @@ export class NativeIssueService implements IWorkbenchIssueService {
 			styles: getIssueReporterStyles(theme),
 			zoomLevel: getZoomLevel(mainWindow),
 			enabledExtensions: extensionData,
-			experiments: experiments?.join('\n'),
 			restrictedMode: !this.workspaceTrustManagementService.isWorkspaceTrusted(),
 			isInstallationPure,
 			isSessionsWindow: this.environmentService.isSessionsWindow,
@@ -199,14 +194,6 @@ export class NativeIssueService implements IWorkbenchIssueService {
 			// Ignore — extensions will be empty
 		} finally {
 			extensionsLoaded?.complete();
-		}
-
-		// Experiments
-		try {
-			const experiments = await this.experimentService.getCurrentExperiments();
-			data.experiments = experiments?.join('\n');
-		} catch (e) {
-			// Ignore
 		}
 
 		// GitHub access token — only fetch existing sessions, never prompt

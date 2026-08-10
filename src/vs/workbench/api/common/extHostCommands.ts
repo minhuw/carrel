@@ -193,8 +193,6 @@ export class ExtHostCommands implements ExtHostCommandsShape {
 					return extHostTypeConverter.Range.from(value);
 				} else if (value instanceof extHostTypes.Location) {
 					return extHostTypeConverter.location.from(value);
-				} else if (extHostTypes.NotebookRange.isNotebookRange(value)) {
-					return extHostTypeConverter.NotebookRange.from(value);
 				} else if (value instanceof ArrayBuffer) {
 					hasBuffers = true;
 					return VSBuffer.wrap(new Uint8Array(value));

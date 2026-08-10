@@ -17,7 +17,6 @@ import { Disposable, DisposableMap, DisposableStore, IDisposable, MutableDisposa
 import { isLinux } from '../../../../base/common/platform.js';
 import * as strings from '../../../../base/common/strings.js';
 import { URI } from '../../../../base/common/uri.js';
-import * as network from '../../../../base/common/network.js';
 import './media/searchview.css';
 import { getCodeEditor, isCodeEditor, isDiffEditor } from '../../../../editor/browser/editorBrowser.js';
 import { ICodeEditorService } from '../../../../editor/browser/services/codeEditorService.js';
@@ -55,7 +54,6 @@ import { IViewPaneOptions, ViewPane } from '../../../browser/parts/views/viewPan
 import { IEditorPane } from '../../../common/editor.js';
 import { Memento } from '../../../common/memento.js';
 import { IViewDescriptorService } from '../../../common/views.js';
-import { NotebookEditor } from '../../notebook/browser/notebookEditor.js';
 import { ExcludePatternInputWidget, IncludePatternInputWidget } from './patternInputWidget.js';
 import { IFindInFilesArgs } from './searchActionsBase.js';
 import { searchDetailsIcon } from './searchIcons.js';
@@ -73,7 +71,6 @@ import { ITextQueryBuilderOptions, QueryBuilder } from '../../../services/search
 import { SemanticSearchBehavior, IPatternInfo, ISearchComplete, ISearchConfiguration, ISearchConfigurationProperties, ITextQuery, SearchCompletionExitCode, SearchSortOrder, TextSearchCompleteMessageType, ViewMode, isAIKeyword } from '../../../services/search/common/search.js';
 import { AISearchKeyword, TextSearchCompleteMessage } from '../../../services/search/common/searchExtTypes.js';
 import { ITextFileService } from '../../../services/textfile/common/textfiles.js';
-import { INotebookService } from '../../notebook/common/notebookService.js';
 import { ISCMRepository, ISCMService } from '../../scm/common/scm.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
 import { AccessibilitySignal, IAccessibilitySignalService } from '../../../../platform/accessibilitySignal/browser/accessibilitySignalService.js';
@@ -81,7 +78,6 @@ import { getDefaultHoverDelegate } from '../../../../base/browser/ui/hover/hover
 import { IHoverService } from '../../../../platform/hover/browser/hover.js';
 import { ISearchViewModelWorkbenchService } from './searchTreeModel/searchViewModelWorkbenchService.js';
 import { ISearchTreeMatch, isSearchTreeMatch, RenderableMatch, SearchModelLocation, IChangeEvent, FileMatchOrMatch, ISearchTreeFileMatch, ISearchTreeFolderMatch, ISearchModel, ISearchResult, isSearchTreeFileMatch, isSearchTreeFolderMatch, isSearchTreeFolderMatchNoRoot, isSearchTreeFolderMatchWithResource, isSearchTreeFolderMatchWorkspaceRoot, isSearchResult, isTextSearchHeading, ITextSearchHeading, isSearchHeader } from './searchTreeModel/searchTreeCommon.js';
-import { INotebookFileInstanceMatch, isIMatchInNotebook } from './notebookSearch/notebookSearchModelBase.js';
 import { searchMatchComparer } from './searchCompare.js';
 import { AIFolderMatchWorkspaceRootImpl } from './AISearch/aiSearchModel.js';
 import { ITelemetryService } from '../../../../platform/telemetry/common/telemetry.js';
@@ -109,10 +105,6 @@ interface ISearchViewStateQuery {
 	preserveCase?: boolean;
 	searchHistory?: string[];
 	replaceHistory?: string[];
-	isInNotebookMarkdownInput?: boolean;
-	isInNotebookMarkdownPreview?: boolean;
-	isInNotebookCellInput?: boolean;
-	isInNotebookCellOutput?: boolean;
 }
 
 interface ISearchViewState {
@@ -234,7 +226,6 @@ export class SearchView extends ViewPane {
 		@IStorageService private readonly storageService: IStorageService,
 		@IOpenerService openerService: IOpenerService,
 		@IHoverService hoverService: IHoverService,
-		@INotebookService private readonly notebookService: INotebookService,
 		@ILogService private readonly logService: ILogService,
 		@IAccessibilitySignalService private readonly accessibilitySignalService: IAccessibilitySignalService,
 		@ITelemetryService private readonly telemetryService: ITelemetryService,
@@ -664,11 +655,6 @@ export class SearchView extends ViewPane {
 		const showReplace = typeof this.viewletState.view?.showReplace === 'boolean' ? this.viewletState.view.showReplace : true;
 		const preserveCase = this.viewletState.query?.preserveCase === true;
 
-		const isInNotebookMarkdownInput = this.viewletState.query?.isInNotebookMarkdownInput ?? true;
-		const isInNotebookMarkdownPreview = this.viewletState.query?.isInNotebookMarkdownPreview ?? true;
-		const isInNotebookCellInput = this.viewletState.query?.isInNotebookCellInput ?? true;
-		const isInNotebookCellOutput = this.viewletState.query?.isInNotebookCellOutput ?? true;
-
 		this.searchWidget = this._register(this.instantiationService.createInstance(SearchWidget, container, {
 			value: contentPattern,
 			replaceValue: replaceText,
@@ -680,12 +666,6 @@ export class SearchView extends ViewPane {
 			preserveCase: preserveCase,
 			inputBoxStyles: defaultInputBoxStyles,
 			toggleStyles: defaultToggleStyles,
-			notebookOptions: {
-				isInNotebookMarkdownInput,
-				isInNotebookMarkdownPreview,
-				isInNotebookCellInput,
-				isInNotebookCellOutput,
-			}
 		}));
 
 		if (!this.searchWidget.searchInput || !this.searchWidget.replaceInput) {
@@ -712,8 +692,6 @@ export class SearchView extends ViewPane {
 		this._register(this.searchWidget.searchInput.onDidOptionChange(() => {
 			this.triggerQueryChange({ shouldKeepAIResults: true });
 		}));
-
-		this._register(this.searchWidget.getNotebookFilters().onDidChange(() => this.triggerQueryChange({ shouldKeepAIResults: true })));
 
 		const updateHasPatternKey = () => this.hasSearchPatternKey.set(this.searchWidget.searchInput ? (this.searchWidget.searchInput.getValue().length > 0) : false);
 		updateHasPatternKey();
@@ -1614,10 +1592,6 @@ export class SearchView extends ViewPane {
 		}
 
 		const isRegex = this.searchWidget.searchInput.getRegex();
-		const isInNotebookMarkdownInput = this.searchWidget.getNotebookFilters().markupInput;
-		const isInNotebookMarkdownPreview = this.searchWidget.getNotebookFilters().markupPreview;
-		const isInNotebookCellInput = this.searchWidget.getNotebookFilters().codeInput;
-		const isInNotebookCellOutput = this.searchWidget.getNotebookFilters().codeOutput;
 
 		const isWholeWords = this.searchWidget.searchInput.getWholeWords();
 		const isCaseSensitive = this.searchWidget.searchInput.getCaseSensitive();
@@ -1640,12 +1614,6 @@ export class SearchView extends ViewPane {
 			isRegExp: isRegex,
 			isCaseSensitive: isCaseSensitive,
 			isWordMatch: isWholeWords,
-			notebookInfo: {
-				isInNotebookMarkdownInput,
-				isInNotebookMarkdownPreview,
-				isInNotebookCellInput,
-				isInNotebookCellOutput
-			}
 		};
 
 		const excludePattern = [{ pattern: this.inputPatternExcludes.getValue() }];
@@ -2221,24 +2189,17 @@ export class SearchView extends ViewPane {
 		this.currentSelectedFileMatch = undefined;
 	}
 
-	private shouldOpenInNotebookEditor(match: ISearchTreeMatch, uri: URI): boolean {
-		// Untitled files will return a false positive for getContributedNotebookTypes.
-		// Since untitled files are already open, then untitled notebooks should return NotebookMatch results.
-		return isIMatchInNotebook(match) || (uri.scheme !== network.Schemas.untitled && this.notebookService.getContributedNotebookTypes(uri).length > 0);
-	}
-
 	private onFocus(lineMatch: ISearchTreeMatch, preserveFocus?: boolean, sideBySide?: boolean, pinned?: boolean): Promise<any> {
 		const useReplacePreview = this.configurationService.getValue<ISearchConfiguration>().search?.useReplacePreview;
 
 		const resource = isSearchTreeMatch(lineMatch) ? lineMatch.parent().resource : (<ISearchTreeFileMatch>lineMatch).resource;
-		return (useReplacePreview && this.viewModel.isReplaceActive() && !!this.viewModel.replaceString && !(this.shouldOpenInNotebookEditor(lineMatch, resource))) ?
+		return (useReplacePreview && this.viewModel.isReplaceActive() && !!this.viewModel.replaceString) ?
 			this.replaceService.openReplacePreview(lineMatch, preserveFocus, sideBySide, pinned) :
 			this.open(lineMatch, preserveFocus, sideBySide, pinned, resource);
 	}
 
 	async open(element: FileMatchOrMatch, preserveFocus?: boolean, sideBySide?: boolean, pinned?: boolean, resourceInput?: URI): Promise<void> {
 		const selection = getEditorSelectionFromMatch(element, this.viewModel);
-		const oldParentMatches = isSearchTreeMatch(element) ? element.parent().matches() : [];
 		const resource = resourceInput ?? (isSearchTreeMatch(element) ? element.parent().resource : (<ISearchTreeFileMatch>element).resource);
 		let editor: IEditorPane | undefined;
 
@@ -2269,34 +2230,6 @@ export class SearchView extends ViewPane {
 			return;
 		}
 
-		if (editor instanceof NotebookEditor) {
-			const elemParent = element.parent() as INotebookFileInstanceMatch;
-			if (isSearchTreeMatch(element)) {
-				if (isIMatchInNotebook(element)) {
-					element.parent().showMatch(element);
-				} else {
-					const editorWidget = editor.getControl();
-					if (editorWidget) {
-						// Ensure that the editor widget is binded. If if is, then this should return immediately.
-						// Otherwise, it will bind the widget.
-						elemParent.bindNotebookEditorWidget(editorWidget);
-						await elemParent.updateMatchesForEditorWidget();
-
-						const matchIndex = oldParentMatches.findIndex(e => e.id() === element.id());
-						const matches = elemParent.matches();
-						const match = matchIndex >= matches.length ? matches[matches.length - 1] : matches[matchIndex];
-
-						if (isIMatchInNotebook(match)) {
-							elemParent.showMatch(match);
-							if (!this.tree.getFocus().includes(match) || !this.tree.getSelection().includes(match)) {
-								this.tree.setSelection([match], getSelectionKeyboardEvent());
-								this.tree.setFocus([match]);
-							}
-						}
-					}
-				}
-			}
-		}
 	}
 
 	openEditorWithMultiCursor(element: FileMatchOrMatch): Promise<void> {
@@ -2404,20 +2337,10 @@ export class SearchView extends ViewPane {
 			const isCaseSensitive = this.searchWidget.searchInput.getCaseSensitive();
 			const contentPattern = this.searchWidget.searchInput.getValue();
 
-			const isInNotebookCellInput = this.searchWidget.getNotebookFilters().codeInput;
-			const isInNotebookCellOutput = this.searchWidget.getNotebookFilters().codeOutput;
-			const isInNotebookMarkdownInput = this.searchWidget.getNotebookFilters().markupInput;
-			const isInNotebookMarkdownPreview = this.searchWidget.getNotebookFilters().markupPreview;
-
 			this.viewletState.query.contentPattern = contentPattern;
 			this.viewletState.query.regex = isRegex;
 			this.viewletState.query.wholeWords = isWholeWords;
 			this.viewletState.query.caseSensitive = isCaseSensitive;
-
-			this.viewletState.query.isInNotebookMarkdownInput = isInNotebookMarkdownInput;
-			this.viewletState.query.isInNotebookMarkdownPreview = isInNotebookMarkdownPreview;
-			this.viewletState.query.isInNotebookCellInput = isInNotebookCellInput;
-			this.viewletState.query.isInNotebookCellOutput = isInNotebookCellOutput;
 		}
 
 		this.viewletState.query.folderExclusions = patternExcludes;

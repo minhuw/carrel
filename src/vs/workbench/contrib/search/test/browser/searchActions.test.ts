@@ -16,13 +16,11 @@ import { getElementToFocusAfterRemoved, getLastNodeFromSameType } from '../../br
 import { SearchModelImpl } from '../../browser/searchTreeModel/searchModel.js';
 import { MockObjectTree } from './mockSearchTree.js';
 import { ILabelService } from '../../../../../platform/label/common/label.js';
-import { INotebookEditorService } from '../../../notebook/browser/services/notebookEditorService.js';
-import { createFileUriFromPathFromRoot, stubModelService, stubNotebookEditorService } from './searchTestCommon.js';
+import { createFileUriFromPathFromRoot, stubModelService } from './searchTestCommon.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { FileMatchImpl } from '../../browser/searchTreeModel/fileMatch.js';
 import { FolderMatchImpl } from '../../browser/searchTreeModel/folderMatch.js';
 import { ISearchTreeFileMatch, ISearchTreeMatch, FileMatchOrMatch } from '../../browser/searchTreeModel/searchTreeCommon.js';
-import { NotebookCompatibleFileMatch } from '../../browser/notebookSearch/notebookSearchModel.js';
-import { INotebookFileInstanceMatch } from '../../browser/notebookSearch/notebookSearchModelBase.js';
 import { MatchImpl } from '../../browser/searchTreeModel/match.js';
 
 suite('Search Actions', () => {
@@ -34,7 +32,6 @@ suite('Search Actions', () => {
 	setup(() => {
 		instantiationService = new TestInstantiationService();
 		instantiationService.stub(IModelService, stubModelService(instantiationService, (e) => store.add(e)));
-		instantiationService.stub(INotebookEditorService, stubNotebookEditorService(instantiationService, (e) => store.add(e)));
 		instantiationService.stub(IKeybindingService, {});
 		instantiationService.stub(ILabelService, { getUriBasenameLabel: (uri: URI) => '' });
 		instantiationService.stub(IKeybindingService, 'resolveKeybinding', (keybinding: Keybinding) => USLayoutResolvedKeybinding.resolveKeybinding(keybinding, OS));
@@ -113,7 +110,7 @@ suite('Search Actions', () => {
 		assert.strictEqual(undefined, actual);
 	});
 
-	function aFileMatch(): INotebookFileInstanceMatch {
+	function aFileMatch(): ISearchTreeFileMatch {
 		const uri = URI.file('somepath' + ++counter);
 		const rawMatch: IFileMatch = {
 			resource: uri,
@@ -128,9 +125,9 @@ suite('Search Actions', () => {
 			}
 		}, searchModel.searchResult.plainTextSearchResult, searchModel.searchResult, null);
 		store.add(folderMatch);
-		const fileMatch = instantiationService.createInstance(NotebookCompatibleFileMatch, {
+		const fileMatch = instantiationService.createInstance(FileMatchImpl, {
 			pattern: ''
-		}, undefined, undefined, folderMatch, rawMatch, null, '');
+		}, undefined, undefined, folderMatch, rawMatch, null);
 		fileMatch.createMatches();
 		store.add(fileMatch);
 		return fileMatch;

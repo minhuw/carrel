@@ -14,7 +14,6 @@ import { IInstantiationService } from '../../../../../platform/instantiation/com
 import { ILabelService } from '../../../../../platform/label/common/label.js';
 import { IUriIdentityService } from '../../../../../platform/uriIdentity/common/uriIdentity.js';
 import { IAITextQuery, IFileMatch, ITextSearchPreviewOptions, resultIsMatch } from '../../../../services/search/common/search.js';
-import { NotebookEditorWidget } from '../../../notebook/browser/notebookEditorWidget.js';
 import { IReplaceService } from '../replace.js';
 
 import { FileMatchImpl } from '../searchTreeModel/fileMatch.js';
@@ -290,13 +289,6 @@ export class AIFolderMatchWorkspaceRootImpl extends Disposable implements ISearc
 
 	bindModel(model: ITextModel): void {
 		// no op
-	}
-	unbindNotebookEditorWidget(editor: NotebookEditorWidget, resource: URI): void {
-		//no op
-	}
-	bindNotebookEditorWidget(editor: NotebookEditorWidget, resource: URI): Promise<void> {
-		//no op
-		return Promise.resolve();
 	}
 
 	hasOnlyReadOnlyMatches(): boolean {

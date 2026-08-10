@@ -10,17 +10,10 @@ import { IModelService } from '../../../../../editor/common/services/model.js';
 import { ModelService } from '../../../../../editor/common/services/modelService.js';
 import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
 import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
-import { IContextKeyService } from '../../../../../platform/contextkey/common/contextkey.js';
 import { TestInstantiationService } from '../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
-import { MockContextKeyService } from '../../../../../platform/keybinding/test/common/mockKeybindingService.js';
 import { IThemeService } from '../../../../../platform/theme/common/themeService.js';
 import { TestThemeService } from '../../../../../platform/theme/test/common/testThemeService.js';
-import { INotebookEditorService } from '../../../notebook/browser/services/notebookEditorService.js';
-import { NotebookEditorWidgetService } from '../../../notebook/browser/services/notebookEditorServiceImpl.js';
-import { IEditorGroupsService } from '../../../../services/editor/common/editorGroupsService.js';
-import { IEditorService } from '../../../../services/editor/common/editorService.js';
 import { IFileMatch } from '../../../../services/search/common/search.js';
-import { TestEditorGroupsService, TestEditorService } from '../../../../test/browser/workbenchTestServices.js';
 import { ISearchResult } from '../../browser/searchTreeModel/searchTreeCommon.js';
 
 export function createFileUriFromPathFromRoot(path?: string): URI {
@@ -52,17 +45,6 @@ export function stubModelService(instantiationService: TestInstantiationService,
 	const modelService = instantiationService.createInstance(ModelService);
 	addDisposable(modelService);
 	return modelService;
-}
-
-export function stubNotebookEditorService(instantiationService: TestInstantiationService, addDisposable: (e: IDisposable) => void): INotebookEditorService {
-	instantiationService.stub(IEditorGroupsService, new TestEditorGroupsService());
-	instantiationService.stub(IContextKeyService, new MockContextKeyService());
-	const es = new TestEditorService();
-	addDisposable(es);
-	instantiationService.stub(IEditorService, es);
-	const notebookEditorWidgetService = instantiationService.createInstance(NotebookEditorWidgetService);
-	addDisposable(notebookEditorWidgetService);
-	return notebookEditorWidgetService;
 }
 
 export function addToSearchResult(searchResult: ISearchResult, allRaw: IFileMatch[], searchInstanceID = '') {

@@ -24,7 +24,7 @@ import { IChange } from '../../../editor/common/diff/legacyLinesDiffComputer.js'
 import * as editorCommon from '../../../editor/common/editorCommon.js';
 import { StandardTokenType } from '../../../editor/common/encodedTokenAttributes.js';
 import * as languages from '../../../editor/common/languages.js';
-import { CompletionItemLabel } from '../../../editor/common/languages.js';
+import { CompletionItemLabel, ICellRange } from '../../../editor/common/languages.js';
 import { CharacterPair, CommentRule, EnterAction } from '../../../editor/common/languages/languageConfiguration.js';
 import { EndOfLineSequence } from '../../../editor/common/model.js';
 import { EditSuggestionId } from '../../../editor/common/textModelEditSource.js';
@@ -55,14 +55,9 @@ import { WorkspaceTrustRequestOptions } from '../../../platform/workspace/common
 import { SaveReason } from '../../common/editor.js';
 import { IRevealOptions, ITreeItem, IViewBadge } from '../../common/views.js';
 import { CallHierarchyItem } from '../../contrib/callHierarchy/common/callHierarchy.js';
-import * as notebookCommon from '../../contrib/notebook/common/notebookCommon.js';
-import { CellExecutionUpdateType } from '../../contrib/notebook/common/notebookExecutionService.js';
-import { ICellExecutionComplete, ICellExecutionStateUpdate } from '../../contrib/notebook/common/notebookExecutionStateService.js';
-import { ICellRange } from '../../contrib/notebook/common/notebookRange.js';
 import { ISCMHistoryOptions } from '../../contrib/scm/common/history.js';
 import { InputValidationType } from '../../contrib/scm/common/scm.js';
-import { IWorkspaceSymbol, NotebookPriorityInfo } from '../../contrib/search/common/search.js';
-import { IRawClosedNotebookFileMatch } from '../../contrib/search/common/searchNotebookHelpers.js';
+import { IWorkspaceSymbol } from '../../contrib/search/common/search.js';
 import { IKeywordRecognitionEvent, ISpeechProviderMetadata, ISpeechToTextEvent, ITextToSpeechEvent } from '../../contrib/speech/common/speechService.js';
 import { Timeline, TimelineChangeEvent, TimelineOptions, TimelineProviderDescriptor } from '../../contrib/timeline/common/timeline.js';
 import { TypeHierarchyItem } from '../../contrib/typeHierarchy/common/typeHierarchy.js';
@@ -422,7 +417,6 @@ export interface IDocumentFilterDto {
 	scheme?: string;
 	pattern?: string | IRelativePattern;
 	exclusive?: boolean;
-	notebookType?: string;
 	isBuiltin?: boolean;
 }
 
@@ -858,12 +852,9 @@ export const enum TabInputKind {
 	TextInput,
 	TextDiffInput,
 	TextMergeInput,
-	NotebookInput,
-	NotebookDiffInput,
 	CustomEditorInput,
 	WebviewEditorInput,
 	TerminalEditorInput,
-	InteractiveEditorInput,
 	MultiDiffEditorInput
 }
 
@@ -897,19 +888,6 @@ export interface TextMergeInputDto {
 	result: UriComponents;
 }
 
-export interface NotebookInputDto {
-	kind: TabInputKind.NotebookInput;
-	notebookType: string;
-	uri: UriComponents;
-}
-
-export interface NotebookDiffInputDto {
-	kind: TabInputKind.NotebookDiffInput;
-	notebookType: string;
-	original: UriComponents;
-	modified: UriComponents;
-}
-
 export interface CustomInputDto {
 	kind: TabInputKind.CustomEditorInput;
 	viewType: string;
@@ -921,12 +899,6 @@ export interface WebviewInputDto {
 	viewType: string;
 }
 
-export interface InteractiveEditorInputDto {
-	kind: TabInputKind.InteractiveEditorInput;
-	uri: UriComponents;
-	inputBoxUri: UriComponents;
-}
-
 export interface MultiDiffEditorInputDto {
 	kind: TabInputKind.MultiDiffEditorInput;
 	diffEditors: TextDiffInputDto[];
@@ -936,7 +908,7 @@ export interface TabInputDto {
 	kind: TabInputKind.TerminalEditorInput;
 }
 
-export type AnyInputDto = UnknownInputDto | TextInputDto | TextDiffInputDto | MultiDiffEditorInputDto | TextMergeInputDto | NotebookInputDto | NotebookDiffInputDto | CustomInputDto | WebviewInputDto | InteractiveEditorInputDto | TabInputDto;
+export type AnyInputDto = UnknownInputDto | TextInputDto | TextDiffInputDto | MultiDiffEditorInputDto | TextMergeInputDto | CustomInputDto | WebviewInputDto | TabInputDto;
 
 export interface MainThreadEditorTabsShape extends IDisposable {
 	// manage tabs: move, close, rearrange etc
@@ -1240,141 +1212,6 @@ export enum CellOutputKind {
 	Text = 1,
 	Error = 2,
 	Rich = 3
-}
-
-export enum NotebookEditorRevealType {
-	Default = 0,
-	InCenter = 1,
-	InCenterIfOutsideViewport = 2,
-	AtTop = 3
-}
-
-export interface INotebookDocumentShowOptions {
-	position?: EditorGroupColumn;
-	preserveFocus?: boolean;
-	pinned?: boolean;
-	selections?: ICellRange[];
-	label?: string;
-}
-
-export type INotebookCellStatusBarEntryDto = Dto<notebookCommon.INotebookCellStatusBarItem>;
-
-export interface INotebookCellStatusBarListDto {
-	items: INotebookCellStatusBarEntryDto[];
-	cacheId: number;
-}
-
-export interface MainThreadNotebookShape extends IDisposable {
-	$registerNotebookSerializer(handle: number, extension: notebookCommon.NotebookExtensionDescription, viewType: string, options: notebookCommon.TransientOptions, registration: notebookCommon.INotebookContributionData | undefined): void;
-	$unregisterNotebookSerializer(handle: number): void;
-
-	$registerNotebookCellStatusBarItemProvider(handle: number, eventHandle: number | undefined, viewType: string): Promise<void>;
-	$unregisterNotebookCellStatusBarItemProvider(handle: number, eventHandle: number | undefined): Promise<void>;
-	$emitCellStatusBarEvent(eventHandle: number): void;
-}
-
-export interface MainThreadNotebookEditorsShape extends IDisposable {
-	$tryShowNotebookDocument(uriComponents: UriComponents, viewType: string, options: INotebookDocumentShowOptions): Promise<string>;
-	$tryRevealRange(id: string, range: ICellRange, revealType: NotebookEditorRevealType): Promise<void>;
-	$trySetSelections(id: string, range: ICellRange[]): void;
-}
-
-export interface MainThreadNotebookDocumentsShape extends IDisposable {
-	$tryCreateNotebook(options: { viewType: string; content?: NotebookDataDto }): Promise<UriComponents>;
-	$tryOpenNotebook(uriComponents: UriComponents): Promise<UriComponents>;
-	$trySaveNotebook(uri: UriComponents): Promise<boolean>;
-}
-
-export interface INotebookKernelDto2 {
-	id: string;
-	notebookType: string;
-	extensionId: ExtensionIdentifier;
-	extensionLocation: UriComponents;
-	label: string;
-	detail?: string;
-	description?: string;
-	supportedLanguages?: string[];
-	supportsInterrupt?: boolean;
-	supportsExecutionOrder?: boolean;
-	preloads?: { uri: UriComponents; provides: readonly string[] }[];
-	hasVariableProvider?: boolean;
-}
-
-export interface INotebookProxyKernelDto {
-	id: string;
-	notebookType: string;
-	extensionId: ExtensionIdentifier;
-	extensionLocation: UriComponents;
-	label: string;
-	detail?: string;
-	description?: string;
-	kind?: string;
-}
-
-export interface ICellExecuteOutputEditDto {
-	editType: CellExecutionUpdateType.Output;
-	cellHandle: number;
-	append?: boolean;
-	outputs: NotebookOutputDto[];
-}
-
-export interface ICellExecuteOutputItemEditDto {
-	editType: CellExecutionUpdateType.OutputItems;
-	append?: boolean;
-	outputId: string;
-	items: NotebookOutputItemDto[];
-}
-
-export interface ICellExecutionStateUpdateDto extends ICellExecutionStateUpdate {
-}
-
-export interface ICellExecutionCompleteDto extends ICellExecutionComplete {
-}
-
-export type ICellExecuteUpdateDto = ICellExecuteOutputEditDto | ICellExecuteOutputItemEditDto | ICellExecutionStateUpdateDto;
-
-export interface VariablesResult {
-	id: number;
-	name: string;
-	value: string;
-	type?: string;
-	language?: string;
-	expression?: string;
-	hasNamedChildren: boolean;
-	indexedChildrenCount: number;
-	extensionId: string;
-}
-
-export interface MainThreadNotebookKernelsShape extends IDisposable {
-	$postMessage(handle: number, editorId: string | undefined, message: any): Promise<boolean>;
-	$addKernel(handle: number, data: INotebookKernelDto2): Promise<void>;
-	$updateKernel(handle: number, data: Partial<INotebookKernelDto2>): void;
-	$removeKernel(handle: number): void;
-	$updateNotebookPriority(handle: number, uri: UriComponents, value: number | undefined): void;
-
-	$createExecution(handle: number, controllerId: string, uri: UriComponents, cellHandle: number): void;
-	$updateExecution(handle: number, data: SerializableObjectWithBuffers<ICellExecuteUpdateDto[]>): void;
-	$completeExecution(handle: number, data: SerializableObjectWithBuffers<ICellExecutionCompleteDto>): void;
-
-	$createNotebookExecution(handle: number, controllerId: string, uri: UriComponents): void;
-	$beginNotebookExecution(handle: number,): void;
-	$completeNotebookExecution(handle: number): void;
-
-	$addKernelDetectionTask(handle: number, notebookType: string): Promise<void>;
-	$removeKernelDetectionTask(handle: number): void;
-
-	$addKernelSourceActionProvider(handle: number, eventHandle: number, notebookType: string): Promise<void>;
-	$removeKernelSourceActionProvider(handle: number, eventHandle: number): void;
-	$emitNotebookKernelSourceActionsChangeEvent(eventHandle: number): void;
-	$receiveVariable(requestId: string, variable: VariablesResult): void;
-	$variablesUpdated(notebookUri: UriComponents): void;
-}
-
-export interface MainThreadNotebookRenderersShape extends IDisposable {
-	$postMessage(editorId: string | undefined, rendererId: string, message: unknown): Promise<boolean>;
-}
-
-export interface MainThreadInteractiveShape extends IDisposable {
 }
 
 export interface MainThreadSpeechShape extends IDisposable {
@@ -2142,18 +1979,6 @@ export interface IWorkspaceEditEntryMetadataDto {
 	iconPath?: IconPathDto;
 }
 
-export type ICellEditOperationDto =
-	notebookCommon.ICellMetadataEdit
-	| notebookCommon.IDocumentMetadataEdit
-	| {
-		editType: notebookCommon.CellEditType.Replace;
-		index: number;
-		count: number;
-		cells: NotebookCellDataDto[];
-	};
-
-export type IWorkspaceCellEditDto = Dto<Omit<notebookCommon.IWorkspaceNotebookCellEdit, 'cellEdit'>> & { cellEdit: ICellEditOperationDto };
-
 export type IWorkspaceFileEditDto = Dto<
 	Omit<languages.IWorkspaceFileEdit, 'options'> & {
 		options?: Omit<languages.WorkspaceFileEditOptions, 'contents'> & { contents?: { type: 'base64'; value: string } | { type: 'dataTransferItem'; id: string } };
@@ -2162,7 +1987,7 @@ export type IWorkspaceFileEditDto = Dto<
 export type IWorkspaceTextEditDto = Dto<languages.IWorkspaceTextEdit>;
 
 export interface IWorkspaceEditDto {
-	edits: Array<IWorkspaceFileEditDto | IWorkspaceTextEditDto | IWorkspaceCellEditDto>;
+	edits: Array<IWorkspaceFileEditDto | IWorkspaceTextEditDto>;
 }
 
 export type ICommandDto = { $ident?: string } & languages.Command;
@@ -2635,179 +2460,6 @@ export interface ExtHostCommentsShape {
 	$setActiveComment(controllerHandle: number, commentInfo: { commentThreadHandle: number; uniqueIdInThread?: number } | undefined): Promise<void>;
 }
 
-export interface INotebookSelectionChangeEvent {
-	selections: ICellRange[];
-}
-
-export interface INotebookVisibleRangesEvent {
-	ranges: ICellRange[];
-}
-
-export interface INotebookEditorPropertiesChangeData {
-	visibleRanges?: INotebookVisibleRangesEvent;
-	selections?: INotebookSelectionChangeEvent;
-}
-
-export interface INotebookDocumentPropertiesChangeData {
-	metadata?: notebookCommon.NotebookDocumentMetadata;
-}
-
-export interface INotebookModelAddedData {
-	uri: UriComponents;
-	versionId: number;
-	cells: NotebookCellDto[];
-	viewType: string;
-	metadata?: notebookCommon.NotebookDocumentMetadata;
-}
-
-export interface INotebookEditorAddData {
-	id: string;
-	documentUri: UriComponents;
-	selections: ICellRange[];
-	visibleRanges: ICellRange[];
-	viewColumn?: number;
-	viewType: string;
-}
-
-export interface INotebookDocumentsAndEditorsDelta {
-	removedDocuments?: UriComponents[];
-	addedDocuments?: INotebookModelAddedData[];
-	removedEditors?: string[];
-	addedEditors?: INotebookEditorAddData[];
-	newActiveEditor?: string | null;
-	visibleEditors?: string[];
-}
-
-export interface NotebookOutputItemDto {
-	readonly mime: string;
-	readonly valueBytes: VSBuffer;
-}
-
-export interface NotebookOutputDto {
-	items: NotebookOutputItemDto[];
-	outputId: string;
-	metadata?: Record<string, any>;
-}
-
-export interface NotebookCellDataDto {
-	source: string;
-	language: string;
-	mime: string | undefined;
-	cellKind: notebookCommon.CellKind;
-	outputs: NotebookOutputDto[];
-	metadata?: notebookCommon.NotebookCellMetadata;
-	internalMetadata?: notebookCommon.NotebookCellInternalMetadata;
-}
-
-export interface NotebookDataDto {
-	readonly cells: NotebookCellDataDto[];
-	readonly metadata: notebookCommon.NotebookDocumentMetadata;
-}
-
-export interface NotebookCellDto {
-	handle: number;
-	uri: UriComponents;
-	eol: string;
-	source: string[];
-	language: string;
-	mime?: string;
-	cellKind: notebookCommon.CellKind;
-	outputs: NotebookOutputDto[];
-	metadata?: notebookCommon.NotebookCellMetadata;
-	internalMetadata?: notebookCommon.NotebookCellInternalMetadata;
-}
-
-export type INotebookPartialFileStatsWithMetadata = Omit<files.IFileStatWithMetadata, 'resource' | 'children'>;
-
-export interface ExtHostNotebookShape extends ExtHostNotebookDocumentsAndEditorsShape {
-	$provideNotebookCellStatusBarItems(handle: number, uri: UriComponents, index: number, token: CancellationToken): Promise<INotebookCellStatusBarListDto | undefined>;
-	$releaseNotebookCellStatusBarItems(id: number): void;
-
-	$dataToNotebook(handle: number, data: VSBuffer, token: CancellationToken): Promise<SerializableObjectWithBuffers<NotebookDataDto>>;
-	$notebookToData(handle: number, data: SerializableObjectWithBuffers<NotebookDataDto>, token: CancellationToken): Promise<VSBuffer>;
-	$saveNotebook(handle: number, uri: UriComponents, versionId: number, options: files.IWriteFileOptions, token: CancellationToken): Promise<INotebookPartialFileStatsWithMetadata | files.FileOperationError>;
-
-	$searchInNotebooks(handle: number, textQuery: search.ITextQuery, viewTypeFileTargets: NotebookPriorityInfo[], otherViewTypeFileTargets: NotebookPriorityInfo[], token: CancellationToken): Promise<{ results: IRawClosedNotebookFileMatch[]; limitHit: boolean }>;
-}
-
-export interface ExtHostNotebookDocumentSaveParticipantShape {
-	$participateInSave(resource: UriComponents, reason: SaveReason, token: CancellationToken): Promise<boolean>;
-}
-
-export interface ExtHostNotebookRenderersShape {
-	$postRendererMessage(editorId: string, rendererId: string, message: unknown): void;
-}
-
-export interface ExtHostNotebookDocumentsAndEditorsShape {
-	$acceptDocumentAndEditorsDelta(delta: SerializableObjectWithBuffers<INotebookDocumentsAndEditorsDelta>): void;
-}
-
-export type NotebookRawContentEventDto =
-	// notebookCommon.NotebookCellsInitializeEvent<NotebookCellDto>
-	| {
-
-		readonly kind: notebookCommon.NotebookCellsChangeType.ModelChange;
-		readonly changes: notebookCommon.NotebookCellTextModelSplice<NotebookCellDto>[];
-	}
-	| {
-		readonly kind: notebookCommon.NotebookCellsChangeType.Move;
-		readonly index: number;
-		readonly length: number;
-		readonly newIdx: number;
-	}
-	| {
-		readonly kind: notebookCommon.NotebookCellsChangeType.Output;
-		readonly index: number;
-		readonly outputs: NotebookOutputDto[];
-	}
-	| {
-		readonly kind: notebookCommon.NotebookCellsChangeType.OutputItem;
-		readonly index: number;
-		readonly outputId: string;
-		readonly outputItems: NotebookOutputItemDto[];
-		readonly append: boolean;
-	}
-	| notebookCommon.NotebookCellsChangeLanguageEvent
-	| notebookCommon.NotebookCellsChangeMimeEvent
-	| notebookCommon.NotebookCellsChangeMetadataEvent
-	| notebookCommon.NotebookCellsChangeInternalMetadataEvent
-	// | notebookCommon.NotebookDocumentChangeMetadataEvent
-	| notebookCommon.NotebookCellContentChangeEvent
-	// | notebookCommon.NotebookDocumentUnknownChangeEvent
-	;
-
-export type NotebookCellsChangedEventDto = {
-	readonly rawEvents: NotebookRawContentEventDto[];
-	readonly versionId: number;
-};
-
-export interface ExtHostNotebookDocumentsShape {
-	$acceptModelChanged(uriComponents: UriComponents, event: SerializableObjectWithBuffers<NotebookCellsChangedEventDto>, isDirty: boolean, newMetadata?: notebookCommon.NotebookDocumentMetadata): void;
-	$acceptDirtyStateChanged(uriComponents: UriComponents, isDirty: boolean): void;
-	$acceptModelSaved(uriComponents: UriComponents): void;
-}
-
-export type INotebookEditorViewColumnInfo = Record<string, number>;
-
-export interface ExtHostNotebookEditorsShape {
-	$acceptEditorPropertiesChanged(id: string, data: INotebookEditorPropertiesChangeData): void;
-	$acceptEditorViewColumns(data: INotebookEditorViewColumnInfo): void;
-}
-
-export interface ExtHostNotebookKernelsShape {
-	$acceptNotebookAssociation(handle: number, uri: UriComponents, value: boolean): void;
-	$executeCells(handle: number, uri: UriComponents, handles: number[]): Promise<void>;
-	$cancelCells(handle: number, uri: UriComponents, handles: number[]): Promise<void>;
-	$acceptKernelMessageFromRenderer(handle: number, editorId: string, message: any): void;
-	$provideKernelSourceActions(handle: number, token: CancellationToken): Promise<notebookCommon.INotebookKernelSourceAction[]>;
-	$provideVariables(handle: number, requestId: string, notebookUri: UriComponents, parentId: number | undefined, kind: 'named' | 'indexed', start: number, token: CancellationToken): Promise<void>;
-}
-
-export interface ExtHostInteractiveShape {
-	$willAddInteractiveDocument(uri: UriComponents, eol: string, languageId: string, notebookUri: UriComponents): void;
-	$willRemoveInteractiveDocument(uri: UriComponents, notebookUri: UriComponents): void;
-}
-
 export interface ExtHostStorageShape {
 	$acceptValue(shared: boolean, extensionId: string, value: string): void;
 }
@@ -3000,12 +2652,6 @@ export const MainContext = {
 	MainThreadWindow: createProxyIdentifier<MainThreadWindowShape>('MainThreadWindow'),
 	MainThreadPower: createProxyIdentifier<MainThreadPowerShape>('MainThreadPower'),
 	MainThreadLabelService: createProxyIdentifier<MainThreadLabelServiceShape>('MainThreadLabelService'),
-	MainThreadNotebook: createProxyIdentifier<MainThreadNotebookShape>('MainThreadNotebook'),
-	MainThreadNotebookDocuments: createProxyIdentifier<MainThreadNotebookDocumentsShape>('MainThreadNotebookDocumentsShape'),
-	MainThreadNotebookEditors: createProxyIdentifier<MainThreadNotebookEditorsShape>('MainThreadNotebookEditorsShape'),
-	MainThreadNotebookKernels: createProxyIdentifier<MainThreadNotebookKernelsShape>('MainThreadNotebookKernels'),
-	MainThreadNotebookRenderers: createProxyIdentifier<MainThreadNotebookRenderersShape>('MainThreadNotebookRenderers'),
-	MainThreadInteractive: createProxyIdentifier<MainThreadInteractiveShape>('MainThreadInteractive'),
 	MainThreadTheming: createProxyIdentifier<MainThreadThemingShape>('MainThreadTheming'),
 	MainThreadTunnelService: createProxyIdentifier<MainThreadTunnelServiceShape>('MainThreadTunnelService'),
 	MainThreadManagedSockets: createProxyIdentifier<MainThreadManagedSocketsShape>('MainThreadManagedSockets'),
@@ -3061,13 +2707,6 @@ export const ExtHostContext = {
 	ExtHostProfileContentHandlers: createProxyIdentifier<ExtHostProfileContentHandlersShape>('ExtHostProfileContentHandlers'),
 	ExtHostOutputService: createProxyIdentifier<ExtHostOutputServiceShape>('ExtHostOutputService'),
 	ExtHostLabelService: createProxyIdentifier<ExtHostLabelServiceShape>('ExtHostLabelService'),
-	ExtHostNotebook: createProxyIdentifier<ExtHostNotebookShape>('ExtHostNotebook'),
-	ExtHostNotebookDocuments: createProxyIdentifier<ExtHostNotebookDocumentsShape>('ExtHostNotebookDocuments'),
-	ExtHostNotebookEditors: createProxyIdentifier<ExtHostNotebookEditorsShape>('ExtHostNotebookEditors'),
-	ExtHostNotebookKernels: createProxyIdentifier<ExtHostNotebookKernelsShape>('ExtHostNotebookKernels'),
-	ExtHostNotebookRenderers: createProxyIdentifier<ExtHostNotebookRenderersShape>('ExtHostNotebookRenderers'),
-	ExtHostNotebookDocumentSaveParticipant: createProxyIdentifier<ExtHostNotebookDocumentSaveParticipantShape>('ExtHostNotebookDocumentSaveParticipant'),
-	ExtHostInteractive: createProxyIdentifier<ExtHostInteractiveShape>('ExtHostInteractive'),
 	ExtHostSpeech: createProxyIdentifier<ExtHostSpeechShape>('ExtHostSpeech'),
 	ExtHostTheming: createProxyIdentifier<ExtHostThemingShape>('ExtHostTheming'),
 	ExtHostTunnelService: createProxyIdentifier<ExtHostTunnelServiceShape>('ExtHostTunnelService'),

@@ -18,9 +18,7 @@ import { IKeybindingService } from '../../../../platform/keybinding/common/keybi
 import { ServicesAccessor } from '../../../../editor/browser/editorExtensions.js';
 import { registerAction2, Action2 } from '../../../../platform/actions/common/actions.js';
 import { INotificationService } from '../../../../platform/notification/common/notification.js';
-import { ContextKeyExpr } from '../../../../platform/contextkey/common/contextkey.js';
 import { KeybindingWeight } from '../../../../platform/keybinding/common/keybindingsRegistry.js';
-import { NOTEBOOK_EDITOR_EDITABLE } from '../../notebook/common/notebookContextKeys.js';
 import { KeyCode, KeyMod } from '../../../../base/common/keyCodes.js';
 import { EditorContextKeys } from '../../../../editor/common/editorContextKeys.js';
 import { Schemas } from '../../../../base/common/network.js';
@@ -123,7 +121,7 @@ registerAction2(class extends Action2 {
 			id: detectLanguageCommandId,
 			title: localize2('detectlang', "Detect Language from Content"),
 			f1: true,
-			precondition: ContextKeyExpr.and(NOTEBOOK_EDITOR_EDITABLE.toNegated(), EditorContextKeys.editorTextFocus),
+			precondition: EditorContextKeys.editorTextFocus,
 			keybinding: { primary: KeyCode.KeyD | KeyMod.Alt | KeyMod.Shift, weight: KeybindingWeight.WorkbenchContrib }
 		});
 	}

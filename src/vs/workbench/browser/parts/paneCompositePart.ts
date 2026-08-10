@@ -440,6 +440,11 @@ export abstract class AbstractPaneCompositePart extends CompositePart<PaneCompos
 
 		this.compositeBarPosition = newPosition;
 
+		// Carrel: when the composite bar lives in the header area, the composite
+		// title row is hidden (see sidebarpart.css); stop the layout from
+		// reserving its height so the part's content reaches the grid bottom.
+		this.setTitleAreaVisibility(newPosition !== CompositeBarPosition.TOP);
+
 		if (updateCompositeBarOption) {
 			this.layoutCompositeBar();
 		}

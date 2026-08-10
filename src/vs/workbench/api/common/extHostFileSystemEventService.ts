@@ -401,7 +401,6 @@ export class ExtHostFileSystemEventService implements ExtHostFileSystemEventServ
 		for (const [, edit] of edits) {
 			const { edits } = typeConverter.WorkspaceEdit.from(edit, {
 				getTextDocumentVersion: uri => this._extHostDocumentsAndEditors.getDocument(uri)?.version,
-				getNotebookDocumentVersion: () => undefined,
 			});
 			dto.edits = dto.edits.concat(edits);
 		}

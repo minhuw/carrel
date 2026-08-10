@@ -313,7 +313,6 @@ const skippedExportMangledFiles = [
 	...[
 		buildfile.workerEditor,
 		buildfile.workerExtensionHost,
-		buildfile.workerNotebook,
 		buildfile.workerLanguageDetection,
 		buildfile.workerLocalFileSearch,
 		buildfile.workerProfileAnalysis,

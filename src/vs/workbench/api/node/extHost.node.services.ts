@@ -6,11 +6,9 @@
 import { InstantiationType, registerSingleton } from '../../../platform/instantiation/common/extensions.js';
 import { ExtHostTerminalService } from './extHostTerminalService.js';
 import { ExtHostTask } from './extHostTask.js';
-import { ExtHostDebugService } from './extHostDebugService.js';
 import { NativeExtHostSearch } from './extHostSearch.js';
 import { ExtHostExtensionService } from './extHostExtensionService.js';
 import { NodeExtHostTunnelService } from './extHostTunnelService.js';
-import { IExtHostDebugService } from '../common/extHostDebugService.js';
 import { IExtHostExtensionService } from '../common/extHostExtensionService.js';
 import { IExtHostSearch } from '../common/extHostSearch.js';
 import { IExtHostTask } from '../common/extHostTask.js';
@@ -46,7 +44,6 @@ registerSingleton(IExtensionStoragePaths, ExtensionStoragePaths, InstantiationTy
 registerSingleton(IExtHostTelemetry, new SyncDescriptor(ExtHostTelemetry, [false], true));
 
 registerSingleton(IExtHostAuthentication, NodeExtHostAuthentication, InstantiationType.Eager);
-registerSingleton(IExtHostDebugService, ExtHostDebugService, InstantiationType.Eager);
 registerSingleton(IExtHostSearch, NativeExtHostSearch, InstantiationType.Eager);
 registerSingleton(IExtHostTask, ExtHostTask, InstantiationType.Eager);
 registerSingleton(IExtHostTerminalService, ExtHostTerminalService, InstantiationType.Eager);

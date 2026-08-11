@@ -73,9 +73,9 @@ suite('SettingsChangeRelauncher', () => {
 	test('prompts to restart when a watched setting changes', async () => {
 		confirmResult = true;
 		await changeSetting(
-			'telemetry.feedback.enabled',
-			() => ({ telemetry: { feedback: { enabled: false } } }),
-			c => c.telemetry.feedback.enabled = true);
+			'security.workspace.trust.enabled',
+			() => ({ security: { workspace: { trust: { enabled: false } } } }),
+			c => c.security.workspace.trust.enabled = true);
 
 		assert.strictEqual(confirmCount, 1, 'should prompt to restart');
 		assert.strictEqual(restartCount, 1, 'should restart when confirmed');
@@ -84,9 +84,9 @@ suite('SettingsChangeRelauncher', () => {
 	test('does not restart when the confirmation is declined', async () => {
 		confirmResult = false;
 		await changeSetting(
-			'telemetry.feedback.enabled',
-			() => ({ telemetry: { feedback: { enabled: false } } }),
-			c => c.telemetry.feedback.enabled = true);
+			'security.workspace.trust.enabled',
+			() => ({ security: { workspace: { trust: { enabled: false } } } }),
+			c => c.security.workspace.trust.enabled = true);
 
 		assert.strictEqual(confirmCount, 1, 'should prompt to restart');
 		assert.strictEqual(restartCount, 0, 'should not restart when declined');

@@ -588,6 +588,7 @@ export async function esbuildExtensions(taskName: string, isWatch: boolean, scri
 const esbuildMediaScripts: { script: string; tsconfig: string }[] = [
 	{ script: 'markdown-language-features/esbuild.webview.mts', tsconfig: 'markdown-language-features/preview-src/tsconfig.json' },
 	{ script: 'markdown-language-features/esbuild.markdownEditor.mts', tsconfig: 'markdown-language-features/markdown-editor-src/tsconfig.json' },
+	{ script: 'markdown-math/build.previewStyles.mts', tsconfig: 'markdown-math/tsconfig.browser.json' },
 	{ script: 'simple-browser/esbuild.webview.mts', tsconfig: 'simple-browser/preview-src/tsconfig.json' },
 ];
 

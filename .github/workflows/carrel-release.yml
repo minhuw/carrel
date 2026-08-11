@@ -83,6 +83,13 @@ jobs:
           echo "vswhere found: $vs"
           echo "vs2022_install=$vs" >> $env:GITHUB_ENV
         shell: pwsh
+      - name: Add signtool to PATH (for dependency patching)
+        run: |
+          $signtool = Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\bin", "C:\Program Files\Windows Kits\10\bin" -Recurse -Filter signtool.exe -ErrorAction SilentlyContinue | Where-Object { $_.FullName -like '*\x64\*' } | Sort-Object FullName -Descending | Select-Object -First 1
+          if (-not $signtool) { throw "signtool.exe not found" }
+          echo "signtool: $($signtool.FullName)"
+          echo "$($signtool.DirectoryName)" >> $env:GITHUB_PATH
+        shell: pwsh
       - run: npm ci
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

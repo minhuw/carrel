@@ -214,12 +214,14 @@ export class GettingStartedPage extends EditorPane {
 		this.contextService = this._register(contextService.createScoped(this.container));
 		inWelcomeContext.bindTo(this.contextService).set(true);
 
-		this.gettingStartedCategories = this.gettingStartedService.getWalkthroughs();
+		// Carrel: the Welcome page does not offer walkthroughs; keep the
+		// category list empty so the page renders Start and Recent only.
+		this.gettingStartedCategories = [];
 
 		this._register(this.dispatchListeners);
 
 		const rerender = () => {
-			this.gettingStartedCategories = this.gettingStartedService.getWalkthroughs();
+			this.gettingStartedCategories = [];
 			if (this.currentWalkthrough) {
 				const existingSteps = this.currentWalkthrough.steps.map(step => step.id);
 				const newCategory = this.gettingStartedCategories.find(category => this.currentWalkthrough?.id === category.id);
@@ -978,7 +980,7 @@ export class GettingStartedPage extends EditorPane {
 			this.currentWalkthrough = this.gettingStartedCategories.find(category => category.id === editorInput.selectedCategory);
 
 			if (!this.currentWalkthrough) {
-				this.gettingStartedCategories = this.gettingStartedService.getWalkthroughs();
+				this.gettingStartedCategories = [];
 				this.currentWalkthrough = this.gettingStartedCategories.find(category => category.id === editorInput.selectedCategory);
 				if (this.currentWalkthrough) {
 					this.buildCategorySlide(editorInput.selectedCategory, editorInput.selectedStep, preserveFocus);

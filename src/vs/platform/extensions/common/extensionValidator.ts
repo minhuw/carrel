@@ -33,7 +33,9 @@ export interface INormalizedVersion {
 	isMinimum: boolean;
 }
 
-const VERSION_REGEXP = /^(\^|>=)?((\d+)|x)\.((\d+)|x)\.((\d+)|x)(\-.*)?$/;
+// Carrel: also accept `+build` metadata (our version is upstream + a Carrel
+// patch suffix, e.g. 1.132.0+0.1.0). The suffix is ignored by comparisons.
+const VERSION_REGEXP = /^(\^|>=)?((\d+)|x)\.((\d+)|x)\.((\d+)|x)([-+].*)?$/;
 const NOT_BEFORE_REGEXP = /^-(\d{4})(\d{2})(\d{2})(\d{2})?(\d{2})?$/;
 
 export function isValidVersionStr(version: string): boolean {

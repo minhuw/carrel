@@ -125,22 +125,6 @@
 	justify-content: center;
 }
 
-	padding: 4px 0; /* rows bleed to the card edges (reference design) */
-	/* flat panel that overlaps the sidebar: same surface, no rounding, only a
-	   bottom edge and a soft shadow to separate from the content beneath */
-	background: var(--vscode-sideBar-background);
-	border: none;
-	border-bottom: 1px solid var(--vscode-widget-border, var(--vscode-sideBar-border, transparent));
-	border-radius: 0;
-	box-shadow: 0 4px 10px var(--vscode-widget-shadow);
-.monaco-workbench .sidebar.part.pane-composite-part > .composite.title.has-composite-bar > .title-actions {
-	flex: inherit;
-}
-
-.monaco-workbench .sidebar.pane-composite-part > .title.has-composite-bar > .title-actions .monaco-action-bar .action-item {
-	max-width: 150px;
-}
-
 /*
  * Carrel: when the composite bar lives in the header area (activity bar on
  * top), the per-view title row (view name + view actions) is redundant —

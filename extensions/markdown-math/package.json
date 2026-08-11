@@ -70,7 +70,7 @@
 		],
 		"markdown.markdownItPlugins": true,
 		"markdown.previewStyles": [
-			"./notebook-out/katex.min.css",
+			"./preview-styles/katex/katex.min.css",
 			"./preview-styles/index.css"
 		],
 		"configuration": [
@@ -96,8 +96,8 @@
 		]
 	},
 	"scripts": {
-		"compile": "npm run",
-		"watch": "npm run"
+		"compile": "node ./build.previewStyles.mts",
+		"watch": "node ./build.previewStyles.mts --watch"
 	},
 	"devDependencies": {
 		"@types/markdown-it": "^0.0.0"

@@ -69,8 +69,6 @@ export class BaseIssueReporterService extends Disposable {
 	public publicGithubButton!: Button | ButtonWithDropdown;
 	public internalGithubButton!: Button | ButtonWithDropdown;
 	public nonGitHubIssueUrl = false;
-	public needsUpdate = false;
-	public acknowledged = false;
 	private createAction: Action;
 	private previewAction: Action;
 	private privateAction: Action;
@@ -303,11 +301,7 @@ export class BaseIssueReporterService extends Disposable {
 		}
 
 		// setup button + dropdown if applicable
-		if (!this.acknowledged && this.needsUpdate) { // * old version and hasn't ack'd
-			this.publicGithubButton = this._register(new Button(container, unthemedButtonStyles));
-			this.publicGithubButton.label = localize('acknowledge', "Confirm Version Acknowledgement");
-			this.publicGithubButton.enabled = false;
-		} else if (this.data.githubAccessToken && this.isPreviewEnabled()) { // * has access token, create by default, preview dropdown
+		if (this.data.githubAccessToken && this.isPreviewEnabled()) { // * has access token, create by default, preview dropdown
 			this.publicGithubButton = this._register(new ButtonWithDropdown(container, {
 				contextMenuProvider: this.contextMenuService,
 				actions: [this.previewAction],
@@ -606,26 +600,12 @@ export class BaseIssueReporterService extends Disposable {
 		}
 	}
 
-	private updateAcknowledgementState() {
-		// eslint-disable-next-line no-restricted-syntax
-		const acknowledgementCheckbox = this.getElementById<HTMLInputElement>('includeAcknowledgement');
-		if (acknowledgementCheckbox) {
-			this.acknowledged = acknowledgementCheckbox.checked;
-			this.updateButtonStates();
-		}
-	}
-
 	public setEventHandlers(): void {
 		(['includeSystemInfo', 'includeProcessInfo', 'includeWorkspaceInfo', 'includeExtensions', 'includeExperiments', 'includeExtensionData'] as const).forEach(elementId => {
 			this.addEventListener(elementId, 'click', (event: Event) => {
 				event.stopPropagation();
 				this.issueReporterModel.update({ [elementId]: !this.issueReporterModel.getData()[elementId] });
 			});
-		});
-
-		this.addEventListener('includeAcknowledgement', 'click', (event: Event) => {
-			event.stopPropagation();
-			this.updateAcknowledgementState();
 		});
 
 		// eslint-disable-next-line no-restricted-syntax

@@ -16,7 +16,7 @@ import { getPathLabel } from '../../base/common/labels.js';
 import { Disposable, DisposableStore, MutableDisposable, toDisposable } from '../../base/common/lifecycle.js';
 import { Schemas, VSCODE_AUTHORITY } from '../../base/common/network.js';
 import { join, posix } from '../../base/common/path.js';
-import { IProcessEnvironment, isLinux, isLinuxSnap, isMacintosh, isWindows, OS } from '../../base/common/platform.js';
+import { IProcessEnvironment, isLinux, isMacintosh, isWindows, OS } from '../../base/common/platform.js';
 import { assertType } from '../../base/common/types.js';
 import { URI } from '../../base/common/uri.js';
 import { generateUuid } from '../../base/common/uuid.js';
@@ -72,14 +72,6 @@ import { StorageDatabaseChannel } from '../../platform/storage/electron-main/sto
 import { ApplicationStorageMainService, IApplicationStorageMainService, IStorageMainService, StorageMainService } from '../../platform/storage/electron-main/storageMainService.js';
 import { ITelemetryService, TelemetryLevel } from '../../platform/telemetry/common/telemetry.js';
 import { NullTelemetryService } from '../../platform/telemetry/common/telemetryUtils.js';
-import { IUpdateService } from '../../platform/update/common/update.js';
-import { UpdateChannel } from '../../platform/update/common/updateIpc.js';
-import { NotAvailableUpdateDialog } from '../../platform/update/electron-main/notAvailableUpdateDialog.js';
-import { DarwinUpdateService } from '../../platform/update/electron-main/updateService.darwin.js';
-import { LinuxUpdateService } from '../../platform/update/electron-main/updateService.linux.js';
-import { SnapUpdateService } from '../../platform/update/electron-main/updateService.snap.js';
-import { Win32UpdateService } from '../../platform/update/electron-main/updateService.win32.js';
-import { isInnoSetupInstall } from '../../platform/update/electron-main/win32UpdateType.js';
 import { IOpenURLOptions, IURLService } from '../../platform/url/common/url.js';
 import { URLHandlerChannelClient, URLHandlerRouter } from '../../platform/url/common/urlIpc.js';
 import { NativeURLService } from '../../platform/url/common/urlService.js';
@@ -1105,25 +1097,6 @@ export class CodeApplication extends Disposable {
 	private async initServices(machineId: string, sqmId: string, devDeviceId: string, sharedProcessReady: Promise<MessagePortClient>): Promise<IInstantiationService> {
 		const services = new ServiceCollection();
 
-		// Update
-		switch (process.platform) {
-			case 'win32':
-				services.set(IUpdateService, new SyncDescriptor(Win32UpdateService));
-				break;
-
-			case 'linux':
-				if (isLinuxSnap) {
-					services.set(IUpdateService, new SyncDescriptor(SnapUpdateService, [process.env['SNAP'], process.env['SNAP_REVISION']]));
-				} else {
-					services.set(IUpdateService, new SyncDescriptor(LinuxUpdateService));
-				}
-				break;
-
-			case 'darwin':
-				services.set(IUpdateService, new SyncDescriptor(DarwinUpdateService));
-				break;
-		}
-
 		// Windows
 		services.set(IWindowsMainService, new SyncDescriptor(WindowsMainService, [machineId, sqmId, devDeviceId, this.userEnv], false));
 		services.set(IAuxiliaryWindowsMainService, new SyncDescriptor(AuxiliaryWindowsMainService, undefined, false));
@@ -1265,14 +1238,6 @@ export class CodeApplication extends Disposable {
 		const userDataProfilesService = ProxyChannel.fromService(accessor.get(IUserDataProfilesMainService), disposables);
 		mainProcessElectronServer.registerChannel('userDataProfiles', userDataProfilesService);
 		sharedProcessClient.then(client => client.registerChannel('userDataProfiles', userDataProfilesService));
-
-		// Update
-		const updateService = accessor.get(IUpdateService);
-		const updateChannel = new UpdateChannel(updateService);
-		mainProcessElectronServer.registerChannel('update', updateChannel);
-
-		// Show a native "no updates available" dialog from the main process only in windowless macOS case.
-		this._register(new NotAvailableUpdateDialog(updateService, accessor.get(IDialogMainService), accessor.get(IWindowsMainService)));
 
 		// Metered Connection
 		const meteredConnectionChannel = new MeteredConnectionChannel(accessor.get(IMeteredConnectionService) as MeteredConnectionMainService);
@@ -1478,9 +1443,6 @@ export class CodeApplication extends Disposable {
 			initWindowsVersionInfo();
 		}
 
-		// Windows: mutex
-		this.installMutex();
-
 		// Remote Authorities
 		protocol.registerHttpProtocol(Schemas.vscodeRemoteResource, (request, callback) => {
 			callback({
@@ -1646,19 +1608,6 @@ export class CodeApplication extends Disposable {
 			});
 		}
 
-	}
-
-	private async installMutex(): Promise<void> {
-		const win32MutexName = this.productService.win32MutexName;
-		if (isWindows && win32MutexName && isInnoSetupInstall()) {
-			try {
-				const WindowsMutex = await import('@vscode/windows-mutex');
-				const mutex = new WindowsMutex.Mutex(win32MutexName);
-				Event.once(this.lifecycleMainService.onWillShutdown)(() => mutex.release());
-			} catch (error) {
-				this.logService.error(error);
-			}
-		}
 	}
 
 	private async resolveShellEnvironment(args: NativeParsedArgs, env: IProcessEnvironment, notifyOnError: boolean): Promise<typeof process.env> {

@@ -69,7 +69,6 @@ const vscodeResourceIncludes = [
 	// Electron Preload
 	'out-build/vs/base/parts/sandbox/electron-browser/preload.js',
 	'out-build/vs/base/parts/sandbox/electron-browser/preload-aux.js',
-	'out-build/vs/platform/browserView/electron-browser/preload-browserView.js',
 
 	// Node Scripts
 	'out-build/vs/base/node/{terminateProcess.sh,cpuUsage.sh,ps.sh}',
@@ -261,7 +260,7 @@ function packageTask(platform: string, arch: string, sourceFolderName: string, d
 			.pipe(rename(function (path) { path.dirname = path.dirname!.replace(new RegExp('^' + out), 'out'); }))
 			.pipe(util.setExecutableBit(['**/*.sh']));
 
-		const platformSpecificBuiltInExtensionsExclusions = (product.builtInExtensions as { name: string; platforms?: string[] }[]).filter(ext => {
+		const platformSpecificBuiltInExtensionsExclusions = (((product as { builtInExtensions?: { name: string; platforms?: string[] }[] }).builtInExtensions) ?? []).filter(ext => {
 			if (!ext.platforms) {
 				return false;
 			}

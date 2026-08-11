@@ -34,7 +34,6 @@ export const dirs = [
 	'extensions/markdown-math',
 	'extensions/media-preview',
 	'extensions/merge-conflict',
-	'extensions/microsoft-authentication',
 	'extensions/npm',
 	'extensions/php-language-features',
 	'extensions/references-view',

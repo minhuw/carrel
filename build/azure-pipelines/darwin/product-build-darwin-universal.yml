@@ -185,7 +185,7 @@ jobs:
             --user-data-dir "$(Agent.TempDirectory)/vscode-verify" \
             --extensions-dir "$(Agent.TempDirectory)/vscode-verify-ext" \
             --disable-extensions --disable-telemetry --skip-welcome \
-            --skip-release-notes --disable-updates --disable-experiments \
+            --disable-experiments \
             --disable-workspace-trust
           if [ ! -f "$TIMERS_FILE" ]; then
             echo "ERROR: VS Code failed to start — startup timers were not written."

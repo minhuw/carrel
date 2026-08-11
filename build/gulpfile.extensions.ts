@@ -72,7 +72,6 @@ const compilations = [
 	'extensions/media-preview/tsconfig.json',
 	'extensions/merge-conflict/tsconfig.json',
 	'extensions/terminal-suggest/tsconfig.json',
-	'extensions/microsoft-authentication/tsconfig.json',
 	'extensions/npm/tsconfig.json',
 	'extensions/php-language-features/tsconfig.json',
 	'extensions/references-view/tsconfig.json',

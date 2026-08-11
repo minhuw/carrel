@@ -81,7 +81,6 @@ export class IssueReporterOverlay {
 	readonly onDidChangeAttachments: Event<void> = this._onDidChangeAttachments.event;
 
 	private wizardPanel!: HTMLElement;
-	private updateBanner!: HTMLElement;
 	private stepContainer!: HTMLElement;
 	private readonly stepPages: HTMLElement[] = [];
 
@@ -169,7 +168,6 @@ export class IssueReporterOverlay {
 		initialHideToolbar: boolean = true,
 		private readonly resolveExtensionIssueData?: (extensionId: string) => Promise<IssueReporterData | undefined>,
 		private readonly openExternalLink?: (url: string) => Promise<void>,
-		private showUpdateBanner = false,
 		private readonly refreshPerformanceInfo?: () => Promise<void>,
 		/** Returns the user's currently-bound keybinding for the given command id, or undefined when unbound. */
 		private readonly resolveKeybinding?: (commandId: string) => ResolvedKeybinding | undefined,
@@ -230,12 +228,6 @@ export class IssueReporterOverlay {
 		this.nextButton.label = localize('next', "Next");
 		this.nextButton.element.classList.add('wizard-next');
 		this.nextButton.element.title = localize('next', "Next");
-
-		this.updateBanner = append(this.wizardPanel, $('div.wizard-update-banner'));
-		this.updateBanner.setAttribute('role', 'status');
-		this.updateBanner.setAttribute('aria-live', 'polite');
-		this.updateBanner.textContent = localize('updateAvailable', "A new version of {0} is available.", product.nameLong);
-		this.setUpdateAvailable(this.showUpdateBanner);
 
 		// Step content area
 		this.stepContainer = append(this.wizardPanel, $('div.wizard-step-container'));
@@ -2354,11 +2346,6 @@ ${rows.map(row => row.map(value => this.escapeMarkdownTableCell(value ?? '')).jo
 
 	private escapeMarkdownTableCell(value: string): string {
 		return value.replace(/\r?\n/g, '<br>').replace(/\|/g, '\\|');
-	}
-
-	setUpdateAvailable(showUpdateBanner: boolean): void {
-		this.showUpdateBanner = showUpdateBanner;
-		this.updateBanner.style.display = showUpdateBanner ? '' : 'none';
 	}
 
 	focus(): void {

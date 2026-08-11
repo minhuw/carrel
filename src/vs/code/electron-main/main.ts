@@ -88,6 +88,18 @@ import { LINUX_SYSTEM_POLICY_FILE_PATH } from '../../base/common/policy.js';
 class CodeMain {
 
 	main(): void {
+		// Carrel: when stdout/stderr are closed pipes (detached launches,
+		// terminal exited), console warning writes emit stream 'error' events
+		// which would otherwise throw EPIPE and loop as uncaught exception
+		// dialogs. Listening on the streams absorbs them at the source.
+		const ignoreEpipe = (err: NodeJS.ErrnoException) => {
+			if (err.code !== 'EPIPE') {
+				throw err;
+			}
+		};
+		process.stdout?.on('error', ignoreEpipe);
+		process.stderr?.on('error', ignoreEpipe);
+
 		try {
 			this.startup();
 		} catch (error) {

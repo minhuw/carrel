@@ -82,7 +82,11 @@ git tag v$(python3 -c "import json; print(json.load(open('package.json'))['versi
 git push origin <tag>
 ```
 
-The workflow validates that the tag matches `product.json`'s `version`, builds the signed macOS app and all reh server targets on native runners (so server native modules are always correct), publishes the GitHub release, and updates the homebrew cask in `minhuw/homebrew-carrel` (requires a `CARREL_TAP_TOKEN` repo secret with write access to the tap).
+The workflow validates that the tag matches `package.json`'s `version`, builds the signed macOS app and all reh server targets on native runners (so server native modules are always correct), publishes the GitHub release, and updates the homebrew cask in `minhuw/homebrew-carrel` (requires a `CARREL_TAP_TOKEN` repo secret with write access to the tap).
+
+### Versioning
+
+Carrel's version is the upstream Code - OSS version plus a build-metadata suffix: `1.132.0+0.1.0` means "Code - OSS 1.132.0, Carrel patch line 0.1.x". Bugfix and polish releases on the same upstream base increment the suffix (`1.132.0+0.1.1`, ...); moving to a new upstream base resets it (`1.133.0+0.1.0`). Only the suffix after `+` is Carrel's; the semver core always tracks upstream exactly.
 
 ## Upstream Engineering Guidance
 

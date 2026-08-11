@@ -471,7 +471,6 @@ async function copyFile(srcPath: string, destPath: string): Promise<void> {
 const desktopStandaloneFiles = [
 	'vs/base/parts/sandbox/electron-browser/preload.ts',
 	'vs/base/parts/sandbox/electron-browser/preload-aux.ts',
-	'vs/platform/browserView/electron-browser/preload-browserView.ts',
 ];
 
 async function compileStandaloneFiles(outDir: string, doMinify: boolean, target: BuildTarget): Promise<void> {

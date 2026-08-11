@@ -69,6 +69,59 @@ jobs:
           path: Carrel-darwin-arm64-*.zip
           retention-days: 1
 
+  app-windows:
+    needs: check
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Locate Visual Studio toolchain
+        run: |
+          $vs = & "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath
+          echo "vswhere found: $vs"
+          echo "vs2022_install=$vs" >> $env:GITHUB_ENV
+        shell: pwsh
+      - run: npm ci
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and zip
+        run: |
+          npm run compile
+          npm run gulp vscode-win32-x64-min
+          Compress-Archive -Path ..\VSCode-win32-x64\* -DestinationPath "Carrel-win32-x64-${{ needs.check.outputs.version }}.zip"
+        shell: pwsh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: app-windows
+          path: Carrel-win32-x64-*.zip
+          retention-days: 1
+
+  app-linux:
+    needs: check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Install native build dependencies
+        run: sudo apt-get update && sudo apt-get install -y libkrb5-dev libx11-dev libxkbfile-dev
+      - run: npm ci
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and tar
+        run: |
+          npm run compile
+          npm run gulp vscode-linux-x64-min
+          tar -czf "Carrel-linux-x64-${{ needs.check.outputs.version }}.tar.gz" -C ../VSCode-linux-x64 .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: app-linux
+          path: Carrel-linux-x64-*.tar.gz
+          retention-days: 1
+
   reh-linux-x64:
     needs: check
     runs-on: ubuntu-latest
@@ -140,7 +193,7 @@ jobs:
           retention-days: 1
 
   release:
-    needs: [check, app-macos, reh-linux-x64, reh-linux-arm64, reh-darwin]
+    needs: [check, app-macos, app-windows, app-linux, reh-linux-x64, reh-linux-arm64, reh-darwin]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4

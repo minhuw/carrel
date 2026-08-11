@@ -28,12 +28,7 @@ interface IConfiguration extends IWindowsConfiguration {
 	editor?: { accessibilitySupport?: 'on' | 'off' | 'auto' };
 	security?: { workspace?: { trust?: { enabled?: boolean } }; restrictUNCAccess?: boolean };
 	window: IWindowSettings;
-	workbench?: { enableExperiments?: boolean };
-	chat?: {
-		extensionUnification?: { enabled?: boolean };
-	};
 	_extensionsGallery?: { enablePPE?: boolean };
-	accessibility?: { verbosity?: { debug?: boolean } };
 }
 
 export class SettingsChangeRelauncher extends Disposable implements IWorkbenchContribution {
@@ -47,11 +42,8 @@ export class SettingsChangeRelauncher extends Disposable implements IWorkbenchCo
 		'window.controlsStyle',
 		'editor.accessibilitySupport',
 		'security.workspace.trust.enabled',
-		'workbench.enableExperiments',
 		'_extensionsGallery.enablePPE',
-		'security.restrictUNCAccess',
-		'accessibility.verbosity.debug',
-		'chat.extensionUnification.enabled'
+		'security.restrictUNCAccess'
 	];
 
 	private readonly titleBarStyle = new ChangeObserver<TitlebarStyle>('string');
@@ -62,11 +54,8 @@ export class SettingsChangeRelauncher extends Disposable implements IWorkbenchCo
 	private readonly controlsStyle = new ChangeObserver('string');
 	private accessibilitySupport: 'on' | 'off' | 'auto' | undefined;
 	private readonly workspaceTrustEnabled = new ChangeObserver('boolean');
-	private readonly experimentsEnabled = new ChangeObserver('boolean');
 	private readonly enablePPEExtensionsGallery = new ChangeObserver('boolean');
 	private readonly restrictUNCAccess = new ChangeObserver('boolean');
-	private readonly accessibilityVerbosityDebug = new ChangeObserver('boolean');
-	private readonly extensionUnificationEnabled = new ChangeObserver('boolean');
 
 	constructor(
 		@IHostService private readonly hostService: IHostService,
@@ -142,19 +131,10 @@ export class SettingsChangeRelauncher extends Disposable implements IWorkbenchCo
 
 			// UNC host access restrictions
 			processChanged(this.restrictUNCAccess.handleChange(config?.security?.restrictUNCAccess));
-
-			// Debug accessibility verbosity
-			processChanged(this.accessibilityVerbosityDebug.handleChange(config?.accessibility?.verbosity?.debug));
 		}
-
-		// Experiments
-		processChanged(this.experimentsEnabled.handleChange(config.workbench?.enableExperiments));
 
 		// Profiles
 		processChanged(this.productService.quality !== 'stable' && this.enablePPEExtensionsGallery.handleChange(config._extensionsGallery?.enablePPE));
-
-		// Extension Unification (only when turning on)
-		processChanged(this.extensionUnificationEnabled.handleChange(config.chat?.extensionUnification?.enabled) && config.chat?.extensionUnification?.enabled === true);
 
 		if (askToRelaunch && changed && this.hostService.hasFocus) {
 			this.doConfirm(
@@ -226,10 +206,6 @@ export class WorkspaceChangeExtHostRelauncher extends Disposable implements IWor
 		this.extensionHostRestarter = this._register(new RunOnceScheduler(async () => {
 			if (!!environmentService.extensionTestsLocationURI) {
 				return; // no restart when in tests: see https://github.com/microsoft/vscode/issues/66936
-			}
-
-			if (environmentService.isSessionsWindow) {
-				return; // no restart for sessions window
 			}
 
 			if (environmentService.remoteAuthority) {

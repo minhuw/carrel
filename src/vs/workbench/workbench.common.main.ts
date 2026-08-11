@@ -156,12 +156,8 @@ import { UserDataSyncLogService } from '../platform/userDataSync/common/userData
 import { AllowedExtensionsService } from '../platform/extensionManagement/common/allowedExtensionsService.js';
 import { IWebWorkerService } from '../platform/webWorker/browser/webWorkerService.js';
 import { WebWorkerService } from '../platform/webWorker/browser/webWorkerServiceImpl.js';
-import { AgentNetworkFilterService, IAgentNetworkFilterService } from '../platform/networkFilter/common/networkFilterService.js';
 
 registerSingleton(IUserDataSyncLogService, UserDataSyncLogService, InstantiationType.Delayed);
-// Carrel: renderer-side registration for the network filter used by the
-// integrated browser (upstream registered this with the removed chat stack).
-registerSingleton(IAgentNetworkFilterService, AgentNetworkFilterService, InstantiationType.Delayed);
 registerSingleton(IAllowedExtensionsService, AllowedExtensionsService, InstantiationType.Delayed);
 registerSingleton(IIgnoredExtensionsManagementService, IgnoredExtensionsManagementService, InstantiationType.Delayed);
 registerSingleton(IGlobalExtensionEnablementService, GlobalExtensionEnablementService, InstantiationType.Delayed);

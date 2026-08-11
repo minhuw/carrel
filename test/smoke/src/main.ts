@@ -28,7 +28,6 @@ import { setup as setupLaunchTests } from './areas/workbench/launch.test';
 import { setup as setupTerminalTests } from './areas/terminal/terminal.test';
 import { setup as setupTaskTests } from './areas/task/task.test';
 import { setup as setupAccessibilityTests } from './areas/accessibility/accessibility.test';
-import { setup as setupBrowserViewTests } from './areas/browserView/browserView.test';
 
 const rootPath = path.join(__dirname, '..', '..', '..');
 
@@ -431,6 +430,5 @@ describe(`VSCode Smoke Tests (${opts.web ? 'Web' : 'Electron'})`, () => {
 	if (!(opts.web && process.platform === 'win32' /* TODO@bpasero flaky */)) { setupMultirootTests(logger); }
 	if (!opts.web && !opts.remote && quality !== Quality.Dev && quality !== Quality.OSS) { setupLocalizationTests(logger); }
 	if (!opts.web && !opts.remote) { setupLaunchTests(logger); }
-	if (!opts.web && !opts.remote) { setupBrowserViewTests(logger); }
 	setupAccessibilityTests(logger, opts, quality);
 });

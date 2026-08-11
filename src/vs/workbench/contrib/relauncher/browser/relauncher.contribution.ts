@@ -47,11 +47,8 @@ export class SettingsChangeRelauncher extends Disposable implements IWorkbenchCo
 		'window.controlsStyle',
 		'editor.accessibilitySupport',
 		'security.workspace.trust.enabled',
-		'workbench.enableExperiments',
 		'_extensionsGallery.enablePPE',
 		'security.restrictUNCAccess',
-		'accessibility.verbosity.debug',
-		'chat.extensionUnification.enabled'
 	];
 
 	private readonly titleBarStyle = new ChangeObserver<TitlebarStyle>('string');

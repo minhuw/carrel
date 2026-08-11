@@ -1,0 +1,201 @@
+# Carrel release pipeline.
+#
+# Triggered ONLY by version tags (v*) or manual dispatch — never by branch
+# pushes. Carrel's jj workflow force-pushes main on every rebase, so branch
+# triggers would fire constantly; a tag is pushed deliberately when the stack
+# is releasable. Each job builds on its native platform so server native
+# modules (spdlog, node-pty, ...) are always correct for their target.
+name: carrel-release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (must match product.json, e.g. 1.132.0)'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.ver.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Resolve and verify version
+        id: ver
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          VERSION="${{ inputs.version || '' }}"
+          [ -z "$VERSION" ] && VERSION="$TAG_VERSION"
+          PRODUCT_VERSION=$(python3 -c "import json; print(json.load(open('package.json'))['version'])")
+          echo "tag=$TAG_VERSION product=$PRODUCT_VERSION"
+          if [ "$VERSION" != "$PRODUCT_VERSION" ]; then
+            echo "::error::version mismatch: tag/input '$VERSION' vs package.json '$PRODUCT_VERSION'"
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+  app-macos:
+    needs: check
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - run: npm ci
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build, sign (ad-hoc), zip
+        run: |
+          npm run compile
+          rm -rf out out-vscode-min out-build out-cli .build/extensions .build/builtInExtensions
+          npm run gulp vscode-darwin-arm64-min
+          APP=../VSCode-darwin-arm64/Carrel.app
+          LPROJ="$APP/Contents/Frameworks/Electron Framework.framework/Versions/Current/Resources"
+          find "$LPROJ" -maxdepth 1 -name '*.lproj' ! -name 'en*.lproj' -exec rm -rf {} + || true
+          # ad-hoc sign; a signing failure must not block the release (the
+          # homebrew cask clears quarantine via xattr postflight anyway)
+          codesign --deep --force --sign - "$APP" || codesign --force --sign - "$APP" || true
+          ditto -c -k --sequesterRsrc --keepParent "$APP" "Carrel-darwin-arm64-${{ needs.check.outputs.version }}.zip"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: app-macos
+          path: Carrel-darwin-arm64-*.zip
+          retention-days: 1
+
+  reh-linux-x64:
+    needs: check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Install native build dependencies
+        run: sudo apt-get update && sudo apt-get install -y libkrb5-dev libx11-dev libxkbfile-dev
+      - run: npm ci
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build reh server
+        run: |
+          npm run compile
+          npm run gulp vscode-reh-linux-x64-min
+          tar -czf "carrel-reh-linux-x64-${{ needs.check.outputs.version }}.tar.gz" -C ../vscode-reh-linux-x64 .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: reh-linux-x64
+          path: carrel-reh-linux-x64-*.tar.gz
+          retention-days: 1
+
+  reh-linux-arm64:
+    needs: check
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Install native build dependencies
+        run: sudo apt-get update && sudo apt-get install -y libkrb5-dev libx11-dev libxkbfile-dev
+      - run: npm ci
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build reh server
+        run: |
+          npm run compile
+          npm run gulp vscode-reh-linux-arm64-min
+          tar -czf "carrel-reh-linux-arm64-${{ needs.check.outputs.version }}.tar.gz" -C ../vscode-reh-linux-arm64 .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: reh-linux-arm64
+          path: carrel-reh-linux-arm64-*.tar.gz
+          retention-days: 1
+
+  reh-darwin:
+    needs: check
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - run: npm ci
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build reh server
+        run: |
+          npm run compile
+          npm run gulp vscode-reh-darwin-arm64-min
+          tar -czf "carrel-reh-darwin-arm64-${{ needs.check.outputs.version }}.tar.gz" -C ../vscode-reh-darwin-arm64 .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: reh-darwin
+          path: carrel-reh-darwin-arm64-*.tar.gz
+          retention-days: 1
+
+  release:
+    needs: [check, app-macos, reh-linux-x64, reh-linux-arm64, reh-darwin]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: "*"
+          merge-multiple: true
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="v${{ needs.check.outputs.version }}"
+          if gh release view "$TAG" --repo minhuw/carrel >/dev/null 2>&1; then
+            gh release upload "$TAG" *.zip *.tar.gz --repo minhuw/carrel --clobber
+          else
+            gh release create "$TAG" *.zip *.tar.gz --repo minhuw/carrel --title "Carrel ${{ needs.check.outputs.version }}" --notes "Carrel ${{ needs.check.outputs.version }}"
+          fi
+      - name: Update homebrew cask
+        # Optional until the CARREL_TAP_TOKEN secret (write access to the tap repo) is created
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.CARREL_TAP_TOKEN }}
+        run: |
+          VERSION="${{ needs.check.outputs.version }}"
+          SHA256=$(shasum -a 256 "Carrel-darwin-arm64-$VERSION.zip" | cut -d' ' -f1)
+          cat > carrel.rb <<RUBY
+          cask "carrel" do
+            version "$VERSION"
+            sha256 "$SHA256"
+
+            url "https://github.com/minhuw/carrel/releases/download/v#{version}/Carrel-darwin-arm64-#{version}.zip"
+            name "Carrel"
+            desc "Slim, AI-free desktop code editor derived from Code - OSS"
+            homepage "https://github.com/minhuw/carrel"
+
+            depends_on arch: :arm64
+
+            app "Carrel.app"
+
+            postflight do
+              system_command "/usr/bin/xattr",
+                             args: ["-dr", "com.apple.quarantine", "#{appdir}/Carrel.app"]
+            end
+
+            zap trash: [
+              "~/.carrel",
+              "~/Library/Application Support/Carrel",
+              "~/Library/Caches/carrel",
+              "~/Library/Preferences/com.carrel.editor.plist",
+              "~/Library/Saved Application State/com.carrel.editor.savedState",
+            ]
+          end
+          RUBY
+          SHA=$(gh api repos/minhuw/homebrew-carrel/contents/Casks/carrel.rb --jq .sha)
+          gh api repos/minhuw/homebrew-carrel/contents/Casks/carrel.rb -X PUT \
+            -f message="carrel $VERSION" \
+            -f content="$(base64 -w0 carrel.rb)" \
+            -f sha="$SHA" --silent
+          echo "cask updated to $VERSION"

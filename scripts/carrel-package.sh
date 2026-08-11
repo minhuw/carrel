@@ -85,12 +85,23 @@ if [ "${1:-}" = "--publish" ] || [ "${2:-}" = "--publish" ]; then
 	# open-remote-ssh extension downloads onto SSH targets. The download URL
 	# template lives in product.json (serverDownloadUrlTemplate).
 	ASSETS="$APP_ROOT/$ASSET"
-	for TARGET in linux-x64 linux-arm64 darwin-arm64; do
+	for TARGET in linux-x64 darwin-arm64; do
+		# NOTE: linux-arm64 needs an arm64 Linux host or CI for its native
+		# modules (cross-built macOS natives are useless); add it back when
+		# release CI exists.
 		REH_OUT="$(pwd)/../VSCode-reh-$TARGET"
 		REH_TGZ="$APP_ROOT/carrel-reh-$TARGET-$VERSION.tar.gz"
 		echo "==> Building REH server for $TARGET"
 		rm -rf "$REH_OUT"
 		npm run gulp "vscode-reh-$TARGET-min"
+		# The cross-built package contains host-platform (macOS) native
+		# modules; linux targets must have their natives overlaid with
+		# linux builds before publishing (see commit history / CI). Guard
+		# against shipping a broken tarball:
+		if [ "${TARGET%%-*}" = "linux" ] && find "$REH_OUT/node_modules" -name "*.node" -exec file {} + 2>/dev/null | grep -q "Mach-O"; then
+			echo "ERROR: $TARGET server package contains macOS native modules — overlay linux natives before publishing" >&2
+			exit 1
+		fi
 		tar -czf "$REH_TGZ" -C "$REH_OUT" .
 		ASSETS="$ASSETS $REH_TGZ"
 	done

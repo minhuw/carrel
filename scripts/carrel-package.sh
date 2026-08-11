@@ -77,10 +77,25 @@ if [ "${1:-}" = "--publish" ] || [ "${2:-}" = "--publish" ]; then
 
 	echo "==> Publishing $TAG"
 	cp "$APP_ROOT/$APP_NAME.zip" "$APP_ROOT/$ASSET"
+
+	# Build the remote extension host (REH) servers that the bundled
+	# open-remote-ssh extension downloads onto SSH targets. The download URL
+	# template lives in product.json (serverDownloadUrlTemplate).
+	ASSETS="$APP_ROOT/$ASSET"
+	for TARGET in linux-x64 linux-arm64 darwin-arm64; do
+		REH_OUT="$(pwd)/../VSCode-reh-$TARGET"
+		REH_TGZ="$APP_ROOT/carrel-reh-$TARGET-$VERSION.tar.gz"
+		echo "==> Building REH server for $TARGET"
+		rm -rf "$REH_OUT"
+		npm run gulp "vscode-reh-$TARGET-min"
+		tar -czf "$REH_TGZ" -C "$REH_OUT" .
+		ASSETS="$ASSETS $REH_TGZ"
+	done
+
 	if gh release view "$TAG" --repo minhuw/carrel >/dev/null 2>&1; then
-		gh release upload "$TAG" "$APP_ROOT/$ASSET" --repo minhuw/carrel --clobber
+		gh release upload "$TAG" $ASSETS --repo minhuw/carrel --clobber
 	else
-		gh release create "$TAG" "$APP_ROOT/$ASSET" --repo minhuw/carrel --title "Carrel $VERSION" --notes "Carrel $VERSION"
+		gh release create "$TAG" $ASSETS --repo minhuw/carrel --title "Carrel $VERSION" --notes "Carrel $VERSION"
 	fi
 	echo "==> Published $TAG: https://github.com/minhuw/carrel/releases/tag/$TAG"
 fi

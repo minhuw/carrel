@@ -42,7 +42,6 @@ import './mainThreadLanguages.js';
 import './mainThreadLogService.js';
 import './mainThreadMessageService.js';
 import './mainThreadManagedSockets.js';
-import './mainThreadBrowserTunnelProxy.js';
 import './mainThreadOutputService.js';
 import './mainThreadProgress.js';
 import './mainThreadQuickDiff.js';
@@ -80,7 +79,6 @@ import './mainThreadProfileContentHandlers.js';
 import './mainThreadDataChannels.js';
 import './mainThreadMeteredConnection.js';
 import './mainThreadGitExtensionService.js';
-import './mainThreadBrowsers.js';
 
 export class ExtensionPoints implements IWorkbenchContribution {
 

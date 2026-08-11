@@ -70,6 +70,39 @@ suite('SettingsChangeRelauncher', () => {
 		disposables.clear();
 	});
 
+	test('prompts to restart when a watched setting changes', async () => {
+		confirmResult = true;
+		await changeSetting(
+			'security.workspace.trust.enabled',
+			() => ({ security: { workspace: { trust: { enabled: false } } } }),
+			c => c.security.workspace.trust.enabled = true);
+
+		assert.strictEqual(confirmCount, 1, 'should prompt to restart');
+		assert.strictEqual(restartCount, 1, 'should restart when confirmed');
+	});
+
+	test('does not restart when the confirmation is declined', async () => {
+		confirmResult = false;
+		await changeSetting(
+			'security.workspace.trust.enabled',
+			() => ({ security: { workspace: { trust: { enabled: false } } } }),
+			c => c.security.workspace.trust.enabled = true);
+
+		assert.strictEqual(confirmCount, 1, 'should prompt to restart');
+		assert.strictEqual(restartCount, 0, 'should not restart when declined');
+	});
+
+	test('does not prompt when only the default value changes', async () => {
+		confirmResult = true;
+		await changeSetting(
+			'security.workspace.trust.enabled',
+			() => ({ security: { workspace: { trust: { enabled: false } } } }),
+			c => c.security.workspace.trust.enabled = true,
+			ConfigurationTarget.DEFAULT);
+
+		assert.strictEqual(confirmCount, 0, 'should not prompt for default changes');
+		assert.strictEqual(restartCount, 0);
+	});
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 });

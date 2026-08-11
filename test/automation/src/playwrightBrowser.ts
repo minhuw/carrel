@@ -165,7 +165,6 @@ async function launchBrowser(options: LaunchOptions, endpoint: string) {
 	const payloadParam = `[${[
 		'["enableProposedApi",""]',
 		'["skipWelcome", "true"]',
-		'["skipReleaseNotes", "true"]',
 		`["logLevel","${options.verbose ? 'trace' : 'info'}"]`
 	].join(',')}]`;
 

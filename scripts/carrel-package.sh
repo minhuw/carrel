@@ -60,7 +60,10 @@ fi
 codesign --deep --force --timestamp --sign "$IDENTITY" "$APP_ROOT/$APP_NAME.app"
 
 echo "==> Verifying signature"
-codesign --verify --deep --strict --verbose=2 "$APP_ROOT/$APP_NAME.app" 2>&1 | head -3
+# Pipe to a file, not head: under pipefail, head closing the pipe SIGPIPEs
+# codesign and aborts the script before the zip/publish steps.
+codesign --verify --deep --strict --verbose=2 "$APP_ROOT/$APP_NAME.app" > /tmp/carrel-codesign-verify.log 2>&1 || true
+head -3 /tmp/carrel-codesign-verify.log
 codesign -dv "$APP_ROOT/$APP_NAME.app" 2>&1 | grep -E "Identifier|Authority" | head -3 || true
 
 echo "==> Creating zip"
@@ -98,4 +101,43 @@ if [ "${1:-}" = "--publish" ] || [ "${2:-}" = "--publish" ]; then
 		gh release create "$TAG" $ASSETS --repo minhuw/carrel --title "Carrel $VERSION" --notes "Carrel $VERSION"
 	fi
 	echo "==> Published $TAG: https://github.com/minhuw/carrel/releases/tag/$TAG"
+
+	# Update the Homebrew tap cask to the new version.
+	ZIP_SHA256="$(shasum -a 256 "$APP_ROOT/$ASSET" | cut -d' ' -f1)"
+	CASK_CONTENT=$(cat <<RUBY
+cask "carrel" do
+  version "$VERSION"
+  sha256 "$ZIP_SHA256"
+
+  url "https://github.com/minhuw/carrel/releases/download/v#{version}/Carrel-darwin-arm64-#{version}.zip"
+  name "Carrel"
+  desc "Slim, AI-free desktop code editor derived from Code - OSS"
+  homepage "https://github.com/minhuw/carrel"
+
+  depends_on arch: :arm64
+
+  app "Carrel.app"
+
+  # Carrel is signed with a personal Apple Development certificate (not
+  # notarized), so clear any quarantine attribute after install.
+  postflight do
+    system_command "/usr/bin/xattr",
+                   args: ["-dr", "com.apple.quarantine", "#{appdir}/Carrel.app"]
+  end
+
+  zap trash: [
+    "~/.carrel",
+    "~/Library/Application Support/Carrel",
+    "~/Library/Caches/carrel",
+    "~/Library/Preferences/com.carrel.editor.plist",
+    "~/Library/Saved Application State/com.carrel.editor.savedState",
+  ]
+end
+RUBY
+)
+	CASK_SHA=$(gh api repos/minhuw/homebrew-carrel/contents/Casks/carrel.rb --jq .sha 2>/dev/null || true)
+	gh api repos/minhuw/homebrew-carrel/contents/Casks/carrel.rb -X PUT \
+		-f message="carrel $VERSION" \
+		-f content="$(printf '%s' "$CASK_CONTENT" | base64)" \
+		${CASK_SHA:+-f sha="$CASK_SHA"} --silent && echo "==> Updated homebrew-carrel cask to $VERSION"
 fi

@@ -124,7 +124,6 @@ suite('UserDataProfileMainService', () => {
 			settings: true,
 			keybindings: true,
 			prompts: true,
-			mcp: true,
 			languageModels: true,
 			snippets: true,
 			tasks: true,

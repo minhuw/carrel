@@ -73,6 +73,17 @@ git push origin main:refs/heads/<previous-version>
 git push origin +carrel:main
 ```
 
+### Release Automation
+
+Releases are built by `.github/workflows/carrel-release.yml`, which runs **only on version tags** (`v*`) or manual dispatch — never on branch pushes. The jj workflow force-pushes `main` on every rebase, so branch triggers would fire constantly; push a tag deliberately when the stack is releasable:
+
+```bash
+git tag v$(python3 -c "import json; print(json.load(open('package.json'))['version'])") carrel
+git push origin <tag>
+```
+
+The workflow validates that the tag matches `product.json`'s `version`, builds the signed macOS app and all reh server targets on native runners (so server native modules are always correct), publishes the GitHub release, and updates the homebrew cask in `minhuw/homebrew-carrel` (requires a `CARREL_TAP_TOKEN` repo secret with write access to the tap).
+
 ## Required Release Validation
 
 After every rebase, and before pushing `main` or creating a release tag, the complete Electron unit suite used by Carrel CI must finish with zero failures:

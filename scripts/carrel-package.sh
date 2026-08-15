@@ -32,6 +32,36 @@ if [ "${1:-}" != "--sign-only" ]; then
 	# node_modules; without pruning, removed dependencies still get packed.
 	npm prune
 
+	echo "==> Refreshing built-in extension dependencies…"
+	# Root prune does not update per-extension node_modules. After rebasing
+	# onto a new Code - OSS those trees stay on the previous lockfile and
+	# esbuild fails (e.g. @vscode/markdown-editor missing the ./commands export).
+	python3 - <<'PY'
+import subprocess, sys
+from pathlib import Path
+
+root = Path("extensions")
+stale = []
+for pkg in sorted(root.glob("*/package.json")):
+	lock = pkg.parent / "package-lock.json"
+	nm = pkg.parent / "node_modules"
+	if not lock.exists():
+		continue
+	if not nm.exists() or lock.stat().st_mtime > nm.stat().st_mtime:
+		stale.append(pkg.parent)
+
+for dest in stale:
+	print(f"  npm install --prefix {dest}")
+	r = subprocess.run(
+		["npm", "install", "--ignore-scripts", "--no-audit", "--no-fund", "--prefix", str(dest)],
+		check=False,
+	)
+	if r.returncode != 0:
+		sys.exit(r.returncode)
+if not stale:
+	print("  all extension node_modules look current")
+PY
+
 	echo "==> Building production bundle (gulp vscode-darwin-arm64-min)…"
 	# Always rebuild the bundle from scratch: the esbuild bundle embeds
 	# product.json (incl. the commit stamp) at bundle time and packaging

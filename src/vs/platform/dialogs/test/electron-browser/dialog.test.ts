@@ -3,69 +3,46 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import assert from 'assert';
+import * as assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
+import { createNativeAboutDialogDetails } from '../../electron-browser/dialog.js';
 import { IOSProperties } from '../../../native/common/native.js';
 import product from '../../../product/common/product.js';
 import { IProductService } from '../../../product/common/productService.js';
-import { createNativeAboutDialogDetails } from '../../electron-browser/dialog.js';
 
-suite('Dialog', () => {
+suite('Native About Dialog', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	const osProperties: IOSProperties = {
-		type: 'Test OS',
-		release: '1.0',
-		arch: 'test-arch',
-		platform: 'test',
-		cpus: []
-	};
-
-	function getCopilotVersionLines(runtime: string, sdk: string): { details: string[]; detailsToCopy: string[] } {
+	test('only shows runtime metadata available in Carrel builds', () => {
 		const productService: IProductService = {
 			_serviceBrand: undefined,
 			...product,
-			copilotVersions: { runtime, sdk }
+			nameLong: 'Carrel Test',
+			version: '1.2.3',
+			commit: 'test-commit',
+			date: '2026-01-02T03:04:05.000Z'
 		};
-		const { details, detailsToCopy } = createNativeAboutDialogDetails(productService, osProperties);
-		const selectCopilotVersionLines = (value: string) => value.split('\n').filter(line => line.startsWith('@github/copilot'));
-
-		return {
-			details: selectCopilotVersionLines(details),
-			detailsToCopy: selectCopilotVersionLines(detailsToCopy)
+		const osProperties: IOSProperties = {
+			type: 'TestOS',
+			release: '1.0',
+			arch: 'test-arch',
+			platform: 'test-platform',
+			cpus: []
 		};
-	}
 
-	test('formats Copilot canary versions', () => {
-		assert.deepStrictEqual(
-			getCopilotVersionLines('1.0.84-canary.70.gdb75d0d.unsigned', '0.1.23-canary.45.gabcdef.unsigned'),
-			{
-				details: [
-					'@github/copilot: 1.0.84.70.gdb75d0d',
-					'@github/copilot-sdk: 0.1.23.45.gabcdef'
-				],
-				detailsToCopy: [
-					'@github/copilot: 1.0.84.70.gdb75d0d',
-					'@github/copilot-sdk: 0.1.23.45.gabcdef'
-				]
-			}
-		);
-	});
+		const about = createNativeAboutDialogDetails(productService, osProperties);
 
-	test('preserves stable Copilot versions', () => {
-		assert.deepStrictEqual(
-			getCopilotVersionLines('1.0.84', '0.1.23'),
-			{
-				details: [
-					'@github/copilot: 1.0.84',
-					'@github/copilot-sdk: 0.1.23'
-				],
-				detailsToCopy: [
-					'@github/copilot: 1.0.84',
-					'@github/copilot-sdk: 0.1.23'
-				]
-			}
-		);
+		assert.strictEqual(about.title, 'Carrel Test');
+		for (const details of [about.details, about.detailsToCopy]) {
+			assert.deepStrictEqual(
+				details.split('\n').map(line => line.slice(0, line.indexOf(':'))),
+				['Version', 'Commit', 'Date', 'Electron', 'Chromium', 'Node.js', 'V8', 'OS']
+			);
+			assert.ok(details.includes('OS: TestOS test-arch 1.0'));
+			assert.ok(!details.includes('ElectronBuildId'));
+			assert.ok(!details.includes('@github/copilot'));
+			assert.ok(!details.includes('undefined'));
+		}
 	});
 });

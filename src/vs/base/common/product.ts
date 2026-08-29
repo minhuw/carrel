@@ -108,10 +108,6 @@ export interface IProductConfiguration {
 		readonly accessSKUs?: string[];
 	};
 
-	readonly copilotVersions?: {
-		readonly runtime: string;
-		readonly sdk: string;
-	};
 
 	readonly mcpGallery?: {
 		readonly serviceUrl: string;

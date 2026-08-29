@@ -16,10 +16,10 @@ import { observableReducerSettable } from '../../../../../base/common/observable
 import { isDefined } from '../../../../../base/common/types.js';
 import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
 import { IContextKeyService } from '../../../../../platform/contextkey/common/contextkey.js';
-import { DataChannelForwardingTelemetryService } from '../../../../../platform/dataChannel/browser/forwardingTelemetryService.js';
 import { IInstantiationService } from '../../../../../platform/instantiation/common/instantiation.js';
 import { ILogService } from '../../../../../platform/log/common/log.js';
 import { observableConfigValue } from '../../../../../platform/observable/common/platformObservableUtils.js';
+import { ITelemetryService } from '../../../../../platform/telemetry/common/telemetry.js';
 import { StringEdit } from '../../../../common/core/edits/stringEdit.js';
 import { Position } from '../../../../common/core/position.js';
 import { Range } from '../../../../common/core/range.js';
@@ -92,6 +92,7 @@ export class InlineCompletionsSource extends Disposable {
 		@IInstantiationService private readonly _instantiationService: IInstantiationService,
 		@IContextKeyService private readonly _contextKeyService: IContextKeyService,
 		@ITextModelService private readonly _textModelService: ITextModelService,
+		@ITelemetryService private readonly _telemetryService: ITelemetryService,
 	) {
 		super();
 		this._loggingEnabled = observableConfigValue('editor.inlineSuggest.logFetch', false, this._configurationService).recomputeInitiallyAndOnChange(this._store);
@@ -518,7 +519,7 @@ export class InlineCompletionsSource extends Disposable {
 			editKind: undefined,
 		};
 
-		sendInlineCompletionsEndOfLifeTelemetry(this._dataChannelTelemetryService, emptyEndOfLifeEvent);
+		sendInlineCompletionsEndOfLifeTelemetry(this._telemetryService, emptyEndOfLifeEvent);
 	}
 
 	public clearSuggestWidgetInlineCompletions(tx: ITransaction): void {

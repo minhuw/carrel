@@ -16,7 +16,7 @@ Integration tests in VS Code are split into two categories:
 - **Windows:** `.\scripts\test-integration.bat [options]`
 
 When run **without filters**, both scripts execute all node.js integration tests followed by all extension host tests.
-The deterministic Agent Host E2E entrypoints are parallelized across isolated test processes during the node.js phase, then excluded from the remaining serial node.js run.
+The node.js phase runs all `**/*.integrationTest.js` files directly with prelaunch disabled.
 
 When run **with `--run` or `--runGlob`** (without `--suite`), only the node.js integration tests are run and the filter is applied. Extension host tests are skipped since these filters are node.js-specific.
 
@@ -54,7 +54,7 @@ Filters which **test cases** run by matching against their test titles (e.g. `de
 
 Runs only the extension host test suites whose name matches the pattern. Supports comma-separated values and shell glob patterns (on macOS/Linux). Node.js integration tests are skipped.
 
-Available suite names: `api-folder`, `api-workspace`, `colorize`, `terminal-suggest`, `typescript`, `markdown`, `emmet`, `git`, `git-base`, `ipynb`, `notebook-renderers`, `configuration-editing`, `github-authentication`, `css`, `html`.
+Available suite names: `api-folder`, `api-workspace`, `colorize`, `terminal-suggest`, `typescript`, `markdown`, `emmet`, `git`, `git-base`, `configuration-editing`, `github-authentication`, `css`, `html`.
 
 ```bash
 # Run only Git extension tests

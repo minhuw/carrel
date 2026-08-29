@@ -347,7 +347,7 @@ What it checks:
 1. **NOTICE stats** — total entries, duplicate detection (same name@version = bug), multi-version packages (expected), license type breakdown.
 2. **Repo manifest cross-reference** — walks all `package.json` (direct deps), `package-lock.json` (full transitive tree, dev filtered out), `Cargo.lock`, and `cgmanifest.json`. Reports overlap, NOTICE-only entries (CG transitive deps), and manifest-only gaps (packages missing from the NOTICE).
 3. **Summary** — coverage percentage and actionable gap list.
-4. **Package source breakdown** — per-lockfile package counts sorted by size. Shows which extensions/directories contribute the most dependencies (e.g., `extensions/copilot: 329 packages`).
+4. **Package source breakdown** — per-lockfile package counts sorted by size. Shows which extensions/directories contribute the most dependencies.
 
 Key behavior:
 

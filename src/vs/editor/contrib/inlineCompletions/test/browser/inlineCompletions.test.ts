@@ -5,13 +5,12 @@
 
 import assert from 'assert';
 import { DeferredPromise, timeout } from '../../../../../base/common/async.js';
-import { Event } from '../../../../../base/common/event.js';
 import { observableValue } from '../../../../../base/common/observable.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
-import { IDataChannelService } from '../../../../../platform/dataChannel/common/dataChannel.js';
 import { ServiceCollection } from '../../../../../platform/instantiation/common/serviceCollection.js';
-import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
+import { TestInstantiationService } from '../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
+import { ITelemetryService } from '../../../../../platform/telemetry/common/telemetry.js';
+import { NullTelemetryServiceShape } from '../../../../../platform/telemetry/common/telemetryUtils.js';
 import { Range } from '../../../../common/core/range.js';
 import { InlineCompletionTriggerKind, InlineCompletions, InlineCompletionsProvider, ProviderId } from '../../../../common/languages.js';
 import { InlineCompletionsModel } from '../../browser/model/inlineCompletionsModel.js';
@@ -21,38 +20,38 @@ import { IWithAsyncTestCodeEditorAndInlineCompletionsModel, MockInlineCompletion
 import { ITestCodeEditor } from '../../../../test/browser/testCodeEditor.js';
 import { Selection } from '../../../../common/core/selection.js';
 
+class CapturingTelemetryService extends NullTelemetryServiceShape {
+	readonly events: string[] = [];
+
+	override publicLog2(eventName?: string): void {
+		if (eventName) {
+			this.events.push(eventName);
+		}
+	}
+}
+
 suite('Inline Completions', () => {
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('Emits empty response telemetry after instantiation service disposal', async function () {
+	test('Settles pending request and emits telemetry after instantiation service disposal', async function () {
 		const providerStarted = new DeferredPromise<void>();
 		const providerResponse = new DeferredPromise<InlineCompletions>();
 		const provider: InlineCompletionsProvider = {
-			providerId: ProviderId.fromExtensionId('GitHub.copilot'),
+			providerId: ProviderId.fromExtensionId('test.inline-completions'),
 			provideInlineCompletions: () => {
 				providerStarted.complete();
 				return providerResponse.p;
 			},
 			disposeInlineCompletions: () => { },
 		};
-		const sentChannelIds: string[] = [];
-		const dataChannelService: IDataChannelService = {
-			_serviceBrand: undefined,
-			onDidSendData: Event.None,
-			getDataChannel: channelId => ({
-				sendData: () => sentChannelIds.push(channelId)
-			})
-		};
-		const serviceCollection = new ServiceCollection(
-			[IDataChannelService, dataChannelService],
-			[IConfigurationService, new TestConfigurationService({
-				'github.copilot.enable': { '*': true },
-			})],
-		);
+		const telemetryService = new CapturingTelemetryService();
 
-		await withAsyncTestCodeEditorAndInlineCompletionsModel('', { provider, serviceCollection },
+		await withAsyncTestCodeEditorAndInlineCompletionsModel('', { provider },
 			async ({ editor, model, store, instantiationService }) => {
-				const source = store.add(instantiationService.createInstance(
+				const editorInstantiationService = store.add(new TestInstantiationService(new ServiceCollection(
+					[ITelemetryService, telemetryService],
+				), false, instantiationService, true));
+				const source = store.add(editorInstantiationService.createInstance(
 					InlineCompletionsSource,
 					model.textModel,
 					model._textModelVersionId,
@@ -77,13 +76,14 @@ suite('Inline Completions', () => {
 					typingIntervalCharacterCount: 0,
 				});
 				await providerStarted.p;
-				instantiationService.dispose();
-				await providerResponse.complete({ items: [] });
-				await request;
+				editorInstantiationService.dispose();
+				providerResponse.complete({ items: [] });
+
+				assert.strictEqual(await request, true);
 			}
 		);
 
-		assert.deepStrictEqual(sentChannelIds, ['editTelemetry']);
+		assert.deepStrictEqual(telemetryService.events, ['inlineCompletion.endOfLife']);
 	});
 
 	test('Does not trigger automatically if disabled', async function () {

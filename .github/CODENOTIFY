@@ -12,7 +12,6 @@ src/vs/base/browser/ui/table/** @benibenj
 src/vs/base/browser/ui/tree/** @benibenj
 
 # Platform
-src/vs/platform/agentHost/node/claude/** @TylerLeonhardt
 src/vs/platform/agentHost/**/*Automation* @ulugbekna
 src/vs/platform/agentHost/**/*automation* @ulugbekna
 src/vs/platform/agentHost/common/state/protocol/channels-automation-run/** @ulugbekna
@@ -91,14 +90,10 @@ src/vs/workbench/api/common/extHostLocalizationService.ts @TylerLeonhardt
 src/vs/workbench/api/browser/mainThreadAuthentication.ts @TylerLeonhardt
 src/vs/workbench/api/common/extHostAuthentication.ts @TylerLeonhardt
 src/vs/workbench/api/node/extHostAuthentication.ts @TylerLeonhardt
-src/vs/workbench/api/common/extHostMcp.ts @TylerLeonhardt
-src/vs/workbench/api/browser/mainThreadMcp.ts @TylerLeonhardt
 src/vs/workbench/api/common/extHostQuickOpen.ts @TylerLeonhardt
 src/vs/workbench/api/browser/mainThreadSecretState.ts @TylerLeonhardt
 
 # Extensions
-extensions/copilot/src/extension/chatSessions/claude/** @TylerLeonhardt
-extensions/copilot/src/extension/chatSessions/vscode-node/claudeChatSession* @TylerLeonhardt
 extensions/copilot/src/extension/completions-core/** @ulugbekna
 extensions/copilot/src/extension/completions/** @ulugbekna
 extensions/copilot/src/extension/inlineEdits/** @ulugbekna
@@ -129,7 +124,6 @@ extensions/github/** @lszomoru
 extensions/vscode-api-tests/src/singlefolder-tests/browser*.test.ts @kycutler @jruales
 
 # Testing
-test/mcp/** @TylerLeonhardt
 test/scenario/** @bryanchen-d
 test/sanity/** @dmitrivMS
 

@@ -317,10 +317,6 @@ configurationExtPoint.setHandler((extensions, { added, removed }) => {
 						mode: 'startup'
 					};
 				}
-				if (propertyConfiguration.agentHost) {
-					extension.collector.error(nls.localize('config.property.agentHost.unsupported', "Extension '{0}' CANNOT use the 'agentHost' property on configuration '{1}'.", extension.description.identifier.value, key));
-					delete propertyConfiguration.agentHost;
-				}
 				seenProperties.add(key);
 				propertyConfiguration.scope = propertyConfiguration.scope ? parseScope(propertyConfiguration.scope.toString()) : ConfigurationScope.WINDOW;
 			}

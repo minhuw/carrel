@@ -40,100 +40,13 @@ const rcedit = promisify(rceditCallback);
 const root = path.dirname(import.meta.dirname);
 const commit = getVersion(root);
 
-// Build
-const vscodeEntryPoints = [
-	buildfile.workerEditor,
-	buildfile.workerExtensionHost,
-	buildfile.workerNotebook,
-	buildfile.workerLanguageDetection,
-	buildfile.workerLocalFileSearch,
-	buildfile.workerProfileAnalysis,
-	buildfile.workerOutputLinks,
-	buildfile.workerBackgroundTokenization,
-	buildfile.workbenchDesktop,
-	buildfile.code
-].flat();
-const vscodeResourceIncludes = [
-	// NLS
-	'out-build/nls.messages.json',
-	'out-build/nls.keys.json',
-	// Workbench
-	'out-build/vs/code/electron-browser/workbench/workbench.html',
-	// Electron Preload
-	'out-build/vs/base/parts/sandbox/electron-browser/preload.js',
-	'out-build/vs/base/parts/sandbox/electron-browser/preload-aux.js',
-	'out-build/vs/platform/browserView/electron-browser/preload-browserView.js',
-	// Node Scripts
-	'out-build/vs/base/node/{terminateProcess.sh,cpuUsage.sh,ps.sh}',
-	// Touchbar
-	'out-build/vs/workbench/browser/parts/editor/media/*.png',
-	'out-build/vs/workbench/contrib/debug/browser/media/*.png',
-	// External Terminal
-	'out-build/vs/workbench/contrib/externalTerminal/**/*.scpt',
-	// Terminal shell integration
-	'out-build/vs/workbench/contrib/terminal/common/scripts/*.fish',
-	'out-build/vs/workbench/contrib/terminal/common/scripts/*.ps1',
-	'out-build/vs/workbench/contrib/terminal/common/scripts/*.psm1',
-	'out-build/vs/workbench/contrib/terminal/common/scripts/*.sh',
-	'out-build/vs/workbench/contrib/terminal/common/scripts/*.zsh',
-	'out-build/vs/workbench/contrib/terminal/common/scripts/psreadline/**',
-	// Accessibility Signals
-	'out-build/vs/platform/accessibilitySignal/browser/media/*.mp3',
-	// Welcome
-	'out-build/vs/workbench/contrib/welcomeGettingStarted/common/media/**/*.{svg,png}',
-	'out-build/vs/workbench/contrib/welcomeOnboarding/browser/media/*.svg',
-	// Extensions
-	'out-build/vs/workbench/contrib/extensions/browser/media/{theme-icon.png,language-icon.svg}',
-	'out-build/vs/workbench/services/extensionManagement/common/media/*.{svg,png}',
-	// Webview
-	'out-build/vs/workbench/contrib/webview/browser/pre/*.{js,html}',
-	// Extension Host Worker
-	'out-build/vs/workbench/services/extensions/worker/webWorkerExtensionHostIframe.html',
-	// Tree Sitter highlights
-	'out-build/vs/editor/common/languages/highlights/*.scm',
-	// Tree Sitter injection queries
-	'out-build/vs/editor/common/languages/injections/*.scm'
-];
-const vscodeResources = [
-	// Includes
-	...vscodeResourceIncludes,
-	// Excludes
-	'!out-build/vs/code/browser/**',
-	'!out-build/vs/editor/standalone/**',
-	'!out-build/vs/code/**/*-dev.html',
-	'!out-build/vs/workbench/contrib/issue/**/*-dev.html',
-	'!**/test/**'
-];
-const bootstrapEntryPoints = [
-	'out-build/main.js',
-	'out-build/cli.js',
-	'out-build/bootstrap-fork.js'
-];
-const bundleVSCodeTask = task.define('bundle-vscode', task.series(
-	util.rimraf('out-vscode'),
-	// Optimize: bundles source files automatically based on
-	// import statements based on the passed in entry points.
-	// In addition, concat window related bootstrap files into
-	// a single file.
-	optimize.bundleTask(
-		{
-			out: 'out-vscode',
-			esm: {
-				src: 'out-build',
-				entryPoints: [
-					...vscodeEntryPoints,
-					...bootstrapEntryPoints
-				],
-				resources: vscodeResources,
-			}
-		}
-	)
-));
-task.task(bundleVSCodeTask);
 const sourceMappingURLBase = `https://main.vscode-cdn.net/sourcemaps/${commit}`;
 const isCI = !!process.env['CI'] || !!process.env['BUILD_ARTIFACTSTAGINGDIRECTORY'] || !!process.env['GITHUB_WORKSPACE'];
 const useCdnSourceMapsForPackagingTasks = isCI;
-const stripSourceMapsInPackagingTasks = isCI;
+// Carrel: never ship sourcemaps inside the packaged app (upstream strips
+// them only on CI). They are ~70MB of debug artifacts that belong in CI
+// archives, not in a shipped editor.
+const stripSourceMapsInPackagingTasks = true;
 
 task.task(task.define('core-ci', task.series(
 	checkApiProposalNamesTask,
@@ -208,12 +121,12 @@ function packageTask(platform: string, arch: string, sourceFolderName: string, d
 			.pipe(rename(function (path) { path.dirname = path.dirname!.replace(new RegExp('^' + out), 'out'); }))
 			.pipe(util.setExecutableBit(['**/*.sh']));
 
-		const platformSpecificBuiltInExtensionsExclusions = product.builtInExtensions.filter(ext => {
-			if (!(ext as { platforms?: string[] }).platforms) {
+		const platformSpecificBuiltInExtensionsExclusions = (((product as { builtInExtensions?: { name: string; platforms?: string[] }[] }).builtInExtensions) ?? []).filter(ext => {
+			if (!ext.platforms) {
 				return false;
 			}
 
-			const set = new Set((ext as { platforms?: string[] }).platforms);
+			const set = new Set(ext.platforms);
 			return !set.has(platform);
 		}).map(ext => `!.build/extensions/${ext.name}/**`);
 
@@ -359,7 +272,6 @@ function packageTask(platform: string, arch: string, sourceFolderName: string, d
 				'resources/win32/react.ico',
 				'resources/win32/ruby.ico',
 				'resources/win32/sass.ico',
-				'resources/win32/sessions.ico',
 				'resources/win32/shell.ico',
 				'resources/win32/sql.ico',
 				'resources/win32/typescript.ico',
@@ -455,7 +367,10 @@ function packageTask(platform: string, arch: string, sourceFolderName: string, d
 			result = es.merge(result, gulp.src('.build/policies/win32/**', { base: '.build/policies/win32' })
 				.pipe(rename(f => f.dirname = `policies/${f.dirname}`)));
 
-			if (quality === 'stable' || quality === 'insider') {
+			// Carrel: skip the appx manifest and explorer context-menu DLL — they
+			// are Microsoft product assets (win32ContextMenu CLSIDs) that OSS
+			// product.json does not provide.
+			if ((quality === 'stable' || quality === 'insider') && (product as { win32ContextMenu?: unknown }).win32ContextMenu) {
 				result = es.merge(result, gulp.src('.build/win32/appx/**', { base: '.build/win32' }));
 				const rawVersion = version.replace(/-\w+$/, '').split('.');
 				const appxVersion = `${rawVersion[0]}.0.${rawVersion[1]}.${rawVersion[2]}`;

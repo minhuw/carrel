@@ -6,7 +6,7 @@
 import assert from 'assert';
 import { URI } from '../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import { AccountsActivityActionViewItem } from '../../../browser/parts/globalCompositeBar.js';
+import { AccountsActivityActionViewItem, GlobalCompositeBar } from '../../../browser/parts/globalCompositeBar.js';
 import { AuthenticationSession, AuthenticationSessionAccount } from '../../../services/authentication/common/authentication.js';
 import { ActionBar } from '../../../../base/browser/ui/actionbar/actionbar.js';
 import { Action } from '../../../../base/common/actions.js';

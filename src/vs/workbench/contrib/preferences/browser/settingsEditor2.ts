@@ -28,7 +28,6 @@ import { URI } from '../../../../base/common/uri.js';
 import { ILanguageService } from '../../../../editor/common/languages/language.js';
 import { ITextResourceConfigurationService } from '../../../../editor/common/services/textResourceConfiguration.js';
 import { localize } from '../../../../nls.js';
-import { IExperimentalSettingsService } from '../../../services/configuration/common/experimentalSettings.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { ConfigurationTarget, IConfigurationUpdateOverrides } from '../../../../platform/configuration/common/configuration.js';
 import { ConfigurationScope, Extensions, IConfigurationRegistry } from '../../../../platform/configuration/common/configurationRegistry.js';
@@ -137,7 +136,6 @@ export class SettingsEditor2 extends EditorPane {
 		'@tag:accessibility',
 		'@tag:preview',
 		'@tag:experimental',
-		`@tag:${EXP_ASSIGNMENT_SETTING_TAG}`,
 		'@tag:agentMerge',
 		`@tag:${ADVANCED_SETTING_TAG}`,
 		`@${ID_SETTING_TAG}`,
@@ -231,7 +229,6 @@ export class SettingsEditor2 extends EditorPane {
 	private searchFocusContextKey: IContextKey<boolean>;
 
 	private scheduledRefreshes: Map<string, DisposableStore>;
-	private pendingAssignmentRefresh = false;
 	private _currentFocusContext: SettingsFocusContext = SettingsFocusContext.Search;
 
 	/** Don't spam warnings */
@@ -334,15 +331,6 @@ export class SettingsEditor2 extends EditorPane {
 				this.updateElementsByKey(new Set(e.default));
 			}
 		}));
-		this._register(experimentalSettingsService.onDidChangeAssignments(keys => {
-			if (this.searchResultModel && this.viewState.tagFilters?.has(EXP_ASSIGNMENT_SETTING_TAG)) {
-				keys.forEach(key => this.settingsTreeModel.value?.updateElementsByName(key));
-				this.pendingAssignmentRefresh = true;
-				this.renderTree();
-			} else if (this.currentSettingsModel) {
-				this.updateElementsByKey(keys);
-			}
-		}));
 
 		this._register(extensionManagementService.onDidInstallExtensions(() => {
 			this.refreshInstalledExtensionsList();
@@ -372,7 +360,7 @@ export class SettingsEditor2 extends EditorPane {
 		if (this.configurationService.getValue<boolean>(ALWAYS_SHOW_ADVANCED_SETTINGS_SETTING) ?? false) {
 			return true;
 		}
-		return !!(this.viewState.tagFilters?.has(ADVANCED_SETTING_TAG) || this.viewState.tagFilters?.has(EXP_ASSIGNMENT_SETTING_TAG));
+		return !!this.viewState.tagFilters?.has(ADVANCED_SETTING_TAG);
 	}
 
 	/** Allows explicitly targeted settings to bypass the default advanced-settings filter. */
@@ -410,7 +398,6 @@ export class SettingsEditor2 extends EditorPane {
 
 	private set searchResultModel(value: SearchResultModel | null) {
 		this._searchResultModel.value = value ?? undefined;
-		this.pendingAssignmentRefresh = false;
 
 		this.rootElement.classList.toggle('search-mode', !!this._searchResultModel.value);
 	}
@@ -1635,9 +1622,6 @@ export class SettingsEditor2 extends EditorPane {
 	}
 
 	private renderTree(key?: string, force = false): void {
-		if (this.pendingAssignmentRefresh) {
-			key = undefined;
-		}
 		if (!force && key && this.scheduledRefreshes.has(key)) {
 			this.updateModifiedLabelForKey(key);
 			return;

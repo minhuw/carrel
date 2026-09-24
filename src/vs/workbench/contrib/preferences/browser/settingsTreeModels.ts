@@ -23,7 +23,6 @@ import { IUserDataProfileService } from '../../../services/userDataProfile/commo
 import { ENABLE_EXTENSION_TOGGLE_SETTINGS, ENABLE_LANGUAGE_FILTER, MODIFIED_SETTING_TAG, POLICY_SETTING_TAG, REQUIRE_TRUSTED_WORKSPACE_SETTING_TAG, compareTwoNullableNumbers, wordifyKey } from '../common/preferences.js';
 import { SettingsTarget } from './preferencesWidgets.js';
 import { ITOCEntry, tocData } from './settingsLayout.js';
-import { IExperimentalSettingsService } from '../../../services/configuration/common/experimentalSettings.js';
 
 export const ONLINE_SERVICES_SETTING_TAG = 'usesOnlineServices';
 
@@ -185,10 +184,6 @@ export class SettingsTreeSettingElement extends SettingsTreeElement {
 		// Make sure description and valueType are initialized
 		this.initSettingDescription();
 		this.initSettingValueType();
-	}
-
-	get hasExPAssignment(): boolean {
-		return this.experimentalSettingsService.hasAssignment(this.setting.key);
 	}
 
 	get displayCategory(): string {
@@ -383,10 +378,6 @@ export class SettingsTreeSettingElement extends SettingsTreeElement {
 			}
 
 			this.setting.tags?.forEach(tag => this.tags!.add(tag));
-			this.tags.delete(EXP_ASSIGNMENT_SETTING_TAG);
-			if (this.hasExPAssignment) {
-				this.tags.add(EXP_ASSIGNMENT_SETTING_TAG);
-			}
 
 			if (this.setting.restricted) {
 				this.tags.add(REQUIRE_TRUSTED_WORKSPACE_SETTING_TAG);
@@ -990,8 +981,7 @@ export class SearchResultModel extends SettingsTreeModel {
 		@IWorkbenchEnvironmentService private readonly environmentService: IWorkbenchEnvironmentService,
 		@ILanguageService languageService: ILanguageService,
 		@IUserDataProfileService userDataProfileService: IUserDataProfileService,
-		@IProductService productService: IProductService,
-		@IExperimentalSettingsService experimentalSettingsService: IExperimentalSettingsService
+		@IProductService productService: IProductService
 	) {
 		super(viewState, isWorkspaceTrusted, configurationService, languageService, userDataProfileService, productService);
 		this.settingsOrderByTocIndex = settingsOrderByTocIndex;

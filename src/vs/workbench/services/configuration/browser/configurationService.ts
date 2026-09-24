@@ -1365,7 +1365,8 @@ export class ConfigurationDefaultOverridesContribution extends Disposable implem
 		@IExtensionService private readonly extensionService: IExtensionService,
 		@IConfigurationService private readonly configurationService: WorkspaceService,
 		@IWorkbenchEnvironmentService environmentService: IWorkbenchEnvironmentService,
-		@ILogService private readonly logService: ILogService
+		@ILogService private readonly logService: ILogService,
+		@IExperimentalSettingsService private readonly experimentalSettingsService: IExperimentalSettingsService
 	) {
 		super();
 

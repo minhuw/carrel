@@ -15,8 +15,6 @@ import { ISetting } from '../../../../services/preferences/common/preferences.js
 import { SettingsTarget } from '../../browser/preferencesWidgets.js';
 import { AbstractSettingRenderer } from '../../browser/settingsTree.js';
 import { SettingsTreeGroupElement, SettingsTreeSettingElement } from '../../browser/settingsTreeModels.js';
-import { IExperimentalSettingsService } from '../../../../services/configuration/common/experimentalSettings.js';
-import { mock } from '../../../../../base/test/common/mock.js';
 
 class TestSettingRenderer extends AbstractSettingRenderer {
 	readonly templateId = 'test';

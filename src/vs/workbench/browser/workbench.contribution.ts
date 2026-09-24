@@ -807,7 +807,6 @@ const registry = Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Con
 				'default': ModernUIEditorTabStyle.Connected,
 				'tags': ['experimental'],
 				'markdownDescription': localize({ key: 'modernUIEditorTabStyle', comment: ['{0} is a placeholder for a setting identifier.'] }, "Controls the editor tab style when {0} is enabled. High contrast themes retain explicit selection and focus borders.", '`#workbench.experimental.modernUI#`'),
-				agentsWindow: { default: ModernUIEditorTabStyle.Pill, readOnly: true },
 			},
 		}
 	});

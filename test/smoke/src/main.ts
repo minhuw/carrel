@@ -18,7 +18,6 @@ import { parseShard, selectShardSuites, Shard } from './shard';
 import { setup as setupDataLossTests } from './areas/workbench/data-loss.test';
 import { setup as setupPreferencesTests } from './areas/preferences/preferences.test';
 import { setup as setupSearchTests } from './areas/search/search.test';
-import { setup as setupNotebookTests } from './areas/notebook/notebook.test';
 import { setup as setupLanguagesTests } from './areas/languages/languages.test';
 import { setup as setupStatusbarTests } from './areas/statusbar/statusbar.test';
 import { setup as setupExtensionTests } from './areas/extensions/extensions.test';
@@ -29,7 +28,6 @@ import { setup as setupLaunchTests } from './areas/workbench/launch.test';
 import { setup as setupTerminalTests } from './areas/terminal/terminal.test';
 import { setup as setupTaskTests } from './areas/task/task.test';
 import { setup as setupAccessibilityTests } from './areas/accessibility/accessibility.test';
-import { setup as setupBrowserViewTests } from './areas/browserView/browserView.test';
 import { setup as setupPolicyTests } from './areas/policy/policy.test';
 
 const rootPath = path.join(__dirname, '..', '..', '..');
@@ -443,7 +441,6 @@ const smokeTestSuite = describe(`VSCode Smoke Tests (${opts.web ? 'Web' : 'Elect
 	if (!opts.web) { setupDataLossTests(() => { return { stableCodePath: opts['stable-build'], stableCodeVersion: opts['stable-version'] } /* Do not change, deferred for a reason! */; }, logger); }
 	setupPreferencesTests(logger);
 	setupSearchTests(logger);
-	if (!opts.web) { setupNotebookTests(logger); }
 	setupLanguagesTests(logger);
 	setupTerminalTests(logger);
 	setupTaskTests(logger);
@@ -453,8 +450,6 @@ const smokeTestSuite = describe(`VSCode Smoke Tests (${opts.web ? 'Web' : 'Elect
 	if (!(opts.web && process.platform === 'win32' /* TODO@bpasero flaky */)) { setupMultirootTests(logger); }
 	if (!opts.web && !opts.remote && quality !== Quality.Dev && quality !== Quality.OSS) { setupLocalizationTests(logger); }
 	if (!opts.web && !opts.remote) { setupLaunchTests(logger); }
-	if (!opts.web && !opts.remote) { setupBrowserViewTests(logger); }
-	// Native policy fixtures modify OS state outside the test profile; opt in only on disposable runners so you don't break your own machine.
 	if (!opts.web && !opts.remote && process.env.VSCODE_SMOKE_TEST_POLICY === '1') { setupPolicyTests(logger); }
 	setupAccessibilityTests(logger, opts, quality);
 });

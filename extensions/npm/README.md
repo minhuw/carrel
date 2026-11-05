@@ -17,7 +17,7 @@ For more information about auto detection of Tasks, see the [documentation](http
 
 ### Script Explorer
 
-The Npm Script Explorer shows the npm scripts found in your workspace. A script can be opened, run, or debug from the explorer.
+The Npm Script Explorer shows the npm scripts found in your workspace. A script can be opened or run from the explorer.
 
 ### Run Scripts from the Editor
 

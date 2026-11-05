@@ -35,7 +35,6 @@ import product from '../../../../platform/product/common/product.js';
 import { IContextMenuService, IContextViewService } from '../../../../platform/contextview/browser/contextView.js';
 import { INotificationService, Severity } from '../../../../platform/notification/common/notification.js';
 import { IOpenerService } from '../../../../platform/opener/common/opener.js';
-import { IUpdateService, StateType } from '../../../../platform/update/common/update.js';
 import { RawContextKey } from '../../../../platform/contextkey/common/contextkey.js';
 import { IKeybindingService } from '../../../../platform/keybinding/common/keybinding.js';
 import { isMacintosh } from '../../../../base/common/platform.js';
@@ -92,7 +91,6 @@ export class IssueReporterController extends Disposable {
 		@IContextViewService private readonly contextViewService: IContextViewService,
 		@INotificationService private readonly notificationService: INotificationService,
 		@IOpenerService private readonly openerService: IOpenerService,
-		@IUpdateService private readonly updateService: IUpdateService,
 		@IKeybindingService private readonly keybindingService: IKeybindingService,
 		@IConfigurationService private readonly configurationService: IConfigurationService,
 		@IUserDataProfilesService private readonly userDataProfilesService: IUserDataProfilesService,
@@ -122,12 +120,6 @@ export class IssueReporterController extends Disposable {
 		}
 	}
 
-	private shouldShowUpdateBanner(): boolean {
-		return this.updateService.state.type === StateType.AvailableForDownload
-			|| this.updateService.state.type === StateType.Ready
-			|| this.updateService.state.type === StateType.Downloaded;
-	}
-
 	setInput(input: IssueReporterEditorInput): void {
 		if (input.isDisposed() || this._store.isDisposed) {
 			return;
@@ -145,7 +137,6 @@ export class IssueReporterController extends Disposable {
 			this.wizard.restoreDescriptionInput();
 			this.wizard.reparentFloatingBar();
 			this.wizard.showFloatingBar();
-			this.wizard.setUpdateAvailable(this.shouldShowUpdateBanner());
 			// Restore attachments captured before the editor was moved back into
 			// this pane from a modal editor part. The input is the source of truth;
 			// the existing onDidChangeAttachments subscription keeps it in sync.
@@ -174,7 +165,6 @@ export class IssueReporterController extends Disposable {
 			true,
 			extensionId => this.issueFormService.sendReporterMenu(extensionId),
 			async url => { await this.openerService.open(URI.parse(url), { openExternal: true }); },
-			this.shouldShowUpdateBanner(),
 			() => this.refreshPerformanceInfo(),
 			commandId => this.keybindingService.lookupKeybinding(commandId),
 			input.diagnosticsState,
@@ -187,7 +177,6 @@ export class IssueReporterController extends Disposable {
 		this.inputDisposables.add(wizard.onDidRequestAddAttachments(files => {
 			void this.importAttachments(files, wizard, input, mediaCancellation.token);
 		}));
-		this.inputDisposables.add(this.updateService.onStateChange(() => this.wizard?.setUpdateAvailable(this.shouldShowUpdateBanner())));
 
 		this.bindInputCallbacks(input, wizard);
 

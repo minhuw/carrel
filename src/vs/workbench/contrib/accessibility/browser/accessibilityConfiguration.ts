@@ -633,34 +633,6 @@ const configuration: IConfigurationNode = {
 				}
 			}
 		},
-		'accessibility.signals.notebookCellCompleted': {
-			...signalFeatureBase,
-			'description': localize('accessibility.signals.notebookCellCompleted', "Plays a signal - sound (audio cue) and/or announcement (alert) - when a notebook cell execution is successfully completed."),
-			'properties': {
-				'sound': {
-					'description': localize('accessibility.signals.notebookCellCompleted.sound', "Plays a sound when a notebook cell execution is successfully completed."),
-					...soundFeatureBase
-				},
-				'announcement': {
-					'description': localize('accessibility.signals.notebookCellCompleted.announcement', "Announces when a notebook cell execution is successfully completed."),
-					...announcementFeatureBase
-				},
-			}
-		},
-		'accessibility.signals.notebookCellFailed': {
-			...signalFeatureBase,
-			'description': localize('accessibility.signals.notebookCellFailed', "Plays a signal - sound (audio cue) and/or announcement (alert) - when a notebook cell execution fails."),
-			'properties': {
-				'sound': {
-					'description': localize('accessibility.signals.notebookCellFailed.sound', "Plays a sound when a notebook cell execution fails."),
-					...soundFeatureBase
-				},
-				'announcement': {
-					'description': localize('accessibility.signals.notebookCellFailed.announcement', "Announces when a notebook cell execution fails."),
-					...announcementFeatureBase
-				},
-			}
-		},
 		'accessibility.signals.progress': {
 			...signalFeatureBase,
 			'description': localize('accessibility.signals.progress', "Plays a signal - sound (audio cue) and/or announcement (alert) - on loop while progress is occurring."),

@@ -88,7 +88,6 @@ export class IssueReporterOverlay {
 	readonly onDidRequestAddAttachments = this._onDidRequestAddAttachments.event;
 
 	private wizardPanel!: HTMLElement;
-	private updateBanner!: HTMLElement;
 	private formContent!: HTMLElement;
 
 	private readonly issueTypeButtons: Button[] = [];
@@ -174,7 +173,6 @@ export class IssueReporterOverlay {
 		initialHideToolbar: boolean = true,
 		private readonly resolveExtensionIssueData: ((extensionId: string) => Promise<IssueReporterData | undefined>) | undefined = undefined,
 		private readonly openExternalLink: ((url: string) => Promise<void>) | undefined = undefined,
-		private showUpdateBanner = false,
 		private readonly refreshPerformanceInfo: (() => Promise<void>) | undefined = undefined,
 		/** Returns the user's currently-bound keybinding for the given command id, or undefined when unbound. */
 		private readonly resolveKeybinding: ((commandId: string) => ResolvedKeybinding | undefined) | undefined = undefined,
@@ -214,12 +212,6 @@ export class IssueReporterOverlay {
 		this.wizardPanel.setAttribute('role', 'dialog');
 		this.wizardPanel.setAttribute('aria-label', localize('reportIssue', "Report Issue"));
 		this.wizardPanel.setAttribute('tabindex', '-1');
-
-		this.updateBanner = append(this.wizardPanel, $('div.wizard-update-banner'));
-		this.updateBanner.setAttribute('role', 'status');
-		this.updateBanner.setAttribute('aria-live', 'polite');
-		this.updateBanner.textContent = localize('updateAvailable', "A new version of {0} is available.", product.nameLong);
-		this.setUpdateAvailable(this.showUpdateBanner);
 
 		this.formContent = append(this.wizardPanel, $('div.issue-reporter-form'));
 		this.createReportFields(this.formContent);
@@ -2298,11 +2290,6 @@ ${rows.map(row => row.map(value => this.escapeMarkdownTableCell(value ?? '')).jo
 
 	private escapeMarkdownTableCell(value: string): string {
 		return value.replace(/[\\|]/g, '\\$&').replace(/\r?\n/g, '<br>');
-	}
-
-	setUpdateAvailable(showUpdateBanner: boolean): void {
-		this.showUpdateBanner = showUpdateBanner;
-		this.updateBanner.style.display = showUpdateBanner ? '' : 'none';
 	}
 
 	focus(): void {

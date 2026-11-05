@@ -16,14 +16,6 @@
 	color: var(--vscode-foreground);
 }
 
-.issue-reporter-wizard .wizard-update-banner {
-	padding: 8px 16px;
-	text-align: center;
-	color: var(--vscode-button-foreground);
-	background: var(--vscode-button-background);
-	flex-shrink: 0;
-}
-
 .issue-reporter-wizard .issue-reporter-form {
 	display: flex;
 	flex-direction: column;

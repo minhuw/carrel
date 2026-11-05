@@ -324,18 +324,6 @@ npm run test-extension -- -l git-base "${GREP_ARGS[@]}"
 kill_app
 fi
 
-if should_run_suite ipynb; then
-start_suite "Ipynb tests"
-npm run test-extension -- -l ipynb "${GREP_ARGS[@]}"
-kill_app
-fi
-
-if should_run_suite notebook-renderers; then
-start_suite "Notebook Output tests"
-npm run test-extension -- -l notebook-renderers "${GREP_ARGS[@]}"
-kill_app
-fi
-
 if should_run_suite configuration-editing; then
 start_suite "Configuration editing tests"
 npm run test-extension -- -l configuration-editing "${GREP_ARGS[@]}"

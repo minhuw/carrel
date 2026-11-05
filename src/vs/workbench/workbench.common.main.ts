@@ -77,7 +77,6 @@ import './services/textresourceProperties/common/textResourcePropertiesService.j
 import './services/textfile/common/textEditorService.js';
 import './services/language/common/languageService.js';
 import './services/model/common/modelService.js';
-import './services/notebook/common/notebookDocumentService.js';
 import './services/commands/common/commandService.js';
 import './services/themes/browser/workbenchThemeService.js';
 import './services/label/common/labelService.js';
@@ -157,8 +156,6 @@ import { IWebWorkerService } from '../platform/webWorker/browser/webWorkerServic
 import { WebWorkerService } from '../platform/webWorker/browser/webWorkerServiceImpl.js';
 
 registerSingleton(IUserDataSyncLogService, UserDataSyncLogService, InstantiationType.Delayed);
-// Carrel: renderer-side registration for the network filter used by the
-// integrated browser (upstream registered this with the removed chat stack).
 registerSingleton(IAllowedExtensionsService, AllowedExtensionsService, InstantiationType.Delayed);
 registerSingleton(IIgnoredExtensionsManagementService, IgnoredExtensionsManagementService, InstantiationType.Delayed);
 registerSingleton(IGlobalExtensionEnablementService, GlobalExtensionEnablementService, InstantiationType.Delayed);
@@ -189,23 +186,13 @@ import './contrib/preferences/browser/preferencesSearch.js';
 // Performance
 import './contrib/performance/browser/performance.contribution.js';
 
-// Notebook
-import './contrib/notebook/browser/notebook.contribution.js';
-
 // Speech
 import './contrib/speech/browser/speech.contribution.js';
 
 // Image carousel (upstream registered this with the removed chat stack).
 import './contrib/imageCarousel/browser/imageCarousel.contribution.js';
 
-// Interactive
-import './contrib/interactive/browser/interactive.contribution.js';
-
-// repl
-import './contrib/replNotebook/browser/repl.contribution.js';
-
 // Testing
-import './contrib/testing/browser/testing.contribution.js';
 
 // Logs
 import './contrib/logs/common/logs.contribution.js';
@@ -242,14 +229,6 @@ import './contrib/git/browser/git.contributions.js';
 import './contrib/scm/browser/scm.contribution.js';
 import './contrib/scm/browser/quickDiff.contribution.js';
 import './contrib/scm/browser/scm.service.contribution.js';
-
-// Debug
-import './contrib/debug/browser/debug.contribution.js';
-import './contrib/debug/browser/debugEditorContribution.js';
-import './contrib/debug/browser/breakpointEditorContribution.js';
-import './contrib/debug/browser/callStackEditorContribution.js';
-import './contrib/debug/browser/repl.js';
-import './contrib/debug/browser/debugViewlet.js';
 
 // Markers
 import './contrib/markers/browser/markers.contribution.js';

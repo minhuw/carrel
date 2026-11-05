@@ -266,28 +266,6 @@ if defined GREP_PATTERN (
 if %errorlevel% neq 0 exit /b %errorlevel%
 :skip_git_base
 
-call :should_run_suite ipynb || goto skip_ipynb
-echo.
-echo ### Ipynb tests
-if defined GREP_PATTERN (
-	call npm run test-extension -- -l ipynb --grep "%GREP_PATTERN%"
-) else (
-	call npm run test-extension -- -l ipynb
-)
-if %errorlevel% neq 0 exit /b %errorlevel%
-:skip_ipynb
-
-call :should_run_suite notebook-renderers || goto skip_notebook_renderers
-echo.
-echo ### Notebook Output tests
-if defined GREP_PATTERN (
-	call npm run test-extension -- -l notebook-renderers --grep "%GREP_PATTERN%"
-) else (
-	call npm run test-extension -- -l notebook-renderers
-)
-if %errorlevel% neq 0 exit /b %errorlevel%
-:skip_notebook_renderers
-
 call :should_run_suite configuration-editing || goto skip_configuration_editing
 echo.
 echo ### Configuration editing tests

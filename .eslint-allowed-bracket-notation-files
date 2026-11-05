@@ -156,21 +156,8 @@ src/vs/workbench/contrib/terminalContrib/history/test/common/history.test.ts
 src/vs/workbench/contrib/terminalContrib/suggest/test/browser/terminalCompletionService.test.ts
 
 # Debug (7 files)
-src/vs/workbench/contrib/debug/browser/debugAdapterManager.ts
-src/vs/workbench/contrib/debug/browser/debugConfigurationManager.ts
-src/vs/workbench/contrib/debug/common/debugger.ts
-src/vs/workbench/contrib/debug/node/debugAdapter.ts
-src/vs/workbench/contrib/debug/test/browser/repl.test.ts
-src/vs/workbench/contrib/debug/test/node/debugAdapter.test.ts
-src/vs/workbench/contrib/debug/test/node/debugger.test.ts
 
 # Notebooks (6 files)
-extensions/ipynb/src/deserializers.ts
-src/vs/workbench/contrib/notebook/browser/contrib/cellCommands/cellCommands.ts
-src/vs/workbench/contrib/notebook/browser/contrib/layout/layoutActions.ts
-src/vs/workbench/contrib/notebook/browser/notebookEditor.ts
-src/vs/workbench/contrib/notebook/browser/notebookOptions.ts
-src/vs/workbench/contrib/notebook/browser/view/renderers/backLayerWebView.ts
 
 # Extension host, API, and extension management (20 files)
 extensions/vscode-api-tests/src/singlefolder-tests/configuration.test.ts
@@ -179,8 +166,6 @@ extensions/vscode-test-resolver/src/extension.ts
 src/vs/platform/extensionManagement/common/extensionGalleryService.ts
 src/vs/platform/extensionManagement/common/extensionTipsService.ts
 src/vs/platform/extensionManagement/node/extensionLifecycle.ts
-src/vs/workbench/api/common/extHostDebugService.ts
-src/vs/workbench/api/common/extHostMcp.ts
 src/vs/workbench/api/common/extHostVariableResolverService.ts
 src/vs/workbench/api/node/extensionHostProcess.ts
 src/vs/workbench/api/node/extHostExtensionService.ts

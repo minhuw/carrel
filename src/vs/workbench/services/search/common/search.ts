@@ -5,7 +5,6 @@
 
 import { mapArrayOrNot } from '../../../../base/common/arrays.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
-import { ResourceSet } from '../../../../base/common/map.js';
 import * as glob from '../../../../base/common/glob.js';
 import { IDisposable } from '../../../../base/common/lifecycle.js';
 import * as objects from '../../../../base/common/objects.js';
@@ -45,7 +44,7 @@ export const ISearchService = createDecorator<ISearchService>('searchService');
 export interface ISearchService {
 	readonly _serviceBrand: undefined;
 	textSearch(query: ITextQuery, token?: CancellationToken, onProgress?: (result: ISearchProgressItem) => void): Promise<ISearchComplete>;
-	textSearchSplitSyncAsync(query: ITextQuery, token?: CancellationToken | undefined, onProgress?: ((result: ISearchProgressItem) => void) | undefined, notebookFilesToIgnore?: ResourceSet, asyncNotebookFilesToIgnore?: Promise<ResourceSet>): { syncResults: ISearchComplete; asyncResults: Promise<ISearchComplete> };
+	textSearchSplitSyncAsync(query: ITextQuery, token?: CancellationToken | undefined, onProgress?: ((result: ISearchProgressItem) => void) | undefined): { syncResults: ISearchComplete; asyncResults: Promise<ISearchComplete> };
 	fileSearch(query: IFileQuery, token?: CancellationToken): Promise<ISearchComplete>;
 	schemeHasFileSearchProvider(scheme: string): boolean;
 	clearCache(cacheKey: string): Promise<void>;
@@ -162,14 +161,6 @@ export interface IPatternInfo {
 	isMultiline?: boolean;
 	isUnicode?: boolean;
 	isCaseSensitive?: boolean;
-	notebookInfo?: INotebookPatternInfo;
-}
-
-export interface INotebookPatternInfo {
-	isInNotebookMarkdownInput?: boolean;
-	isInNotebookMarkdownPreview?: boolean;
-	isInNotebookCellInput?: boolean;
-	isInNotebookCellOutput?: boolean;
 }
 
 export interface IFileMatch<U extends UriComponents = URI> {

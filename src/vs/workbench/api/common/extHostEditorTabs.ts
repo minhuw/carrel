@@ -11,7 +11,7 @@ import { createDecorator } from '../../../platform/instantiation/common/instanti
 import { IEditorTabDto, IEditorTabGroupDto, IExtHostEditorTabsShape, MainContext, MainThreadEditorTabsShape, TabInputKind, TabModelOperationKind, TabOperation } from './extHost.protocol.js';
 import { IExtHostRpcService } from './extHostRpcService.js';
 import * as typeConverters from './extHostTypeConverters.js';
-import { CustomEditorTabInput, InteractiveWindowInput, NotebookDiffEditorTabInput, NotebookEditorTabInput, TerminalEditorTabInput, TextDiffTabInput, TextMergeTabInput, TextTabInput, WebviewEditorTabInput, TextMultiDiffTabInput } from './extHostTypes.js';
+import { CustomEditorTabInput, TerminalEditorTabInput, TextDiffTabInput, TextMergeTabInput, TextTabInput, WebviewEditorTabInput, TextMultiDiffTabInput } from './extHostTypes.js';
 import type * as vscode from 'vscode';
 
 export interface IExtHostEditorTabs extends IExtHostEditorTabsShape {
@@ -21,7 +21,7 @@ export interface IExtHostEditorTabs extends IExtHostEditorTabsShape {
 
 export const IExtHostEditorTabs = createDecorator<IExtHostEditorTabs>('IExtHostEditorTabs');
 
-type AnyTabInput = TextTabInput | TextDiffTabInput | TextMultiDiffTabInput | CustomEditorTabInput | NotebookEditorTabInput | NotebookDiffEditorTabInput | WebviewEditorTabInput | TerminalEditorTabInput | InteractiveWindowInput;
+type AnyTabInput = TextTabInput | TextDiffTabInput | TextMultiDiffTabInput | CustomEditorTabInput | WebviewEditorTabInput | TerminalEditorTabInput;
 
 class ExtHostEditorTab {
 	private _apiObject: vscode.Tab | undefined;
@@ -90,14 +90,8 @@ class ExtHostEditorTab {
 				return new CustomEditorTabInput(URI.revive(this._dto.input.uri), this._dto.input.viewType);
 			case TabInputKind.WebviewEditorInput:
 				return new WebviewEditorTabInput(this._dto.input.viewType);
-			case TabInputKind.NotebookInput:
-				return new NotebookEditorTabInput(URI.revive(this._dto.input.uri), this._dto.input.notebookType);
-			case TabInputKind.NotebookDiffInput:
-				return new NotebookDiffEditorTabInput(URI.revive(this._dto.input.original), URI.revive(this._dto.input.modified), this._dto.input.notebookType);
 			case TabInputKind.TerminalEditorInput:
 				return new TerminalEditorTabInput();
-			case TabInputKind.InteractiveEditorInput:
-				return new InteractiveWindowInput(URI.revive(this._dto.input.uri), URI.revive(this._dto.input.inputBoxUri));
 			case TabInputKind.MultiDiffEditorInput:
 				return new TextMultiDiffTabInput(this._dto.input.diffEditors.map(diff => new TextDiffTabInput(URI.revive(diff.original), URI.revive(diff.modified))));
 			default:

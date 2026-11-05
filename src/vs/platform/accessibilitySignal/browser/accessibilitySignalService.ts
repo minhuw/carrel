@@ -545,24 +545,6 @@ export class AccessibilitySignal {
 		settingsKey: 'accessibility.signals.terminalBell',
 	});
 
-	public static readonly notebookCellCompleted = AccessibilitySignal.register({
-		name: localize('accessibilitySignals.notebookCellCompleted', 'Notebook Cell Completed'),
-		sound: Sound.taskCompleted,
-		legacySoundSettingsKey: 'audioCues.notebookCellCompleted',
-		legacyAnnouncementSettingsKey: 'accessibility.alert.notebookCellCompleted',
-		announcementMessage: localize('accessibility.signals.notebookCellCompleted', 'Notebook Cell Completed'),
-		settingsKey: 'accessibility.signals.notebookCellCompleted',
-	});
-
-	public static readonly notebookCellFailed = AccessibilitySignal.register({
-		name: localize('accessibilitySignals.notebookCellFailed', 'Notebook Cell Failed'),
-		sound: Sound.taskFailed,
-		legacySoundSettingsKey: 'audioCues.notebookCellFailed',
-		legacyAnnouncementSettingsKey: 'accessibility.alert.notebookCellFailed',
-		announcementMessage: localize('accessibility.signals.notebookCellFailed', 'Notebook Cell Failed'),
-		settingsKey: 'accessibility.signals.notebookCellFailed',
-	});
-
 	public static readonly diffLineInserted = AccessibilitySignal.register({
 		name: localize('accessibilitySignals.diffLineInserted', 'Diff Line Inserted'),
 		sound: Sound.diffLineInserted,

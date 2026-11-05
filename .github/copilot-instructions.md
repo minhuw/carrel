@@ -36,7 +36,7 @@ The core architecture follows these principles:
 ### Built-in Extensions (`extensions/` folder)
 The `extensions/` directory contains first-party extensions that ship with VS Code:
 - **Language support** - `typescript-language-features/`, `html-language-features/`, `css-language-features/`, etc.
-- **Core features** - `git/`, `debug-auto-launch/`, `emmet/`, `markdown-language-features/`
+- **Core features** - `git/`, `emmet/`, `markdown-language-features/`
 - **Themes** - `theme-*` folders for default color themes
 - **Development tools** - `extension-editing/`, `vscode-api-tests/`
 

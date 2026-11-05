@@ -96,11 +96,6 @@
         "icon": "$(run)"
       },
       {
-        "command": "npm.debugScript",
-        "title": "%command.debug%",
-        "icon": "$(debug)"
-      },
-      {
         "command": "npm.openScript",
         "title": "%command.openScript%"
       },
@@ -134,10 +129,6 @@
         },
         {
           "command": "npm.runScript",
-          "when": "false"
-        },
-        {
-          "command": "npm.debugScript",
           "when": "false"
         },
         {
@@ -200,16 +191,6 @@
           "command": "npm.runScript",
           "when": "view == npm && viewItem == script",
           "group": "inline"
-        },
-        {
-          "command": "npm.debugScript",
-          "when": "view == npm && viewItem == script",
-          "group": "inline"
-        },
-        {
-          "command": "npm.debugScript",
-          "when": "view == npm && viewItem == script",
-          "group": "navigation@3"
         }
       ],
       "explorer/context": [

@@ -6,7 +6,7 @@
 import * as vscode from 'vscode';
 import type { API } from './typings/git.d.ts';
 import { getRepositoryFromUrl, repositoryHasGitHubRemote } from './util.js';
-import { encodeURIComponentExceptSlashes, ensurePublished, getRepositoryForFile, notebookCellRangeString, rangeString } from './links.js';
+import { encodeURIComponentExceptSlashes, ensurePublished, getRepositoryForFile, rangeString } from './links.js';
 
 export class VscodeDevShareProvider implements vscode.ShareProvider, vscode.Disposable {
 	readonly id: string = 'copyVscodeDevLink';
@@ -102,12 +102,5 @@ export class VscodeDevShareProvider implements vscode.ShareProvider, vscode.Disp
 }
 
 function getRangeSegment(item: vscode.ShareableItem) {
-	if (item.resourceUri.scheme === 'vscode-notebook-cell') {
-		const notebookEditor = vscode.window.visibleNotebookEditors.find(editor => editor.notebook.uri.fsPath === item.resourceUri.fsPath);
-		const cell = notebookEditor?.notebook.getCells().find(cell => cell.document.uri.fragment === item.resourceUri?.fragment);
-		const cellIndex = cell?.index ?? notebookEditor?.selection.start;
-		return notebookCellRangeString(cellIndex, item.selection);
-	}
-
 	return rangeString(item.selection);
 }

@@ -24,7 +24,6 @@ import './mainThreadClipboard.js';
 import './mainThreadCommands.js';
 import './mainThreadConfiguration.js';
 import './mainThreadConsole.js';
-import './mainThreadDebugService.js';
 import './mainThreadDecorations.js';
 import './mainThreadDiagnostics.js';
 import './mainThreadDialogs.js';
@@ -70,25 +69,17 @@ import './mainThreadGitHub.js';
 import './mainThreadWebviewManager.js';
 import './mainThreadWorkspace.js';
 import './mainThreadComments.js';
-import './mainThreadNotebook.js';
-import './mainThreadNotebookKernels.js';
-import './mainThreadNotebookDocumentsAndEditors.js';
-import './mainThreadNotebookRenderers.js';
-import './mainThreadNotebookSaveParticipant.js';
-import './mainThreadInteractive.js';
 import './mainThreadTask.js';
 import './mainThreadLabelService.js';
 import './mainThreadTunnelService.js';
 import './mainThreadAuthentication.js';
 import './mainThreadTimeline.js';
-import './mainThreadTesting.js';
 import './mainThreadSecretState.js';
 import './mainThreadShare.js';
 import './mainThreadProfileContentHandlers.js';
 import './mainThreadDataChannels.js';
 import './mainThreadMeteredConnection.js';
 import './mainThreadGitExtensionService.js';
-import './mainThreadBrowsers.js';
 
 export class ExtensionPoints implements IWorkbenchContribution {
 

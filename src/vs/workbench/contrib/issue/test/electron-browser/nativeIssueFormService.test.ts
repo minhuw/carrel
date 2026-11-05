@@ -41,7 +41,6 @@ import { INativeHostService } from '../../../../../platform/native/common/native
 import { INotificationService } from '../../../../../platform/notification/common/notification.js';
 import { IOpenerService } from '../../../../../platform/opener/common/opener.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
-import { IUpdateService, StateType } from '../../../../../platform/update/common/update.js';
 import { NullTelemetryService } from '../../../../../platform/telemetry/common/telemetryUtils.js';
 import { ITelemetryService } from '../../../../../platform/telemetry/common/telemetry.js';
 import { TestExperimentTriggerTelemetryService } from '../../../../../platform/telemetry/test/common/experimentTriggerTestUtils.js';
@@ -282,7 +281,6 @@ suite('NativeIssueFormService reporter windows', () => {
 		const screenshotTool = createTestScreenshotToolService(store).service;
 		screenshotTool.duringSession = () => void screenshotStarted.complete();
 		instantiation.stub(IScreenshotToolService, screenshotTool);
-		instantiation.stub(IUpdateService, { state: { type: StateType.Uninitialized }, onStateChange: Event.None });
 		instantiation.stub(IContextViewService, { getContextViewElement: () => $('div') });
 		instantiation.stub(IMarkdownRendererService, { render: () => ({ element: $('div'), dispose: () => { } }) });
 		const source = $('div.monaco-workbench');

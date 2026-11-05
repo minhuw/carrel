@@ -240,7 +240,6 @@ export default [
 			'src/bootstrap-node.ts',
 			'build/lib/extensions.ts',
 			'build/lib/test/render.test.ts',
-			'extensions/debug-auto-launch/src/extension.ts',
 			'extensions/emmet/src/updateImageSize.ts',
 			'extensions/emmet/src/util.ts',
 			'extensions/github-authentication/src/node/fetch.ts',
@@ -290,7 +289,6 @@ export default [
 			'src/vs/workbench/api/common/extHostChatAgents2.ts',
 			'src/vs/workbench/api/common/extHostChatSessions.ts',
 			'src/vs/workbench/api/common/extHostDebugService.ts',
-			'src/vs/workbench/api/common/extHostNotebookKernels.ts',
 			'src/vs/workbench/api/common/extHostQuickOpen.ts',
 			'src/vs/workbench/api/common/extHostRequireInterceptor.ts',
 			'src/vs/workbench/api/common/extHostTypeConverters.ts',
@@ -321,16 +319,9 @@ export default [
 			'src/vs/workbench/contrib/chat/test/common/promptSyntax/testUtils/mockFilesystem.test.ts',
 			'src/vs/workbench/contrib/chat/test/common/promptSyntax/testUtils/mockFilesystem.ts',
 			'src/vs/workbench/contrib/chat/test/common/tools/builtinTools/manageTodoListTool.test.ts',
-			'src/vs/workbench/contrib/debug/browser/debugAdapterManager.ts',
-			'src/vs/workbench/contrib/debug/browser/variablesView.ts',
-			'src/vs/workbench/contrib/debug/browser/watchExpressionsView.ts',
-			'src/vs/workbench/contrib/debug/common/debugModel.ts',
-			'src/vs/workbench/contrib/debug/common/debugger.ts',
-			'src/vs/workbench/contrib/debug/common/replAccessibilityAnnouncer.ts',
 			'src/vs/workbench/contrib/editSessions/browser/editSessionsStorageService.ts',
 			'src/vs/workbench/contrib/editTelemetry/browser/helpers/documentWithAnnotatedEdits.ts',
 			'src/vs/workbench/contrib/extensions/common/extensionQuery.ts',
-			'src/vs/workbench/contrib/interactive/browser/interactiveEditorInput.ts',
 			'src/vs/workbench/contrib/issue/browser/issueFormService.ts',
 			'src/vs/workbench/contrib/issue/browser/issueQuickAccess.ts',
 			'src/vs/workbench/contrib/markers/browser/markersView.ts',
@@ -345,17 +336,6 @@ export default [
 			'src/vs/workbench/contrib/output/browser/outputView.ts',
 			'src/vs/workbench/contrib/preferences/browser/settingsTree.ts',
 			'src/vs/workbench/contrib/remoteTunnel/electron-browser/remoteTunnel.contribution.ts',
-			'src/vs/workbench/contrib/testing/browser/explorerProjections/listProjection.ts',
-			'src/vs/workbench/contrib/testing/browser/explorerProjections/treeProjection.ts',
-			'src/vs/workbench/contrib/testing/browser/testCoverageBars.ts',
-			'src/vs/workbench/contrib/testing/browser/testExplorerActions.ts',
-			'src/vs/workbench/contrib/testing/browser/testingOutputPeek.ts',
-			'src/vs/workbench/contrib/testing/browser/testingProgressUiService.ts',
-			'src/vs/workbench/contrib/testing/browser/testResultsView/testResultsTree.ts',
-			'src/vs/workbench/contrib/testing/common/testCoverageService.ts',
-			'src/vs/workbench/contrib/testing/common/testResultService.ts',
-			'src/vs/workbench/contrib/testing/common/testingChatAgentTool.ts',
-			'src/vs/workbench/contrib/testing/test/browser/testObjectTree.ts',
 			'src/vs/workbench/contrib/themes/browser/themes.contribution.ts',
 			'src/vs/workbench/contrib/welcomeGettingStarted/browser/gettingStarted.contribution.ts',
 			'src/vs/workbench/services/environment/electron-browser/environmentService.ts',
@@ -496,8 +476,6 @@ export default [
 			'src/vs/platform/contextkey/browser/contextKeyService.ts',
 			'src/vs/platform/contextkey/common/contextkey.ts',
 			'src/vs/platform/contextview/browser/contextView.ts',
-			'src/vs/platform/debug/common/extensionHostDebugIpc.ts',
-			'src/vs/platform/debug/electron-main/extensionHostDebugIpc.ts',
 			'src/vs/platform/diagnostics/common/diagnostics.ts',
 			'src/vs/platform/download/common/downloadIpc.ts',
 			'src/vs/platform/extensions/common/extensions.ts',
@@ -614,8 +592,6 @@ export default [
 			'src/vs/workbench/api/common/extHostMcp.ts',
 			'src/vs/workbench/api/common/extHostMemento.ts',
 			'src/vs/workbench/api/common/extHostMessageService.ts',
-			'src/vs/workbench/api/common/extHostNotebookDocument.ts',
-			'src/vs/workbench/api/common/extHostNotebookDocumentSaveParticipant.ts',
 			'src/vs/workbench/api/common/extHostRequireInterceptor.ts',
 			'src/vs/workbench/api/common/extHostRpcService.ts',
 			'src/vs/workbench/api/common/extHostSCM.ts',
@@ -665,24 +641,6 @@ export default [
 			'src/vs/workbench/contrib/customEditor/browser/customEditorInputFactory.ts',
 			'src/vs/workbench/contrib/customEditor/browser/customEditors.ts',
 			'src/vs/workbench/contrib/customEditor/common/customEditor.ts',
-			'src/vs/workbench/contrib/debug/browser/debugActionViewItems.ts',
-			'src/vs/workbench/contrib/debug/browser/debugAdapterManager.ts',
-			'src/vs/workbench/contrib/debug/browser/debugCommands.ts',
-			'src/vs/workbench/contrib/debug/browser/debugConfigurationManager.ts',
-			'src/vs/workbench/contrib/debug/browser/debugEditorActions.ts',
-			'src/vs/workbench/contrib/debug/browser/debugEditorContribution.ts',
-			'src/vs/workbench/contrib/debug/browser/debugHover.ts',
-			'src/vs/workbench/contrib/debug/browser/debugService.ts',
-			'src/vs/workbench/contrib/debug/browser/debugSession.ts',
-			'src/vs/workbench/contrib/debug/browser/rawDebugSession.ts',
-			'src/vs/workbench/contrib/debug/browser/repl.ts',
-			'src/vs/workbench/contrib/debug/browser/replViewer.ts',
-			'src/vs/workbench/contrib/debug/browser/variablesView.ts',
-			'src/vs/workbench/contrib/debug/browser/watchExpressionsView.ts',
-			'src/vs/workbench/contrib/debug/common/abstractDebugAdapter.ts',
-			'src/vs/workbench/contrib/debug/common/debugger.ts',
-			'src/vs/workbench/contrib/debug/common/replModel.ts',
-			'src/vs/workbench/contrib/debug/test/common/mockDebug.ts',
 			'src/vs/workbench/contrib/editSessions/common/workspaceStateSync.ts',
 			'src/vs/workbench/contrib/editTelemetry/browser/helpers/documentWithAnnotatedEdits.ts',
 			'src/vs/workbench/contrib/editTelemetry/browser/helpers/utils.ts',
@@ -714,6 +672,8 @@ export default [
 			'src/vs/workbench/contrib/preferences/browser/settingsTree.ts',
 			'src/vs/workbench/contrib/preferences/browser/settingsTreeModels.ts',
 			'src/vs/workbench/contrib/remote/browser/tunnelView.ts',
+			'src/vs/workbench/contrib/search/browser/AISearch/aiSearchModel.ts',
+			'src/vs/workbench/contrib/search/browser/AISearch/aiSearchModelBase.ts',
 			'src/vs/workbench/contrib/search/browser/notebookSearch/notebookSearchModel.ts',
 			'src/vs/workbench/contrib/search/browser/notebookSearch/notebookSearchModelBase.ts',
 			'src/vs/workbench/contrib/search/browser/notebookSearch/searchNotebookHelpers.ts',
@@ -742,8 +702,6 @@ export default [
 			'src/vs/workbench/contrib/snippets/browser/commands/configureSnippets.ts',
 			'src/vs/workbench/contrib/snippets/browser/commands/insertSnippet.ts',
 			'src/vs/workbench/contrib/snippets/browser/snippetsService.ts',
-			'src/vs/workbench/contrib/testing/common/storedValue.ts',
-			'src/vs/workbench/contrib/testing/test/browser/testObjectTree.ts',
 			'src/vs/workbench/contrib/typeHierarchy/browser/typeHierarchy.contribution.ts',
 			'src/vs/workbench/contrib/typeHierarchy/common/typeHierarchy.ts',
 			'src/vs/workbench/contrib/webview/browser/overlayWebview.ts',
@@ -919,8 +877,7 @@ export default [
 						'CustomEditorProvider',
 						'CustomReadonlyEditorProvider',
 						'TerminalLinkProvider',
-						'AuthenticationProvider',
-						'NotebookContentProvider'
+						'AuthenticationProvider'
 					]
 				}
 			],
@@ -1832,7 +1789,6 @@ export default [
 						'vs/workbench/contrib/*/~',
 						'vs/workbench/contrib/terminal/terminalContribChatExports*',
 						'vs/workbench/contrib/terminal/terminalContribExports*',
-						'vscode-notebook-renderer', // Type only import
 						'@vscode/tree-sitter-wasm', // type import
 						{
 							'when': 'hasBrowser',
@@ -1862,7 +1818,6 @@ export default [
 						// Only allow terminalContrib to import from itself, this works because
 						// terminalContrib is one extra folder deep
 						'vs/workbench/contrib/terminalContrib/*/~',
-						'vscode-notebook-renderer', // Type only import
 						'@vscode/tree-sitter-wasm', // type import
 						{
 							'when': 'hasBrowser',
@@ -2476,30 +2431,6 @@ export default [
 			]
 		}
 	},
-	{
-		files: [
-			'src/vs/workbench/contrib/notebook/browser/view/renderers/*.ts'
-		],
-		rules: {
-			'local/code-no-runtime-import': [
-				'error',
-				{
-					'src/vs/workbench/contrib/notebook/browser/view/renderers/webviewPreloads.ts': [
-						'**/*'
-					]
-				}
-			],
-			'local/code-limited-top-functions': [
-				'error',
-				{
-					'src/vs/workbench/contrib/notebook/browser/view/renderers/webviewPreloads.ts': [
-						'webviewPreloads',
-						'preloadsScriptStr'
-					]
-				}
-			]
-		}
-	},
 	// Terminal
 	{
 		files: [
@@ -2568,7 +2499,6 @@ export default [
 	{
 		files: [
 			'extensions/markdown-language-features/src/**/*.ts',
-			'extensions/markdown-language-features/notebook/**/*.ts',
 			'extensions/markdown-language-features/preview-src/**/*.ts',
 			'extensions/mermaid-markdown-features/src/**/*.ts',
 			'extensions/simple-browser/**/*.ts',
@@ -2580,7 +2510,6 @@ export default [
 				project: [
 					// Markdown
 					'extensions/markdown-language-features/tsconfig.json',
-					'extensions/markdown-language-features/notebook/tsconfig.json',
 					'extensions/markdown-language-features/preview-src/tsconfig.json',
 
 					// Simple browser
@@ -2588,6 +2517,8 @@ export default [
 					'extensions/simple-browser/preview-src/tsconfig.json',
 
 					// Mermaid markdown features
+					'extensions/mermaid-markdown-features/tsconfig.json',
+					'extensions/mermaid-markdown-features/preview-src/chat/tsconfig.json',
 
 					// TypeScript
 					'extensions/typescript-language-features/tsconfig.json',

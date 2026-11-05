@@ -938,31 +938,6 @@ src/vs/workbench/contrib/chat/test/common/mockPromptsService.ts:
 src/vs/workbench/contrib/chat/test/common/tools/manageTodoListTool.test.ts:
   16: 		// eslint-disable-next-line local/code-no-any-casts
 
-src/vs/workbench/contrib/debug/browser/debugSession.ts:
-  1193: 						// eslint-disable-next-line local/code-no-any-casts
-
-src/vs/workbench/contrib/debug/test/browser/breakpoints.test.ts:
-  450: 		// eslint-disable-next-line local/code-no-any-casts
-  466: 		// eslint-disable-next-line local/code-no-any-casts
-
-src/vs/workbench/contrib/debug/test/browser/debugConfigurationManager.test.ts:
-   92: 		// eslint-disable-next-line local/code-no-any-casts
-  129: 		// eslint-disable-next-line local/code-no-any-casts
-
-src/vs/workbench/contrib/debug/test/browser/debugMemory.test.ts:
-  76: 			// eslint-disable-next-line local/code-no-any-casts
-
-src/vs/workbench/contrib/debug/test/browser/rawDebugSession.test.ts:
-  28: 			// eslint-disable-next-line local/code-no-any-casts
-
-src/vs/workbench/contrib/debug/test/browser/repl.test.ts:
-  139: 		// eslint-disable-next-line local/code-no-any-casts
-  142: 		// eslint-disable-next-line local/code-no-any-casts
-
-src/vs/workbench/contrib/debug/test/common/debugModel.test.ts:
-  72: 				// eslint-disable-next-line local/code-no-any-casts
-  77: 				// eslint-disable-next-line local/code-no-any-casts
-
 src/vs/workbench/contrib/extensions/browser/extensionsWorkbenchService.ts:
   1182: 		// eslint-disable-next-line local/code-no-any-casts
 
@@ -1004,9 +979,6 @@ src/vs/workbench/contrib/mergeEditor/browser/utils.ts:
 
 src/vs/workbench/contrib/mergeEditor/browser/commands/commands.ts:
   69: 			// eslint-disable-next-line local/code-no-any-casts
-
-src/vs/workbench/contrib/notebook/browser/services/notebookEditorServiceImpl.ts:
-  75: 					// eslint-disable-next-line local/code-no-any-casts
 
 src/vs/workbench/contrib/search/browser/searchActionsFind.ts:
   460: 				// eslint-disable-next-line local/code-no-any-casts
@@ -1115,9 +1087,6 @@ src/vs/workbench/contrib/terminalContrib/links/test/browser/terminalWordLinkDete
 
 src/vs/workbench/contrib/terminalContrib/typeAhead/test/browser/terminalTypeAhead.test.ts:
   40: 			// eslint-disable-next-line local/code-no-any-casts
-
-src/vs/workbench/contrib/testing/test/browser/testObjectTree.ts:
-  123: 		// eslint-disable-next-line local/code-no-any-casts
 
 src/vs/workbench/contrib/themes/browser/themes.contribution.ts:
   614: 	// eslint-disable-next-line local/code-no-any-casts, @typescript-eslint/no-explicit-any

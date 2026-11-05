@@ -5,15 +5,11 @@
 **/extensions/css-language-features/server/test/pathCompletionFixtures/**
 **/extensions/html-language-features/server/lib/jquery.d.ts
 **/extensions/html-language-features/server/src/test/pathCompletionFixtures/**
-**/extensions/ipynb/notebook-out/**
 **/extensions/markdown-language-features/media/**
 **/extensions/markdown-language-features/markdown-editor-out/**
-**/extensions/markdown-language-features/notebook-out/**
-**/extensions/markdown-math/notebook-out/**
 **/extensions/mermaid-markdown-features/chat-webview-out/**
 **/extensions/mermaid-markdown-features/markdown-preview-out/**
 **/extensions/mermaid-markdown-features/notebook-out/**
-**/extensions/notebook-renderers/renderer-out/index.js
 **/extensions/simple-browser/media/index.js
 **/extensions/terminal-suggest/src/completions/upstream/**
 **/extensions/terminal-suggest/src/shell/zshBuiltinsCache.ts

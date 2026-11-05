@@ -8,7 +8,6 @@ import * as sinon from 'sinon';
 import { DeferredPromise, raceCancellationError } from '../../../../../base/common/async.js';
 import { CancellationToken } from '../../../../../base/common/cancellation.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
-import { ResourceSet } from '../../../../../base/common/map.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { mock } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
@@ -19,10 +18,7 @@ import { IWorkspaceContextService } from '../../../../../platform/workspace/comm
 import { IViewsService } from '../../../../services/views/common/viewsService.js';
 import { ISearchComplete, ISearchService, OneLineRange, TextSearchMatch } from '../../../../services/search/common/search.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
-import { INotebookEditorService } from '../../../notebook/browser/services/notebookEditorService.js';
-import { INotebookService } from '../../../notebook/common/notebookService.js';
 import { TextSearchQuickAccess } from '../../browser/quickTextSearch/textSearchQuickAccess.js';
-import { INotebookSearchService } from '../../common/notebookSearch.js';
 
 suite('TextSearchQuickAccess', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
@@ -37,18 +33,6 @@ suite('TextSearchQuickAccess', () => {
 				})
 			}, store);
 			instantiationService.stub(IViewsService, {});
-			instantiationService.stub(INotebookService, { getNotebookTextModels: () => [] });
-			instantiationService.stub(INotebookEditorService, {
-				onDidAddNotebookEditor: Event.None,
-				retrieveExistingWidgetFromURI: () => undefined
-			});
-			instantiationService.stub(INotebookSearchService, {
-				notebookSearch: () => ({
-					openFilesToScan: new ResourceSet(),
-					allScannedFiles: Promise.resolve(new ResourceSet()),
-					completeData: Promise.resolve({ results: [], messages: [] })
-				})
-			});
 			const folder = instantiationService.get(IWorkspaceContextService).getWorkspace().folders[0].uri;
 			const previousCompletion = new DeferredPromise<ISearchComplete>();
 			const previousProgress = new DeferredPromise<void>();

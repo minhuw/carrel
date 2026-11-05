@@ -6,7 +6,7 @@
 
 import assert from 'assert';
 import * as extHostTypes from '../../common/extHostTypes.js';
-import { MarkdownString, NotebookCellOutputItem, NotebookData, LanguageSelector, WorkspaceEdit } from '../../common/extHostTypeConverters.js';
+import { MarkdownString, LanguageSelector, WorkspaceEdit } from '../../common/extHostTypeConverters.js';
 import { isEmptyObject } from '../../../../base/common/types.js';
 import { URI } from '../../../../base/common/uri.js';
 import { IWorkspaceTextEditDto } from '../../common/extHost.protocol.js';
@@ -86,41 +86,11 @@ suite('ExtHostTypeConverter', function () {
 		}
 	});
 
-	test('Notebook metadata is ignored when using Notebook Serializer #125716', function () {
-
-		const d = new extHostTypes.NotebookData([]);
-		d.cells.push(new extHostTypes.NotebookCellData(extHostTypes.NotebookCellKind.Code, 'hello', 'fooLang'));
-		d.metadata = { foo: 'bar', bar: 123 };
-
-		const dto = NotebookData.from(d);
-
-		assert.strictEqual(dto.cells.length, 1);
-		assert.strictEqual(dto.cells[0].language, 'fooLang');
-		assert.strictEqual(dto.cells[0].source, 'hello');
-		assert.deepStrictEqual(dto.metadata, d.metadata);
-	});
-
-	test('NotebookCellOutputItem', function () {
-
-		const item = extHostTypes.NotebookCellOutputItem.text('Hello', 'foo/bar');
-
-		const dto = NotebookCellOutputItem.from(item);
-
-		assert.strictEqual(dto.mime, 'foo/bar');
-		assert.deepStrictEqual(Array.from(dto.valueBytes.buffer), Array.from(new TextEncoder().encode('Hello')));
-
-		const item2 = NotebookCellOutputItem.to(dto);
-
-		assert.strictEqual(item2.mime, item.mime);
-		assert.deepStrictEqual(Array.from(item2.data), Array.from(item.data));
-	});
-
 	test('LanguageSelector', function () {
-		const out = LanguageSelector.from({ language: 'bat', notebookType: 'xxx' });
+		const out = LanguageSelector.from({ language: 'bat' });
 		assert.ok(typeof out === 'object');
 		assert.deepStrictEqual(out, {
 			language: 'bat',
-			notebookType: 'xxx',
 			scheme: undefined,
 			pattern: undefined,
 			exclusive: undefined,

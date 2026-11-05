@@ -20,13 +20,6 @@ src/vs/platform/list/browser/listService.ts:
   468  			}));
   469  		} else {
 
-src/vs/workbench/contrib/notebook/browser/notebookEditorWidget.ts:
-  1526  
-  1527  		await this._ensureActiveKernel();
-  1528: 		await this._activeKernel?.cancelNotebookCell!(this._notebookViewModel!.uri, undefined);
-  1529  	}
-  1530  
-
   1535  
   1536  		await this._ensureActiveKernel();
   1537: 		await this._activeKernel?.executeNotebookCell!(this._notebookViewModel!.uri, undefined);

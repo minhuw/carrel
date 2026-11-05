@@ -6,7 +6,6 @@
 import assert from 'assert';
 import { CancellationError } from '../../../../base/common/errors.js';
 import { MarshalledId } from '../../../../base/common/marshallingIds.js';
-import { Mimes } from '../../../../base/common/mime.js';
 import { isWindows } from '../../../../base/common/platform.js';
 import { assertType } from '../../../../base/common/types.js';
 import { URI } from '../../../../base/common/uri.js';
@@ -720,49 +719,6 @@ suite('ExtHostTypes', function () {
 	test('Markdown codeblock rendering is swapped #111604', function () {
 		const md = new types.MarkdownString().appendCodeblock('<img src=0 onerror="alert(1)">', 'html');
 		assert.deepStrictEqual(md.value, '\n```html\n<img src=0 onerror="alert(1)">\n```\n');
-	});
-
-	test('NotebookCellOutputItem - factories', function () {
-
-		assert.throws(() => {
-			// invalid mime type
-			new types.NotebookCellOutputItem(new Uint8Array(), 'invalid');
-		});
-
-		// --- err
-
-		let item = types.NotebookCellOutputItem.error(new Error());
-		assert.strictEqual(item.mime, 'application/vnd.code.notebook.error');
-		item = types.NotebookCellOutputItem.error({ name: 'Hello' });
-		assert.strictEqual(item.mime, 'application/vnd.code.notebook.error');
-
-		// --- JSON
-
-		item = types.NotebookCellOutputItem.json(1);
-		assert.strictEqual(item.mime, 'text/x-json');
-		assert.deepStrictEqual(item.data, new TextEncoder().encode(JSON.stringify(1)));
-
-		item = types.NotebookCellOutputItem.json(1, 'foo/bar');
-		assert.strictEqual(item.mime, 'foo/bar');
-		assert.deepStrictEqual(item.data, new TextEncoder().encode(JSON.stringify(1)));
-
-		item = types.NotebookCellOutputItem.json(true);
-		assert.strictEqual(item.mime, 'text/x-json');
-		assert.deepStrictEqual(item.data, new TextEncoder().encode(JSON.stringify(true)));
-
-		item = types.NotebookCellOutputItem.json([true, 1, 'ddd']);
-		assert.strictEqual(item.mime, 'text/x-json');
-		assert.deepStrictEqual(item.data, new TextEncoder().encode(JSON.stringify([true, 1, 'ddd'], undefined, '\t')));
-
-		// --- text
-
-		item = types.NotebookCellOutputItem.text('Hęłlö');
-		assert.strictEqual(item.mime, Mimes.text);
-		assert.deepStrictEqual(item.data, new TextEncoder().encode('Hęłlö'));
-
-		item = types.NotebookCellOutputItem.text('Hęłlö', 'foo/bar');
-		assert.strictEqual(item.mime, 'foo/bar');
-		assert.deepStrictEqual(item.data, new TextEncoder().encode('Hęłlö'));
 	});
 
 	test('FileDecoration#validate', function () {

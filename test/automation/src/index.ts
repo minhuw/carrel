@@ -6,7 +6,6 @@
 export * from './activityBar';
 export * from './application';
 export * from './code';
-export * from './debug';
 export * from './editor';
 export * from './editors';
 export * from './explorer';

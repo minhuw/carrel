@@ -14,7 +14,7 @@ import * as languages from '../../../../editor/common/languages.js';
 import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
 import { CommentFormActions } from './commentFormActions.js';
 import { CommentMenus } from './commentMenus.js';
-import { ICellRange } from '../../notebook/common/notebookRange.js';
+import { ICellRange } from '../../../../editor/common/languages.js';
 import { IKeybindingService } from '../../../../platform/keybinding/common/keybinding.js';
 import { IContextMenuService } from '../../../../platform/contextview/browser/contextView.js';
 

@@ -9,9 +9,7 @@ import { IBulkEditService, ResourceFileEdit, ResourceTextEdit } from '../../../e
 import { WorkspaceEdit } from '../../../editor/common/languages.js';
 import { ILogService } from '../../../platform/log/common/log.js';
 import { IUriIdentityService } from '../../../platform/uriIdentity/common/uriIdentity.js';
-import { IWorkspaceCellEditDto, IWorkspaceEditDto, IWorkspaceFileEditDto, MainContext, MainThreadBulkEditsShape } from '../common/extHost.protocol.js';
-import { ResourceNotebookCellEdit } from '../../contrib/bulkEdit/browser/bulkCellEdits.js';
-import { CellEditType } from '../../contrib/notebook/common/notebookCommon.js';
+import { IWorkspaceEditDto, IWorkspaceFileEditDto, MainContext, MainThreadBulkEditsShape } from '../common/extHost.protocol.js';
 import { IExtHostContext, extHostNamedCustomer } from '../../services/extensions/common/extHostCustomers.js';
 import { SerializableObjectWithBuffers } from '../../services/extensions/common/proxyIdentifier.js';
 
@@ -65,27 +63,6 @@ export function reviveWorkspaceEditDto(data: IWorkspaceEditDto | undefined, uriI
 			}
 			edit.newResource = edit.newResource && uriIdentityService.asCanonicalUri(edit.newResource);
 			edit.oldResource = edit.oldResource && uriIdentityService.asCanonicalUri(edit.oldResource);
-		}
-		if (ResourceNotebookCellEdit.is(edit)) {
-			edit.resource = uriIdentityService.asCanonicalUri(edit.resource);
-			const cellEdit = (edit as IWorkspaceCellEditDto).cellEdit;
-			if (cellEdit.editType === CellEditType.Replace) {
-				edit.cellEdit = {
-					...cellEdit,
-					cells: cellEdit.cells.map(cell => ({
-						...cell,
-						outputs: cell.outputs.map(output => ({
-							...output,
-							outputs: output.items.map(item => {
-								return {
-									mime: item.mime,
-									data: item.valueBytes
-								};
-							})
-						}))
-					}))
-				};
-			}
 		}
 	}
 	return <WorkspaceEdit>data;

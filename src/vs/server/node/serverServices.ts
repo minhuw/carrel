@@ -15,7 +15,6 @@ import { ClientConnectionEvent, IMessagePassingProtocol, IPCServer, StaticRouter
 import { ProtocolConstants } from '../../base/parts/ipc/common/ipc.net.js';
 import { IConfigurationService } from '../../platform/configuration/common/configuration.js';
 import { ConfigurationService } from '../../platform/configuration/common/configurationService.js';
-import { ExtensionHostDebugBroadcastChannel } from '../../platform/debug/common/extensionHostDebugIpc.js';
 import { IDownloadService } from '../../platform/download/common/download.js';
 import { DownloadServiceChannelClient } from '../../platform/download/common/downloadIpc.js';
 import { IEnvironmentService, INativeEnvironmentService } from '../../platform/environment/common/environment.js';
@@ -112,9 +111,6 @@ export async function setupServerServices(connectionToken: ServerConnectionToken
 	if (Array.isArray(productService.serverGreeting)) {
 		logService.info(`\n\n${productService.serverGreeting.join('\n')}\n\n`);
 	}
-
-	// ExtensionHost Debug broadcast service
-	socketServer.registerChannel(ExtensionHostDebugBroadcastChannel.ChannelName, new ExtensionHostDebugBroadcastChannel());
 
 	// TODO: @Sandy @Joao need dynamic context based router
 	const router = new StaticRouter<RemoteAgentConnectionContext>(ctx => ctx.clientId === 'renderer');

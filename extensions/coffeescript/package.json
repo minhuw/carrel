@@ -36,11 +36,6 @@
         "path": "./syntaxes/coffeescript.tmLanguage.json"
       }
     ],
-    "breakpoints": [
-      {
-        "language": "coffeescript"
-      }
-    ],
     "snippets": [
       {
         "language": "coffeescript",

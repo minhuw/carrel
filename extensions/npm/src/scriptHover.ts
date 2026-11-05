@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { dirname } from 'path';
 import {
 	CancellationToken, commands, ExtensionContext,
 	Hover, HoverProvider, MarkdownString, l10n, Position, ProviderResult,
@@ -11,10 +10,7 @@ import {
 	Uri, workspace
 } from 'vscode';
 import { INpmScriptInfo, readScripts } from './readScripts';
-import {
-	createScriptRunnerTask,
-	startDebugging
-} from './tasks';
+import { createScriptRunnerTask } from './tasks';
 
 
 let cachedDocument: Uri | undefined = undefined;
@@ -35,7 +31,6 @@ export class NpmScriptHoverProvider implements HoverProvider {
 
 	constructor(private context: ExtensionContext) {
 		context.subscriptions.push(commands.registerCommand('npm.runScriptFromHover', this.runScriptFromHover, this));
-		context.subscriptions.push(commands.registerCommand('npm.debugScriptFromHover', this.debugScriptFromHover, this));
 		context.subscriptions.push(workspace.onDidChangeTextDocument((e) => {
 			invalidateHoverScriptsCache(e.document);
 		}));
@@ -66,7 +61,6 @@ export class NpmScriptHoverProvider implements HoverProvider {
 				const contents: MarkdownString = new MarkdownString();
 				contents.isTrusted = true;
 				contents.appendMarkdown(this.createRunScriptMarkdown(name, document.uri));
-				contents.appendMarkdown(this.createDebugScriptMarkdown(name, document.uri));
 				hover = new Hover(contents);
 			}
 		});
@@ -86,27 +80,9 @@ export class NpmScriptHoverProvider implements HoverProvider {
 		);
 	}
 
-	private createDebugScriptMarkdown(script: string, documentUri: Uri): string {
-		const args = {
-			documentUri: documentUri,
-			script: script,
-		};
-		return this.createMarkdownLink(
-			l10n.t("Debug Script"),
-			'npm.debugScriptFromHover',
-			args,
-			l10n.t("Runs the script under the debugger"),
-			'|'
-		);
-	}
-
-	private createMarkdownLink(label: string, cmd: string, args: any, tooltip: string, separator?: string): string {
+	private createMarkdownLink(label: string, cmd: string, args: any, tooltip: string): string {
 		const encodedArgs = encodeURIComponent(JSON.stringify(args));
-		let prefix = '';
-		if (separator) {
-			prefix = ` ${separator} `;
-		}
-		return `${prefix}[${label}](command:${cmd}?${encodedArgs} "${tooltip}")`;
+		return `[${label}](command:${cmd}?${encodedArgs} "${tooltip}")`;
 	}
 
 	public async runScriptFromHover(args: any) {
@@ -116,15 +92,6 @@ export class NpmScriptHoverProvider implements HoverProvider {
 		if (folder) {
 			const task = await createScriptRunnerTask(this.context, script, folder, documentUri);
 			await tasks.executeTask(task);
-		}
-	}
-
-	public debugScriptFromHover(args: { script: string; documentUri: Uri }) {
-		const script = args.script;
-		const documentUri = args.documentUri;
-		const folder = workspace.getWorkspaceFolder(documentUri);
-		if (folder) {
-			startDebugging(this.context, script, dirname(documentUri.fsPath), folder);
 		}
 	}
 }

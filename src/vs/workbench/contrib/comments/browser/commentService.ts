@@ -12,7 +12,7 @@ import { Range, IRange } from '../../../../editor/common/core/range.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
 import { ICommentThreadChangedEvent } from '../common/commentModel.js';
 import { CommentMenus } from './commentMenus.js';
-import { ICellRange } from '../../notebook/common/notebookRange.js';
+import { ICellRange } from '../../../../editor/common/languages.js';
 import { IWorkbenchLayoutService } from '../../../services/layout/browser/layoutService.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { COMMENTS_SECTION, ICommentsConfiguration } from '../common/commentsConfiguration.js';

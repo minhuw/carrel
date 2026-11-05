@@ -324,16 +324,6 @@ suite_git_base() {
 	kill_app
 }
 
-suite_ipynb() {
-	pnpm run test-extension -l ipynb "${GREP_ARGS[@]}"
-	kill_app
-}
-
-suite_notebook_renderers() {
-	pnpm run test-extension -l notebook-renderers "${GREP_ARGS[@]}"
-	kill_app
-}
-
 suite_configuration_editing() {
 	pnpm run test-extension -l configuration-editing "${GREP_ARGS[@]}"
 	kill_app
@@ -374,8 +364,6 @@ should_run_suite markdown && add_suite markdown markdown 14 "Markdown tests" sui
 should_run_suite emmet && add_suite emmet emmet 21 "Emmet tests" suite_emmet
 should_run_suite git && add_suite git git 12 "Git tests" suite_git
 should_run_suite git-base && add_suite git-base git-base 5 "Git Base tests" suite_git_base
-should_run_suite ipynb && add_suite ipynb ipynb 5 "Ipynb tests" suite_ipynb
-should_run_suite notebook-renderers && add_suite notebook-renderers notebook-renderers 6 "Notebook Output tests" suite_notebook_renderers
 should_run_suite configuration-editing && add_suite configuration-editing configuration-editing 6 "Configuration editing tests" suite_configuration_editing
 should_run_suite github-authentication && add_suite github-authentication github-authentication 6 "GitHub Authentication tests" suite_github_authentication
 should_run_suite css && add_suite css css 5 "CSS tests" suite_css

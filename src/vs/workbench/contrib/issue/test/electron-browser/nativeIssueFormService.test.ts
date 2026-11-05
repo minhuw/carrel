@@ -41,7 +41,6 @@ import { INativeHostService } from '../../../../../platform/native/common/native
 import { INotificationService } from '../../../../../platform/notification/common/notification.js';
 import { IOpenerService } from '../../../../../platform/opener/common/opener.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
-import { IUpdateService, StateType } from '../../../../../platform/update/common/update.js';
 import { NullTelemetryService } from '../../../../../platform/telemetry/common/telemetryUtils.js';
 import { IUntypedEditorInput } from '../../../../common/editor.js';
 import { EditorInput } from '../../../../common/editor/editorInput.js';
@@ -266,7 +265,6 @@ suite('NativeIssueFormService reporter windows', () => {
 				return controls.screenshotGate?.p;
 			}
 		});
-		instantiation.stub(IUpdateService, { state: { type: StateType.Uninitialized }, onStateChange: Event.None });
 		instantiation.stub(IContextViewService, { getContextViewElement: () => $('div') });
 		instantiation.stub(IMarkdownRendererService, { render: () => ({ element: $('div'), dispose: () => { } }) });
 		const source = $('div.monaco-workbench');

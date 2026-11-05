@@ -21,7 +21,6 @@ Canonical reference: https://github.com/microsoft/vscode/wiki/Writing-Tests
   - Filter: `--grep <pattern>`
   - Glob: `--runGlob **/myFile.test.js`
 - **Integration tests:** `scripts/test-integration.sh` or `scripts/test-integration.bat`
-- **VS Code UI:** Use the [Selfhost Test Provider](https://marketplace.visualstudio.com/items?itemName=ms-vscode.vscode-selfhost-test-provider)
 
 ## Writing Unit Tests
 

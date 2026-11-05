@@ -6,7 +6,7 @@
 import {
 	TaskDefinition, Task, TaskGroup, WorkspaceFolder, RelativePattern, ShellExecution, Uri, workspace,
 	TaskProvider, TextDocument, tasks, TaskScope, QuickPickItem, window, Position, ExtensionContext, env,
-	ShellQuotedString, ShellQuoting, commands, Location, CancellationTokenSource, l10n
+	ShellQuotedString, ShellQuoting, Location, CancellationTokenSource, l10n
 } from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
@@ -268,11 +268,6 @@ function isExcluded(folder: WorkspaceFolder, packageJsonUri: Uri) {
 	return false;
 }
 
-function isDebugScript(script: string): boolean {
-	const match = script.match(/--(inspect|debug)(-brk)?(=((\[[0-9a-fA-F:]*\]|[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+|[a-zA-Z0-9\.]*):)?(\d+))?/);
-	return match !== null;
-}
-
 async function provideNpmScriptsForFolder(context: ExtensionContext, packageJsonUri: Uri, showWarning: boolean): Promise<ITaskWithLocation[]> {
 	const emptyTasks: ITaskWithLocation[] = [];
 
@@ -356,9 +351,6 @@ export async function createScriptRunnerTask(context: ExtensionContext, script: 
 		task.group = TaskGroup.Test;
 	} else if (canHavePrePostScript(lowerCaseTaskName)) {
 		task.group = TaskGroup.Clean; // hack: use Clean group to tag pre/post scripts
-	} else if (scriptValue && isDebugScript(scriptValue)) {
-		// todo@connor4312: all scripts are now debuggable, what is a 'debug script'?
-		task.group = TaskGroup.Rebuild; // hack: use Rebuild group to tag debug scripts
 	}
 	return task;
 }
@@ -447,18 +439,6 @@ export async function runScript(context: ExtensionContext, script: string, docum
 		tasks.executeTask(task);
 	}
 }
-
-export async function startDebugging(context: ExtensionContext, scriptName: string, cwd: string, folder: WorkspaceFolder) {
-	const runScriptCommand = await getRunScriptCommand(scriptName, folder.uri, context, true);
-
-	commands.executeCommand(
-		'extension.js-debug.createDebuggerTerminal',
-		runScriptCommand.join(' '),
-		folder,
-		{ cwd },
-	);
-}
-
 
 export type StringMap = { [s: string]: string };
 

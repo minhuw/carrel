@@ -67,10 +67,6 @@
 			"project": "vscode-workbench"
 		},
 		{
-			"name": "vs/workbench/contrib/debug",
-			"project": "vscode-workbench"
-		},
-		{
 			"name": "vs/workbench/contrib/dialogs",
 			"project": "vscode-workbench"
 		},
@@ -123,10 +119,6 @@
 			"project": "vscode-workbench"
 		},
 		{
-			"name": "vs/workbench/contrib/interactive",
-			"project": "vscode-workbench"
-		},
-		{
 			"name": "vs/workbench/contrib/languageStatus",
 			"project": "vscode-workbench"
 		},
@@ -172,10 +164,6 @@
 		},
 		{
 			"name": "vs/workbench/contrib/preferences",
-			"project": "vscode-workbench"
-		},
-		{
-			"name": "vs/workbench/contrib/notebook",
 			"project": "vscode-workbench"
 		},
 		{
@@ -240,10 +228,6 @@
 		},
 		{
 			"name": "vs/workbench/contrib/tasks",
-			"project": "vscode-workbench"
-		},
-		{
-			"name": "vs/workbench/contrib/testing",
 			"project": "vscode-workbench"
 		},
 		{
@@ -588,10 +572,6 @@
 		},
 		{
 			"name": "vs/workbench/contrib/authentication",
-			"project": "vscode-workbench"
-		},
-		{
-			"name": "vs/workbench/contrib/replNotebook",
 			"project": "vscode-workbench"
 		},
 		{

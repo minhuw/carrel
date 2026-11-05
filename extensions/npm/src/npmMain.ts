@@ -10,7 +10,6 @@ import { runSelectedScript, selectAndRunScriptFromFolder } from './commands';
 import { NpmScriptsTreeDataProvider } from './npmView';
 import { getScriptRunner, getPackageManager, invalidateTasksCache, NpmTaskProvider, hasPackageJson } from './tasks';
 import { invalidateHoverScriptsCache, NpmScriptHoverProvider } from './scriptHover';
-import { NpmScriptLensProvider } from './npmScriptLens';
 import which from 'which';
 
 let treeDataProvider: NpmScriptsTreeDataProvider | undefined;
@@ -75,7 +74,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 		}
 		return '';
 	}));
-	context.subscriptions.push(new NpmScriptLensProvider());
 
 	context.subscriptions.push(vscode.window.registerTerminalQuickFixProvider('ms-vscode.npm-command', {
 		provideTerminalQuickFixes({ outputMatch }) {

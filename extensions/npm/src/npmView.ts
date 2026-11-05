@@ -15,7 +15,6 @@ import { readScripts } from './readScripts';
 import {
 	createInstallationTask, getTaskName, isAutoDetectionEnabled, isWorkspaceFolder, INpmTaskDefinition,
 	NpmTaskProvider,
-	startDebugging,
 	detectPackageManager,
 	ITaskWithLocation,
 	INSTALL_SCRIPT
@@ -145,7 +144,6 @@ export class NpmScriptsTreeDataProvider implements TreeDataProvider<TreeItem> {
 		const subscriptions = context.subscriptions;
 		this.extensionContext = context;
 		subscriptions.push(commands.registerCommand('npm.runScript', this.runScript, this));
-		subscriptions.push(commands.registerCommand('npm.debugScript', this.debugScript, this));
 		subscriptions.push(commands.registerCommand('npm.openScript', this.openScript, this));
 		subscriptions.push(commands.registerCommand('npm.runInstall', this.runInstall, this));
 	}
@@ -154,10 +152,6 @@ export class NpmScriptsTreeDataProvider implements TreeDataProvider<TreeItem> {
 		// Call detectPackageManager to trigger the multiple lock files warning.
 		await detectPackageManager(script.getFolder().uri, this.context, true);
 		tasks.executeTask(script.task);
-	}
-
-	private async debugScript(script: NpmScript) {
-		startDebugging(this.extensionContext, script.task.definition.script, path.dirname(script.package.resourceUri!.fsPath), script.getFolder());
 	}
 
 	private findScriptPosition(document: TextDocument, script?: NpmScript) {

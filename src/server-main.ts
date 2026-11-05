@@ -15,6 +15,7 @@ import minimist from 'minimist';
 import { devInjectNodeModuleLookupPath, removeGlobalNodeJsModuleLookupPaths } from './bootstrap-node.js';
 import { bootstrapESM } from './bootstrap-esm.js';
 import { resolveNLSConfiguration } from './vs/base/node/nls.js';
+import { installNodeUnhandledRejectionHandler } from './vs/base/node/processUnhandledRejectionHandler.js';
 import { product } from './bootstrap-meta.js';
 import * as perf from './vs/base/common/performance.js';
 import { INLSConfiguration } from './vs/nls.js';
@@ -22,6 +23,9 @@ import { IServerAPI } from './vs/server/node/remoteExtensionHostAgentServer.js';
 
 perf.mark('code/server/start');
 (globalThis as { vscodeServerStartTime?: number }).vscodeServerStartTime = performance.now();
+
+const unhandledRejectionHandler = installNodeUnhandledRejectionHandler(error => console.error(error));
+process.once('exit', () => unhandledRejectionHandler.dispose());
 
 // Do a quick parse to determine if a server or the cli needs to be started
 const parsedArgs = minimist(process.argv.slice(2), {

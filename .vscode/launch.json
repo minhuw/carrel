@@ -640,15 +640,6 @@
 			}
 		},
 		{
-			"name": "Launch Built-in Extension",
-			"type": "extensionHost",
-			"request": "launch",
-			"runtimeExecutable": "${execPath}",
-			"args": [
-				"--extensionDevelopmentPath=${workspaceRoot}/extensions/debug-auto-launch"
-			]
-		},
-		{
 			"name": "Monaco Editor - Playground",
 			"type": "chrome",
 			"request": "launch",

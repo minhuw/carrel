@@ -27,7 +27,7 @@ import { CommentMenus } from './commentMenus.js';
 import { ICommentService } from './commentService.js';
 import { CommentContextKeys } from '../common/commentContextKeys.js';
 import { ICommentThreadWidget } from '../common/commentThreadWidget.js';
-import { ICellRange } from '../../notebook/common/notebookRange.js';
+import { ICellRange } from '../../../../editor/common/languages.js';
 import { LayoutableEditor, MIN_EDITOR_HEIGHT, SimpleCommentEditor, calculateEditorHeight } from './simpleCommentEditor.js';
 import { IHoverService } from '../../../../platform/hover/browser/hover.js';
 import { IContextMenuService } from '../../../../platform/contextview/browser/contextView.js';

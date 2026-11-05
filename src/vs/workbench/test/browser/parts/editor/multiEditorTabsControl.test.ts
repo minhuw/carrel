@@ -32,7 +32,6 @@ import { EditorInput } from '../../../../common/editor/editorInput.js';
 import { DecorationsService } from '../../../../services/decorations/browser/decorationsService.js';
 import { IDecorationsService } from '../../../../services/decorations/common/decorations.js';
 import { IHostService } from '../../../../services/host/browser/host.js';
-import { INotebookDocumentService, NotebookDocumentWorkbenchService } from '../../../../services/notebook/common/notebookDocumentService.js';
 import { createEditorPart, TestFileEditorInput, TestHostService, TestMenuService, workbenchInstantiationService } from '../../workbenchTestServices.js';
 import { IEditorTransferVeto } from '../../../../browser/parts/editor/editorTransferVeto.js';
 import { IAuxiliaryEditorPart, IEditorGroup } from '../../../../services/editor/common/editorGroupsService.js';
@@ -75,7 +74,6 @@ suite('MultiEditorTabsControl', () => {
 
 		instantiationService = workbenchInstantiationService(undefined, disposables);
 		instantiationService.stub(ITreeViewsDnDService, new TreeViewsDnDService());
-		instantiationService.stub(INotebookDocumentService, new NotebookDocumentWorkbenchService());
 
 		hostService = instantiationService.get(IHostService) as TestHostService;
 

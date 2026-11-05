@@ -4,8 +4,6 @@ packages:
   - configuration-editing
   - css-language-features
   - css-language-features/server
-  - debug-auto-launch
-  - debug-server-ready
   - emmet
   - extension-editing
   - git
@@ -16,7 +14,6 @@ packages:
   - gulp
   - html-language-features
   - html-language-features/server
-  - ipynb
   - jake
   - json-language-features
   - json-language-features/server
@@ -26,7 +23,6 @@ packages:
   - merge-conflict
   - mermaid-markdown-features
   - microsoft-authentication
-  - notebook-renderers
   - npm
   - php-language-features
   - references-view

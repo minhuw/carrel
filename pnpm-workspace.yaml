@@ -1,7 +1,6 @@
 packages:
   - .eslint-plugin-local
   - .vscode/extensions/vscode-selfhost-import-aid
-  - .vscode/extensions/vscode-selfhost-test-provider
   - .vscode/extensions/vscode-pr-pinger
   - scripts
   - test/automation
